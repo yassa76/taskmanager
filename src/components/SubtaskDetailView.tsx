@@ -22,6 +22,7 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
   const [ownerId, setOwnerId] = useState('')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
+  const [closedAt, setClosedAt] = useState('')
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -44,6 +45,7 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
       setOwnerId(data.owner.id)
       setStartDate(data.startDate.slice(0, 10))
       setEndDate(data.endDate ? data.endDate.slice(0, 10) : '')
+      setClosedAt(data.closedAt ? data.closedAt.slice(0, 10) : '')
       setTeam(teamRes.ok ? await teamRes.json() : [])
     } catch (e: any) {
       setError(`Errore imprevisto: ${e?.message || e}`)
@@ -57,7 +59,7 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
   }, [load])
 
   const owners = team
-    .filter((t) => t.matchedUser)
+    .filter((t) => t.active && t.matchedUser)
     .map((t) => ({ id: t.matchedUser!.id, name: t.matchedUser!.name || t.email, email: t.email }))
 
   async function save() {
@@ -71,22 +73,26 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
         status,
         ownerId,
         startDate: startDate || null,
-        endDate: endDate || null
+        endDate: endDate || null,
+        closedAt: closedAt || null
       })
     })
     setSaving(false)
     load()
   }
 
+  // "Chiudi oggi" imposta SOLO la data di chiusura effettiva (closedAt) e lo
+  // stato: non tocca la data di scadenza (endDate), che resta il termine
+  // originariamente previsto.
   async function closeNow() {
     const today = new Date().toISOString().slice(0, 10)
-    setEndDate(today)
+    setClosedAt(today)
     setStatus('completato')
     setSaving(true)
     await fetch(`/api/subtasks/${subtaskId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'completato', endDate: today })
+      body: JSON.stringify({ status: 'completato', closedAt: today })
     })
     setSaving(false)
     load()
@@ -148,7 +154,7 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={4}
-              placeholder="Aggiungi dettagli, note di chiusura, contesto..."
+              placeholder="Aggiungi dettagli, note, contesto..."
               className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1"
             />
           </div>
@@ -180,7 +186,7 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
               </select>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <div>
               <label className="text-xs font-medium text-slate-500">Data inizio</label>
               <input
@@ -191,11 +197,20 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
               />
             </div>
             <div>
-              <label className="text-xs font-medium text-slate-500">Data chiusura</label>
+              <label className="text-xs font-medium text-slate-500">Data di scadenza *</label>
               <input
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-slate-500">Data di chiusura</label>
+              <input
+                type="date"
+                value={closedAt}
+                onChange={(e) => setClosedAt(e.target.value)}
                 className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1"
               />
             </div>
@@ -211,7 +226,7 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
           </button>
           <button
             onClick={save}
-            disabled={saving || !title.trim()}
+            disabled={saving || !title.trim() || !endDate}
             className="px-4 py-2 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700 disabled:opacity-50"
           >
             {saving ? 'Salvataggio...' : 'Salva modifiche'}
