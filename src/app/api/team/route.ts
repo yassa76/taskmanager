@@ -35,11 +35,12 @@ export async function POST(req: NextRequest) {
   const body = await req.json()
   const { email, name } = body
   if (!email) return NextResponse.json({ error: 'Email obbligatoria' }, { status: 400 })
+  if (!name) return NextResponse.json({ error: 'Nome obbligatorio' }, { status: 400 })
 
   const member = await prisma.teamMember.upsert({
     where: { email },
-    update: { name: name || undefined },
-    create: { email, name: name || undefined }
+    update: { name },
+    create: { email, name }
   })
 
   return NextResponse.json(member, { status: 201 })
