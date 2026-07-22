@@ -106,7 +106,6 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
           <thead className="bg-slate-50 border-b border-slate-200">
             <tr>
               <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Task</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Progetto</th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Owner</th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Stato</th>
             </tr>
@@ -115,11 +114,10 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
             {tasks.map((t) => (
               <tr key={t.id} className="border-b border-slate-100 hover:bg-slate-50">
                 <td className="px-4 py-2">
-                  <Link href={`/tasks/${t.id}`} className="font-medium text-brand-700 hover:underline">
+                  <Link href={`/tasks/${t.id}`} className="text-brand-600 font-semibold hover:underline">
                     {t.title}
                   </Link>
                 </td>
-                <td className="px-4 py-2">{t.projectName || '—'}</td>
                 <td className="px-4 py-2">{t.owner.name || t.owner.email}</td>
                 <td className="px-4 py-2">
                   <span className={clsx('px-2 py-1 rounded-full text-xs font-medium', STATUS_COLORS[t.status])}>
@@ -130,7 +128,7 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
             ))}
             {tasks.length === 0 && (
               <tr>
-                <td colSpan={4} className="text-center py-6 text-slate-400">
+                <td colSpan={3} className="text-center py-6 text-slate-400">
                   Nessun task associato a questo cliente.
                 </td>
               </tr>
