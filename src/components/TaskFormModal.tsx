@@ -9,6 +9,10 @@ interface OwnerLite {
   email: string
 }
 
+function today() {
+  return new Date().toISOString().slice(0, 10)
+}
+
 export default function TaskFormModal({
   owners,
   clients: initialClients,
@@ -26,11 +30,10 @@ export default function TaskFormModal({
   const [clients, setClients] = useState<ClientDTO[]>(initialClients)
   const [title, setTitle] = useState(task?.title || '')
   const [description, setDescription] = useState(task?.description || '')
-  const [startDate, setStartDate] = useState(task?.startDate ? task.startDate.slice(0, 10) : '')
+  const [startDate, setStartDate] = useState(task?.startDate ? task.startDate.slice(0, 10) : today())
   const [endDate, setEndDate] = useState(task?.endDate ? task.endDate.slice(0, 10) : '')
   const [ownerId, setOwnerId] = useState(task?.owner.id || owners[0]?.id || '')
   const [clientId, setClientId] = useState(task?.clientId || '')
-  const [projectId, setProjectId] = useState(task?.projectId || '')
   const [subtasks, setSubtasks] = useState<{ title: string; ownerId: string }[]>([])
   const [saving, setSaving] = useState(false)
 
@@ -38,11 +41,7 @@ export default function TaskFormModal({
   const [newClientName, setNewClientName] = useState('')
   const [savingClient, setSavingClient] = useState(false)
 
-  const [showNewProject, setShowNewProject] = useState(false)
-  const [newProjectName, setNewProjectName] = useState('')
-  const [savingProject, setSavingProject] = useState(false)
-
-  const selectedClient = clients.find((c) => c.id === clientId)
+  const isValid = title.trim().length > 0 && description.trim().length > 0 && !!startDate && !!ownerId
 
   async function createClient() {
     if (!newClientName.trim()) return
@@ -68,26 +67,6 @@ export default function TaskFormModal({
     setSavingClient(false)
   }
 
-  async function createProject() {
-    if (!newProjectName.trim() || !clientId) return
-    setSavingProject(true)
-    const res = await fetch('/api/projects', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: newProjectName.trim(), clientId })
-    })
-    const created = await res.json()
-    setClients((prev) =>
-      prev.map((c) =>
-        c.id === clientId ? { ...c, projects: [...c.projects, { id: created.id, name: created.name }] } : c
-      )
-    )
-    setProjectId(created.id)
-    setNewProjectName('')
-    setShowNewProject(false)
-    setSavingProject(false)
-  }
-
   function addSubtask() {
     setSubtasks((s) => [...s, { title: '', ownerId }])
   }
@@ -101,17 +80,16 @@ export default function TaskFormModal({
   }
 
   async function submit() {
-    if (!title || !ownerId) return
+    if (!isValid) return
     setSaving(true)
 
     const payload = {
-      title,
-      description,
+      title: title.trim(),
+      description: description.trim(),
       startDate: startDate || null,
       endDate: endDate || null,
       ownerId,
       clientId: clientId || null,
-      projectId: projectId || null,
       ...(isEditing ? {} : { subtasks: subtasks.filter((s) => s.title.trim().length > 0) })
     }
 
@@ -142,7 +120,7 @@ export default function TaskFormModal({
 
         <div className="space-y-3">
           <div>
-            <label className="text-xs font-medium text-slate-500">Titolo *</label>
+            <label className="text-xs font-medium text-slate-500">Nome task *</label>
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -150,17 +128,17 @@ export default function TaskFormModal({
             />
           </div>
           <div>
-            <label className="text-xs font-medium text-slate-500">Descrizione</label>
+            <label className="text-xs font-medium text-slate-500">Descrizione task *</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1"
-              rows={2}
+              rows={3}
             />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-medium text-slate-500">Data avvio</label>
+              <label className="text-xs font-medium text-slate-500">Data avvio *</label>
               <input
                 type="date"
                 value={startDate}
@@ -192,101 +170,49 @@ export default function TaskFormModal({
               ))}
             </select>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-medium text-slate-500">Cliente</label>
+          <div>
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-medium text-slate-500">Cliente (opzionale)</label>
+              <button
+                type="button"
+                onClick={() => setShowNewClient((v) => !v)}
+                className="text-xs text-brand-600 font-medium hover:underline"
+              >
+                {showNewClient ? 'Annulla' : '+ Nuovo cliente'}
+              </button>
+            </div>
+            {!showNewClient && (
+              <select
+                value={clientId}
+                onChange={(e) => setClientId(e.target.value)}
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1"
+              >
+                <option value="">— Nessun cliente —</option>
+                {clients.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            )}
+            {showNewClient && (
+              <div className="flex gap-2 mt-1">
+                <input
+                  value={newClientName}
+                  onChange={(e) => setNewClientName(e.target.value)}
+                  placeholder="Nome nuovo cliente"
+                  className="flex-1 border border-slate-200 rounded-lg px-3 py-2"
+                />
                 <button
                   type="button"
-                  onClick={() => setShowNewClient((v) => !v)}
-                  className="text-xs text-brand-600 font-medium hover:underline"
+                  onClick={createClient}
+                  disabled={savingClient || !newClientName.trim()}
+                  className="px-3 py-2 rounded-lg bg-brand-600 text-white text-sm font-medium disabled:opacity-50"
                 >
-                  {showNewClient ? 'Annulla' : '+ Nuovo cliente'}
+                  Salva
                 </button>
               </div>
-              {!showNewClient && (
-                <select
-                  value={clientId}
-                  onChange={(e) => {
-                    setClientId(e.target.value)
-                    setProjectId('')
-                  }}
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1"
-                >
-                  <option value="">—</option>
-                  {clients.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-              )}
-              {showNewClient && (
-                <div className="flex gap-2 mt-1">
-                  <input
-                    value={newClientName}
-                    onChange={(e) => setNewClientName(e.target.value)}
-                    placeholder="Nome nuovo cliente"
-                    className="flex-1 border border-slate-200 rounded-lg px-3 py-2"
-                  />
-                  <button
-                    type="button"
-                    onClick={createClient}
-                    disabled={savingClient || !newClientName.trim()}
-                    className="px-3 py-2 rounded-lg bg-brand-600 text-white text-sm font-medium disabled:opacity-50"
-                  >
-                    Salva
-                  </button>
-                </div>
-              )}
-            </div>
-            <div>
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-medium text-slate-500">Progetto/Opportunità</label>
-                {clientId && (
-                  <button
-                    type="button"
-                    onClick={() => setShowNewProject((v) => !v)}
-                    className="text-xs text-brand-600 font-medium hover:underline"
-                  >
-                    {showNewProject ? 'Annulla' : '+ Nuovo progetto'}
-                  </button>
-                )}
-              </div>
-              {!showNewProject && (
-                <select
-                  value={projectId}
-                  onChange={(e) => setProjectId(e.target.value)}
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1"
-                  disabled={!selectedClient}
-                >
-                  <option value="">—</option>
-                  {selectedClient?.projects.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name}
-                    </option>
-                  ))}
-                </select>
-              )}
-              {showNewProject && (
-                <div className="flex gap-2 mt-1">
-                  <input
-                    value={newProjectName}
-                    onChange={(e) => setNewProjectName(e.target.value)}
-                    placeholder="Nome nuovo progetto"
-                    className="flex-1 border border-slate-200 rounded-lg px-3 py-2"
-                  />
-                  <button
-                    type="button"
-                    onClick={createProject}
-                    disabled={savingProject || !newProjectName.trim()}
-                    className="px-3 py-2 rounded-lg bg-brand-600 text-white text-sm font-medium disabled:opacity-50"
-                  >
-                    Salva
-                  </button>
-                </div>
-              )}
-            </div>
+            )}
           </div>
 
           {!isEditing && (
@@ -332,8 +258,7 @@ export default function TaskFormModal({
                 ))}
                 {subtasks.length === 0 && (
                   <p className="text-xs text-slate-400">
-                    Nessun sotto-task aggiunto (l&apos;owner di default sarà quello del task padre). Potrai
-                    aggiungerne in seguito dalla pagina di dettaglio del task.
+                    Nessun sotto-task aggiunto. Potrai aggiungerne in seguito dalla pagina di dettaglio del task.
                   </p>
                 )}
               </div>
@@ -347,7 +272,7 @@ export default function TaskFormModal({
           </button>
           <button
             onClick={submit}
-            disabled={saving || !title || !ownerId}
+            disabled={saving || !isValid}
             className="px-4 py-2 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700 disabled:opacity-50"
           >
             {saving ? 'Salvataggio...' : isEditing ? 'Salva modifiche' : 'Crea task'}
