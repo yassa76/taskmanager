@@ -6,7 +6,8 @@ import clsx from 'clsx'
 import type { ClientDTO, TaskDTO, TeamMemberDTO } from '@/types'
 import { STATUS_COLORS, STATUS_LABELS } from '@/lib/taskStatus'
 import Breadcrumbs from './Breadcrumbs'
-import { EditIcon } from './icons'
+import { EditIcon, DeleteIcon } from './icons'
+import TaskFormModal from './TaskFormModal'
 
 const INDUSTRIES = ['GPS', 'TMT', 'ER&I', 'FSI', 'CONS']
 
@@ -19,6 +20,7 @@ interface OwnerLite {
 export default function ClientDetailView({ clientId }: { clientId: string }) {
   const [client, setClient] = useState<ClientDTO | null>(null)
   const [tasks, setTasks] = useState<TaskDTO[]>([])
+  const [allClients, setAllClients] = useState<ClientDTO[]>([])
   const [owners, setOwners] = useState<OwnerLite[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -27,14 +29,18 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({ name: '', description: '', industry: '', ownerId: '' })
 
+  const [showTaskForm, setShowTaskForm] = useState(false)
+  const [editingTask, setEditingTask] = useState<TaskDTO | null>(null)
+
   async function load() {
     setLoading(true)
     setError(null)
     try {
-      const [clientRes, tasksRes, teamRes] = await Promise.all([
+      const [clientRes, tasksRes, teamRes, clientsRes] = await Promise.all([
         fetch(`/api/clients/${clientId}`),
         fetch(`/api/tasks?clientId=${clientId}`),
-        fetch('/api/team')
+        fetch('/api/team'),
+        fetch('/api/clients')
       ])
       if (!clientRes.ok) {
         setError(`Errore nel caricare il cliente (status ${clientRes.status})`)
@@ -49,11 +55,12 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
         ownerId: clientData.owner?.id || ''
       })
       setTasks(tasksRes.ok ? await tasksRes.json() : [])
+      setAllClients(clientsRes.ok ? await clientsRes.json() : [])
       if (teamRes.ok) {
         const team: TeamMemberDTO[] = await teamRes.json()
         setOwners(
           team
-            .filter((t) => t.matchedUser)
+            .filter((t) => t.active && t.matchedUser)
             .map((t) => ({ id: t.matchedUser!.id, name: t.matchedUser!.name || t.email, email: t.email }))
         )
       }
@@ -84,6 +91,12 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
     })
     setSaving(false)
     setShowEditForm(false)
+    load()
+  }
+
+  async function deleteTask(t: TaskDTO) {
+    if (!confirm(`Eliminare il task "${t.title}" e tutti i suoi sub-task?`)) return
+    await fetch(`/api/tasks/${t.id}`, { method: 'DELETE' })
     load()
   }
 
@@ -133,15 +146,26 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
       </div>
 
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-        <div className="px-5 py-3 border-b border-slate-200">
+        <div className="px-5 py-3 border-b border-slate-200 flex items-center justify-between">
           <h2 className="font-semibold text-slate-800">Task associati</h2>
+          <button
+            onClick={() => {
+              setEditingTask(null)
+              setShowTaskForm(true)
+            }}
+            className="px-3 py-1.5 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700"
+          >
+            + Nuovo Task
+          </button>
         </div>
         <table className="w-full text-sm">
           <thead className="bg-slate-50 border-b border-slate-200">
             <tr>
               <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Task</th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Owner</th>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Scadenza</th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Stato</th>
+              <th className="px-4 py-2 text-right text-xs font-semibold text-slate-500 uppercase">Azioni</th>
             </tr>
           </thead>
           <tbody>
@@ -157,16 +181,36 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
                   </Link>
                 </td>
                 <td className="px-4 py-2">{t.owner.name || t.owner.email}</td>
+                <td className="px-4 py-2">{t.endDate ? t.endDate.slice(0, 10) : '—'}</td>
                 <td className="px-4 py-2">
                   <span className={clsx('px-2 py-1 rounded-full text-xs font-medium', STATUS_COLORS[t.status])}>
                     {STATUS_LABELS[t.status]}
                   </span>
                 </td>
+                <td className="px-4 py-2 text-right whitespace-nowrap">
+                  <button
+                    onClick={() => {
+                      setEditingTask(t)
+                      setShowTaskForm(true)
+                    }}
+                    className="inline-flex text-slate-400 hover:text-brand-600 mr-3 align-middle"
+                    title="Modifica"
+                  >
+                    <EditIcon />
+                  </button>
+                  <button
+                    onClick={() => deleteTask(t)}
+                    className="inline-flex text-slate-400 hover:text-red-600 align-middle"
+                    title="Elimina"
+                  >
+                    <DeleteIcon />
+                  </button>
+                </td>
               </tr>
             ))}
             {tasks.length === 0 && (
               <tr>
-                <td colSpan={3} className="text-center py-6 text-slate-400">
+                <td colSpan={5} className="text-center py-6 text-slate-400">
                   Nessun task associato a questo cliente.
                 </td>
               </tr>
@@ -247,6 +291,24 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
             </div>
           </div>
         </div>
+      )}
+
+      {showTaskForm && (
+        <TaskFormModal
+          owners={owners}
+          clients={allClients}
+          task={editingTask || undefined}
+          defaultClientId={client.id}
+          onClose={() => {
+            setShowTaskForm(false)
+            setEditingTask(null)
+          }}
+          onSaved={() => {
+            setShowTaskForm(false)
+            setEditingTask(null)
+            load()
+          }}
+        />
       )}
     </div>
   )
