@@ -8,8 +8,8 @@ import Breadcrumbs from './Breadcrumbs'
 
 const ROLE_LABELS: Record<string, string> = {
   admin: 'Admin',
-  normale: 'Normale',
-  sola_lettura: 'Sola lettura'
+  normal: 'Normale',
+  read_only: 'Sola lettura'
 }
 
 export default function TeamView() {
@@ -147,17 +147,17 @@ export default function TeamView() {
                   <td className="px-4 py-2">
                     {isAdmin ? (
                       <select
-                        value={m.matchedUser?.role || 'normale'}
+                        value={m.matchedUser?.role || 'normal'}
                         onChange={(e) => updateRole(m.id, e.target.value)}
                         className="text-xs border border-slate-200 rounded-md px-2 py-1"
                       >
                         <option value="admin">Admin</option>
-                        <option value="normale">Normale</option>
-                        <option value="sola_lettura">Sola lettura</option>
+                        <option value="normal">Normale</option>
+                        <option value="read_only">Sola lettura</option>
                       </select>
                     ) : (
                       <span className="text-slate-600 text-xs">
-                        {ROLE_LABELS[m.matchedUser?.role || 'normale']}
+                        {ROLE_LABELS[m.matchedUser?.role || 'normal']}
                       </span>
                     )}
                   </td>
