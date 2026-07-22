@@ -277,9 +277,10 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
                 <td className="px-4 py-2 text-right">
                   <button
                     onClick={() => deleteSubtask(s.id)}
-                    className="text-xs text-red-500 font-medium hover:underline"
+                    className="text-slate-400 hover:text-red-600 text-base"
+                    title="Elimina"
                   >
-                    Elimina
+                    🗑
                   </button>
                 </td>
               </tr>
