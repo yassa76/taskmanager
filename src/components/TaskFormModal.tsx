@@ -17,12 +17,14 @@ export default function TaskFormModal({
   owners,
   clients: initialClients,
   task,
+  defaultClientId,
   onClose,
   onSaved
 }: {
   owners: OwnerLite[]
   clients: ClientDTO[]
   task?: TaskDTO
+  defaultClientId?: string
   onClose: () => void
   onSaved: () => void
 }) {
@@ -33,7 +35,7 @@ export default function TaskFormModal({
   const [startDate, setStartDate] = useState(task?.startDate ? task.startDate.slice(0, 10) : today())
   const [endDate, setEndDate] = useState(task?.endDate ? task.endDate.slice(0, 10) : '')
   const [ownerId, setOwnerId] = useState(task?.owner?.id || owners[0]?.id || '')
-  const [clientId, setClientId] = useState(task?.clientId || '')
+  const [clientId, setClientId] = useState(task?.clientId || defaultClientId || '')
   const [subtasks, setSubtasks] = useState<{ title: string; ownerId: string; endDate: string }[]>([])
   const [saving, setSaving] = useState(false)
 
