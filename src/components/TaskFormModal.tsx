@@ -34,14 +34,21 @@ export default function TaskFormModal({
   const [endDate, setEndDate] = useState(task?.endDate ? task.endDate.slice(0, 10) : '')
   const [ownerId, setOwnerId] = useState(task?.owner?.id || owners[0]?.id || '')
   const [clientId, setClientId] = useState(task?.clientId || '')
-  const [subtasks, setSubtasks] = useState<{ title: string; ownerId: string }[]>([])
+  const [subtasks, setSubtasks] = useState<{ title: string; ownerId: string; endDate: string }[]>([])
   const [saving, setSaving] = useState(false)
 
   const [showNewClient, setShowNewClient] = useState(false)
   const [newClientName, setNewClientName] = useState('')
   const [savingClient, setSavingClient] = useState(false)
 
-  const isValid = title.trim().length > 0 && description.trim().length > 0 && !!startDate && !!ownerId
+  const subtasksValid = subtasks.every((s) => s.title.trim().length === 0 || !!s.endDate)
+  const isValid =
+    title.trim().length > 0 &&
+    description.trim().length > 0 &&
+    !!startDate &&
+    !!endDate &&
+    !!ownerId &&
+    subtasksValid
 
   async function createClient() {
     if (!newClientName.trim()) return
@@ -68,10 +75,10 @@ export default function TaskFormModal({
   }
 
   function addSubtask() {
-    setSubtasks((s) => [...s, { title: '', ownerId }])
+    setSubtasks((s) => [...s, { title: '', ownerId, endDate: '' }])
   }
 
-  function updateSubtask(i: number, field: 'title' | 'ownerId', value: string) {
+  function updateSubtask(i: number, field: 'title' | 'ownerId' | 'endDate', value: string) {
     setSubtasks((s) => s.map((st, idx) => (idx === i ? { ...st, [field]: value } : st)))
   }
 
@@ -90,7 +97,13 @@ export default function TaskFormModal({
       endDate: endDate || null,
       ownerId,
       clientId: clientId || null,
-      ...(isEditing ? {} : { subtasks: subtasks.filter((s) => s.title.trim().length > 0) })
+      ...(isEditing
+        ? {}
+        : {
+            subtasks: subtasks
+              .filter((s) => s.title.trim().length > 0)
+              .map((s) => ({ title: s.title, ownerId: s.ownerId, endDate: s.endDate }))
+          })
     }
 
     if (isEditing) {
@@ -147,7 +160,7 @@ export default function TaskFormModal({
               />
             </div>
             <div>
-              <label className="text-xs font-medium text-slate-500">Data fine</label>
+              <label className="text-xs font-medium text-slate-500">Data di scadenza *</label>
               <input
                 type="date"
                 value={endDate}
@@ -218,7 +231,7 @@ export default function TaskFormModal({
           {!isEditing && (
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="text-xs font-medium text-slate-500">Sotto-task</label>
+                <label className="text-xs font-medium text-slate-500">Sub-task</label>
                 <button
                   type="button"
                   onClick={addSubtask}
@@ -247,6 +260,13 @@ export default function TaskFormModal({
                         </option>
                       ))}
                     </select>
+                    <input
+                      type="date"
+                      value={s.endDate}
+                      onChange={(e) => updateSubtask(i, 'endDate', e.target.value)}
+                      title="Data di scadenza (obbligatoria)"
+                      className="border border-slate-200 rounded-lg px-2 py-1.5 text-sm"
+                    />
                     <button
                       type="button"
                       onClick={() => removeSubtask(i)}
@@ -258,7 +278,7 @@ export default function TaskFormModal({
                 ))}
                 {subtasks.length === 0 && (
                   <p className="text-xs text-slate-400">
-                    Nessun sotto-task aggiunto. Potrai aggiungerne in seguito dalla pagina di dettaglio del task.
+                    Nessun sub-task aggiunto. Potrai aggiungerne in seguito dalla pagina di dettaglio del task.
                   </p>
                 )}
               </div>
