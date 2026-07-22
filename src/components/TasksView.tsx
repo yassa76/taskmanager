@@ -8,6 +8,7 @@ import { STATUS_COLORS, STATUS_LABELS } from '@/lib/taskStatus'
 import type { TaskDTO, TeamMemberDTO, ClientDTO } from '@/types'
 import TaskFormModal from './TaskFormModal'
 import Filters, { FilterState } from './Filters'
+import Breadcrumbs from './Breadcrumbs'
 
 type SortKey = 'title' | 'clientName' | 'owner' | 'startDate' | 'endDate' | 'status'
 type SortDir = 'asc' | 'desc'
@@ -112,7 +113,7 @@ export default function TasksView() {
   }
 
   async function deleteTask(t: TaskDTO) {
-    if (!confirm(`Eliminare il task "${t.title}" e tutti i suoi sotto-task?`)) return
+    if (!confirm(`Eliminare il task "${t.title}" e tutti i suoi sub-task?`)) return
     await fetch(`/api/tasks/${t.id}`, { method: 'DELETE' })
     loadAll()
   }
@@ -127,8 +128,8 @@ export default function TasksView() {
       'Data fine': t.endDate ? t.endDate.slice(0, 10) : '',
       Stato: STATUS_LABELS[t.status],
       'Avanzamento %': t.progress,
-      'Sotto-task': t.subtasks.length,
-      'Sotto-task completati': t.subtasks.filter((s) => s.status === 'completato').length
+      'Sub-task': t.subtasks.length,
+      'Sub-task completati': t.subtasks.filter((s) => s.status === 'completato').length
     }))
     const ws = XLSX.utils.json_to_sheet(rows)
     const wb = XLSX.utils.book_new()
@@ -147,9 +148,16 @@ export default function TasksView() {
 
   return (
     <div>
+      <Breadcrumbs items={[{ label: 'Task' }]} />
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <h1 className="text-xl font-bold text-slate-800">Task</h1>
         <div className="flex gap-2">
+          <button
+            onClick={loadAll}
+            className="px-4 py-2 rounded-lg border border-slate-300 text-sm font-medium text-slate-700 hover:bg-slate-100"
+          >
+            ↻ Aggiorna
+          </button>
           <button
             onClick={exportXls}
             className="px-4 py-2 rounded-lg border border-slate-300 text-sm font-medium text-slate-700 hover:bg-slate-100"
@@ -174,8 +182,8 @@ export default function TasksView() {
         <table className="w-full text-sm">
           <thead className="bg-slate-50 border-b border-slate-200">
             <tr>
-              <SortHeader label="Cliente" k="clientName" />
               <SortHeader label="Task" k="title" />
+              <SortHeader label="Cliente" k="clientName" />
               <SortHeader label="Owner" k="owner" />
               <SortHeader label="Data avvio" k="startDate" />
               <SortHeader label="Data fine" k="endDate" />
@@ -202,6 +210,11 @@ export default function TasksView() {
             {sortedTasks.map((t) => (
               <tr key={t.id} className="border-b border-slate-100 hover:bg-slate-50">
                 <td className="px-3 py-2">
+                  <Link href={`/tasks/${t.id}`} className="text-brand-600 font-semibold hover:underline">
+                    {t.title}
+                  </Link>
+                </td>
+                <td className="px-3 py-2">
                   {t.clientId ? (
                     <Link href={`/clients/${t.clientId}`} className="text-brand-600 font-medium hover:underline">
                       {t.clientName}
@@ -209,11 +222,6 @@ export default function TasksView() {
                   ) : (
                     <span className="text-slate-400">—</span>
                   )}
-                </td>
-                <td className="px-3 py-2">
-                  <Link href={`/tasks/${t.id}`} className="text-brand-600 font-semibold hover:underline">
-                    {t.title}
-                  </Link>
                 </td>
                 <td className="px-3 py-2">{t.owner.name || t.owner.email}</td>
                 <td className="px-3 py-2">{t.startDate ? t.startDate.slice(0, 10) : '—'}</td>
