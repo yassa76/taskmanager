@@ -1,13 +1,12 @@
 'use client'
 
 import { useEffect, useMemo, useState, useCallback } from 'react'
-import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 import * as XLSX from 'xlsx'
 import clsx from 'clsx'
 import { STATUS_COLORS, STATUS_LABELS } from '@/lib/taskStatus'
 import type { TaskDTO, TeamMemberDTO, ClientDTO } from '@/types'
 import TaskFormModal from './TaskFormModal'
-import CloseParentModal from './CloseParentModal'
 import Filters, { FilterState } from './Filters'
 
 type SortKey = 'title' | 'clientName' | 'projectName' | 'owner' | 'startDate' | 'endDate' | 'status'
@@ -23,7 +22,7 @@ const defaultFilters: FilterState = {
 }
 
 export default function TasksView() {
-  const { data: session } = useSession()
+  const router = useRouter()
   const [tasks, setTasks] = useState<TaskDTO[]>([])
   const [team, setTeam] = useState<TeamMemberDTO[]>([])
   const [clients, setClients] = useState<ClientDTO[]>([])
@@ -31,9 +30,8 @@ export default function TasksView() {
   const [filters, setFilters] = useState<FilterState>(defaultFilters)
   const [sortKey, setSortKey] = useState<SortKey>('endDate')
   const [sortDir, setSortDir] = useState<SortDir>('asc')
-  const [expanded, setExpanded] = useState<Set<string>>(new Set())
   const [showForm, setShowForm] = useState(false)
-  const [pendingClose, setPendingClose] = useState<TaskDTO | null>(null)
+  const [editingTask, setEditingTask] = useState<TaskDTO | null>(null)
 
   const loadAll = useCallback(async () => {
     setLoading(true)
@@ -120,46 +118,10 @@ export default function TasksView() {
     }
   }
 
-  function toggleExpand(id: string) {
-    setExpanded((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
-    })
-  }
-
-  async function updateSubtaskStatus(taskId: string, subtaskId: string, status: string) {
-    const res = await fetch(`/api/subtasks/${subtaskId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status })
-    })
-    const data = await res.json()
-    await loadAll()
-    if (data.pendingClosure) {
-      const task = tasks.find((t) => t.id === taskId)
-      if (task) setPendingClose({ ...task })
-    }
-  }
-
-  async function updateSubtaskOwner(subtaskId: string, ownerId: string) {
-    await fetch(`/api/subtasks/${subtaskId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ownerId })
-    })
-    await loadAll()
-  }
-
-  async function confirmCloseParent(taskId: string, confirm: boolean) {
-    await fetch(`/api/tasks/${taskId}/close`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ confirm })
-    })
-    setPendingClose(null)
-    await loadAll()
+  async function deleteTask(t: TaskDTO) {
+    if (!confirm(`Eliminare il task "${t.title}" e tutti i suoi sotto-task?`)) return
+    await fetch(`/api/tasks/${t.id}`, { method: 'DELETE' })
+    loadAll()
   }
 
   function exportXls() {
@@ -203,7 +165,10 @@ export default function TasksView() {
             Esporta XLS
           </button>
           <button
-            onClick={() => setShowForm(true)}
+            onClick={() => {
+              setEditingTask(null)
+              setShowForm(true)
+            }}
             className="px-4 py-2 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700"
           >
             + Nuovo Task
@@ -211,18 +176,12 @@ export default function TasksView() {
         </div>
       </div>
 
-      <Filters
-        filters={filters}
-        onChange={setFilters}
-        clients={clients}
-        owners={owners}
-      />
+      <Filters filters={filters} onChange={setFilters} clients={clients} owners={owners} />
 
       <div className="mt-4 bg-white rounded-xl border border-slate-200 overflow-x-auto shadow-sm">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 border-b border-slate-200">
             <tr>
-              <th className="w-8" />
               <SortHeader label="Cliente" k="clientName" />
               <SortHeader label="Progetto" k="projectName" />
               <SortHeader label="Task" k="title" />
@@ -231,6 +190,7 @@ export default function TasksView() {
               <SortHeader label="Data fine" k="endDate" />
               <SortHeader label="Stato" k="status" />
               <th className="px-3 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Avanz.</th>
+              <th className="px-3 py-2 text-right text-xs font-semibold text-slate-500 uppercase">Azioni</th>
             </tr>
           </thead>
           <tbody>
@@ -249,82 +209,46 @@ export default function TasksView() {
               </tr>
             )}
             {sortedTasks.map((t) => (
-              <>
-                <tr
-                  key={t.id}
-                  className="border-b border-slate-100 hover:bg-slate-50 cursor-pointer"
-                  onClick={() => toggleExpand(t.id)}
-                >
-                  <td className="px-2 text-slate-400">{expanded.has(t.id) ? '▾' : '▸'}</td>
-                  <td className="px-3 py-2">{t.clientName || '—'}</td>
-                  <td className="px-3 py-2">{t.projectName || '—'}</td>
-                  <td className="px-3 py-2 font-medium text-slate-800">{t.title}</td>
-                  <td className="px-3 py-2">{t.owner.name || t.owner.email}</td>
-                  <td className="px-3 py-2">{t.startDate ? t.startDate.slice(0, 10) : '—'}</td>
-                  <td className="px-3 py-2">{t.endDate ? t.endDate.slice(0, 10) : '—'}</td>
-                  <td className="px-3 py-2">
-                    <span className={clsx('px-2 py-1 rounded-full text-xs font-medium', STATUS_COLORS[t.status])}>
-                      {STATUS_LABELS[t.status]}
-                    </span>
-                  </td>
-                  <td className="px-3 py-2 w-32">
-                    <div className="w-full bg-slate-100 rounded-full h-2">
-                      <div
-                        className="bg-brand-500 h-2 rounded-full"
-                        style={{ width: `${t.progress}%` }}
-                      />
-                    </div>
-                    <span className="text-xs text-slate-400">{t.progress}%</span>
-                  </td>
-                </tr>
-                {expanded.has(t.id) && (
-                  <tr key={`${t.id}-sub`} className="bg-slate-50/60 border-b border-slate-100">
-                    <td />
-                    <td colSpan={8} className="px-3 py-3">
-                      {t.description && (
-                        <p className="text-slate-500 text-xs mb-2">{t.description}</p>
-                      )}
-                      {t.subtasks.length === 0 && (
-                        <p className="text-slate-400 text-xs">Nessun sotto-task.</p>
-                      )}
-                      <div className="space-y-1.5">
-                        {t.subtasks.map((s) => (
-                          <div
-                            key={s.id}
-                            className="flex items-center gap-3 bg-white border border-slate-200 rounded-lg px-3 py-1.5"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <span className="flex-1 text-slate-700">{s.title}</span>
-                            <select
-                              value={s.owner.id}
-                              onChange={(e) => updateSubtaskOwner(s.id, e.target.value)}
-                              className="text-xs border border-slate-200 rounded-md px-2 py-1"
-                            >
-                              {owners.map((o) => (
-                                <option key={o.id} value={o.id}>
-                                  {o.name}
-                                </option>
-                              ))}
-                            </select>
-                            <select
-                              value={s.status}
-                              onChange={(e) => updateSubtaskStatus(t.id, s.id, e.target.value)}
-                              className={clsx(
-                                'text-xs rounded-md px-2 py-1 border-0 font-medium',
-                                STATUS_COLORS[s.status]
-                              )}
-                            >
-                              <option value="da_avviare">Da avviare</option>
-                              <option value="in_corso">In corso</option>
-                              <option value="completato">Completato</option>
-                            </select>
-                          </div>
-                        ))}
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </>
+              <tr
+                key={t.id}
+                className="border-b border-slate-100 hover:bg-slate-50 cursor-pointer"
+                onClick={() => router.push(`/tasks/${t.id}`)}
+              >
+                <td className="px-3 py-2">{t.clientName || '—'}</td>
+                <td className="px-3 py-2">{t.projectName || '—'}</td>
+                <td className="px-3 py-2 font-medium text-slate-800">{t.title}</td>
+                <td className="px-3 py-2">{t.owner.name || t.owner.email}</td>
+                <td className="px-3 py-2">{t.startDate ? t.startDate.slice(0, 10) : '—'}</td>
+                <td className="px-3 py-2">{t.endDate ? t.endDate.slice(0, 10) : '—'}</td>
+                <td className="px-3 py-2">
+                  <span className={clsx('px-2 py-1 rounded-full text-xs font-medium', STATUS_COLORS[t.status])}>
+                    {STATUS_LABELS[t.status]}
+                  </span>
+                </td>
+                <td className="px-3 py-2 w-32">
+                  <div className="w-full bg-slate-100 rounded-full h-2">
+                    <div className="bg-brand-500 h-2 rounded-full" style={{ width: `${t.progress}%` }} />
+                  </div>
+                  <span className="text-xs text-slate-400">{t.progress}%</span>
+                </td>
+                <td className="px-3 py-2 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                  <button
+                    onClick={() => {
+                      setEditingTask(t)
+                      setShowForm(true)
+                    }}
+                    className="text-xs text-brand-600 font-medium hover:underline mr-3"
+                  >
+                    Modifica
+                  </button>
+                  <button
+                    onClick={() => deleteTask(t)}
+                    className="text-xs text-red-500 font-medium hover:underline"
+                  >
+                    Elimina
+                  </button>
+                </td>
+              </tr>
             ))}
           </tbody>
         </table>
@@ -334,19 +258,16 @@ export default function TasksView() {
         <TaskFormModal
           owners={owners}
           clients={clients}
-          onClose={() => setShowForm(false)}
-          onCreated={() => {
+          task={editingTask || undefined}
+          onClose={() => {
             setShowForm(false)
+            setEditingTask(null)
+          }}
+          onSaved={() => {
+            setShowForm(false)
+            setEditingTask(null)
             loadAll()
           }}
-        />
-      )}
-
-      {pendingClose && (
-        <CloseParentModal
-          task={pendingClose}
-          onConfirm={(confirm) => confirmCloseParent(pendingClose.id, confirm)}
-          onDismiss={() => setPendingClose(null)}
         />
       )}
     </div>
