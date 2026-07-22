@@ -32,6 +32,8 @@ export default function TasksView() {
   const [sortDir, setSortDir] = useState<SortDir>('asc')
   const [showForm, setShowForm] = useState(false)
   const [editingTask, setEditingTask] = useState<TaskDTO | null>(null)
+  const [page, setPage] = useState(1)
+  const PAGE_SIZE = 20
 
   const loadAll = useCallback(async () => {
     setLoading(true)
@@ -55,13 +57,14 @@ export default function TasksView() {
 
   useEffect(() => {
     loadAll()
+    setPage(1)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters])
 
   const owners = useMemo(
     () =>
       team
-        .filter((t) => t.matchedUser)
+        .filter((t) => t.active && t.matchedUser)
         .map((t) => ({ id: t.matchedUser!.id, name: t.matchedUser!.name || t.email, email: t.email })),
     [team]
   )
@@ -111,7 +114,11 @@ export default function TasksView() {
       setSortKey(key)
       setSortDir('asc')
     }
+    setPage(1)
   }
+
+  const totalPages = Math.max(1, Math.ceil(sortedTasks.length / PAGE_SIZE))
+  const pagedTasks = sortedTasks.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   async function deleteTask(t: TaskDTO) {
     if (!confirm(`Eliminare il task "${t.title}" e tutti i suoi sub-task?`)) return
@@ -126,7 +133,7 @@ export default function TasksView() {
       Descrizione: t.description || '',
       Owner: t.owner.name || t.owner.email,
       'Data avvio': t.startDate ? t.startDate.slice(0, 10) : '',
-      'Data fine': t.endDate ? t.endDate.slice(0, 10) : '',
+      'Data scadenza': t.endDate ? t.endDate.slice(0, 10) : '',
       Stato: STATUS_LABELS[t.status],
       'Avanzamento %': t.progress,
       'Sub-task': t.subtasks.length,
@@ -187,7 +194,7 @@ export default function TasksView() {
               <SortHeader label="Cliente" k="clientName" />
               <SortHeader label="Owner" k="owner" />
               <SortHeader label="Data avvio" k="startDate" />
-              <SortHeader label="Data fine" k="endDate" />
+              <SortHeader label="Scadenza" k="endDate" />
               <SortHeader label="Stato" k="status" />
               <th className="px-3 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Avanz.</th>
               <th className="px-3 py-2 text-right text-xs font-semibold text-slate-500 uppercase">Azioni</th>
@@ -208,7 +215,7 @@ export default function TasksView() {
                 </td>
               </tr>
             )}
-            {sortedTasks.map((t) => (
+            {pagedTasks.map((t) => (
               <tr key={t.id} className="border-b border-slate-100 hover:bg-slate-50">
                 <td className="px-3 py-2 max-w-xs">
                   <Link
@@ -270,6 +277,30 @@ export default function TasksView() {
           </tbody>
         </table>
       </div>
+
+      {sortedTasks.length > 0 && (
+        <div className="flex items-center justify-between mt-3 text-sm text-slate-500">
+          <span>
+            {sortedTasks.length} task totali — pagina {page} di {totalPages}
+          </span>
+          <div className="flex gap-1">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="px-3 py-1.5 rounded-lg border border-slate-300 disabled:opacity-40 hover:bg-slate-100"
+            >
+              ← Precedente
+            </button>
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages}
+              className="px-3 py-1.5 rounded-lg border border-slate-300 disabled:opacity-40 hover:bg-slate-100"
+            >
+              Successiva →
+            </button>
+          </div>
+        </div>
+      )}
 
       {showForm && (
         <TaskFormModal
