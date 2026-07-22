@@ -122,15 +122,16 @@ model Task {
 }
 
 model Subtask {
-  id        String    @id @default(cuid())
-  title     String
-  status    String    @default("da_avviare") // "da_avviare" | "in_corso" | "completato"
-  startDate DateTime  @default(now())
-  endDate   DateTime?
-  ownerId   String
-  owner     User      @relation("SubtaskOwner", fields: [ownerId], references: [id])
-  taskId    String
-  task      Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  status      String    @default("da_avviare") // "da_avviare" | "in_corso" | "completato"
+  startDate   DateTime  @default(now())
+  endDate     DateTime?
+  ownerId     String
+  owner       User      @relation("SubtaskOwner", fields: [ownerId], references: [id])
+  taskId      String
+  task        Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
