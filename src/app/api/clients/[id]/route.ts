@@ -17,6 +17,19 @@ function toClientDTO(client: any): ClientDTO {
   }
 }
 
+export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
+  const session = await getServerSession(authOptions)
+  if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
+
+  const client = await prisma.client.findUnique({
+    where: { id: params.id },
+    include: { projects: { select: { id: true, name: true } }, owner: true }
+  })
+  if (!client) return NextResponse.json({ error: 'Cliente non trovato' }, { status: 404 })
+
+  return NextResponse.json(toClientDTO(client))
+}
+
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
