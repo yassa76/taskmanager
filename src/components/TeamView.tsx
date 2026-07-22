@@ -24,12 +24,12 @@ export default function TeamView() {
   }, [])
 
   async function invite() {
-    if (!email) return
+    if (!email.trim() || !name.trim()) return
     setSaving(true)
     await fetch('/api/team', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, name })
+      body: JSON.stringify({ email: email.trim(), name: name.trim() })
     })
     setEmail('')
     setName('')
@@ -65,7 +65,7 @@ export default function TeamView() {
           />
         </div>
         <div className="flex-1 min-w-[180px]">
-          <label className="text-xs font-medium text-slate-500">Nome (opzionale)</label>
+          <label className="text-xs font-medium text-slate-500">Nome *</label>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -74,7 +74,7 @@ export default function TeamView() {
         </div>
         <button
           onClick={invite}
-          disabled={saving || !email}
+          disabled={saving || !email.trim() || !name.trim()}
           className="px-4 py-2 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700 disabled:opacity-50"
         >
           Aggiungi al team
