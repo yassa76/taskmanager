@@ -8,7 +8,11 @@ export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID as string,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+      // Permette di collegare il login Google a un account "segnaposto"
+      // gia' creato quando la persona e' stata invitata nel Team, anche
+      // se non si e' ancora mai loggata.
+      allowDangerousEmailAccountLinking: true
     })
   ],
   session: { strategy: 'database' },
@@ -19,7 +23,7 @@ export const authOptions: NextAuthOptions = {
     async session({ session, user }) {
       if (session.user) {
         ;(session.user as any).id = user.id
-        ;(session.user as any).role = (user as any).role ?? 'member'
+        ;(session.user as any).role = (user as any).role ?? 'normale'
       }
       return session
     }
