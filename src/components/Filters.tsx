@@ -6,7 +6,6 @@ import type { ClientDTO } from '@/types'
 export interface FilterState {
   view: 'all' | 'mine'
   clientId: string
-  projectId: string
   ownerId: string
   status: string
   search: string
@@ -23,8 +22,6 @@ export default function Filters({
   clients: ClientDTO[]
   owners: { id: string; name: string; email: string }[]
 }) {
-  const selectedClient = clients.find((c) => c.id === filters.clientId)
-
   return (
     <div className="bg-white border border-slate-200 rounded-xl p-3 flex flex-wrap items-center gap-2">
       <div className="flex bg-slate-100 rounded-lg p-1">
@@ -44,27 +41,13 @@ export default function Filters({
 
       <select
         value={filters.clientId}
-        onChange={(e) => onChange({ ...filters, clientId: e.target.value, projectId: '' })}
+        onChange={(e) => onChange({ ...filters, clientId: e.target.value })}
         className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm"
       >
         <option value="">Tutti i clienti</option>
         {clients.map((c) => (
           <option key={c.id} value={c.id}>
             {c.name}
-          </option>
-        ))}
-      </select>
-
-      <select
-        value={filters.projectId}
-        onChange={(e) => onChange({ ...filters, projectId: e.target.value })}
-        className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm"
-        disabled={!selectedClient}
-      >
-        <option value="">Tutti i progetti</option>
-        {selectedClient?.projects.map((p) => (
-          <option key={p.id} value={p.id}>
-            {p.name}
           </option>
         ))}
       </select>
