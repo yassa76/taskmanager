@@ -53,7 +53,7 @@ model User {
   emailVerified DateTime?
   name          String?
   image         String?
-  role          String    @default("normale") // "admin" | "normale" | "sola_lettura"
+  role          String    @default("normal") // "admin" | "normal" | "read_only"
   createdAt     DateTime  @default(now())
 
   accounts Account[]
