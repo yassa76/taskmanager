@@ -50,7 +50,14 @@ export default function TaskFormModal({
       body: JSON.stringify({ name: newClientName.trim() })
     })
     const created = await res.json()
-    const newClient: ClientDTO = { id: created.id, name: created.name, projects: [] }
+    const newClient: ClientDTO = {
+      id: created.id,
+      name: created.name,
+      description: created.description ?? null,
+      industry: created.industry ?? null,
+      owner: created.owner ?? null,
+      projects: []
+    }
     setClients((prev) => [...prev, newClient])
     setClientId(created.id)
     setNewClientName('')
