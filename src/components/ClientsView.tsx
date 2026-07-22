@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import type { ClientDTO, TeamMemberDTO } from '@/types'
 import Breadcrumbs from './Breadcrumbs'
+import { EditIcon, DeleteIcon } from './icons'
 
 const INDUSTRIES = ['GPS', 'TMT', 'ER&I', 'FSI', 'CONS']
 
@@ -213,17 +214,17 @@ export default function ClientsView() {
                   <td className="px-4 py-2 text-right whitespace-nowrap">
                     <button
                       onClick={() => openEditForm(c)}
-                      className="text-slate-400 hover:text-brand-600 mr-2 text-base"
+                      className="inline-flex text-slate-400 hover:text-brand-600 mr-3 align-middle"
                       title="Modifica"
                     >
-                      ✎
+                      <EditIcon />
                     </button>
                     <button
                       onClick={() => deleteClient(c)}
-                      className="text-slate-400 hover:text-red-600 text-base"
+                      className="inline-flex text-slate-400 hover:text-red-600 align-middle"
                       title="Elimina"
                     >
-                      🗑
+                      <DeleteIcon />
                     </button>
                   </td>
                 </tr>
