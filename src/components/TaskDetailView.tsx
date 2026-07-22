@@ -141,14 +141,16 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4 pt-4 border-t border-slate-100 text-sm">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-4 pt-4 border-t border-slate-100 text-sm">
           <div>
             <p className="text-xs text-slate-400 uppercase">Cliente</p>
-            <p className="text-slate-700">{task.clientName || '—'}</p>
-          </div>
-          <div>
-            <p className="text-xs text-slate-400 uppercase">Progetto</p>
-            <p className="text-slate-700">{task.projectName || '—'}</p>
+            {task.clientId ? (
+              <Link href={`/clients/${task.clientId}`} className="text-brand-600 font-medium hover:underline">
+                {task.clientName}
+              </Link>
+            ) : (
+              <p className="text-slate-700">—</p>
+            )}
           </div>
           <div>
             <p className="text-xs text-slate-400 uppercase">Owner</p>
