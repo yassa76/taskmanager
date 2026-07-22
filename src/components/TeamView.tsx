@@ -1,14 +1,24 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useSession } from 'next-auth/react'
 import clsx from 'clsx'
 import type { TeamMemberDTO } from '@/types'
 import Breadcrumbs from './Breadcrumbs'
 
+const ROLE_LABELS: Record<string, string> = {
+  admin: 'Admin',
+  normale: 'Normale',
+  sola_lettura: 'Sola lettura'
+}
+
 export default function TeamView() {
+  const { data: session } = useSession()
+  const isAdmin = (session?.user as any)?.role === 'admin'
+
   const [members, setMembers] = useState<TeamMemberDTO[]>([])
-  const [email, setEmail] = useState('')
   const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
@@ -24,16 +34,34 @@ export default function TeamView() {
   }, [])
 
   async function invite() {
-    if (!email.trim() || !name.trim()) return
+    if (!name.trim() || !email.trim()) return
     setSaving(true)
     await fetch('/api/team', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: email.trim(), name: name.trim() })
+      body: JSON.stringify({ name: name.trim(), email: email.trim() })
     })
-    setEmail('')
     setName('')
+    setEmail('')
     setSaving(false)
+    load()
+  }
+
+  async function updateRole(memberId: string, role: string) {
+    await fetch(`/api/team/${memberId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role })
+    })
+    load()
+  }
+
+  async function toggleActive(memberId: string, active: boolean) {
+    await fetch(`/api/team/${memberId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ active })
+    })
     load()
   }
 
@@ -50,20 +78,12 @@ export default function TeamView() {
         </button>
       </div>
       <p className="text-slate-500 text-sm mb-6">
-        Aggiungi qui le email delle persone del team. Quando faranno il login con Google usando
-        una di queste email, verranno automaticamente riconosciute e associate.
+        Aggiungi qui le persone del team. Sono selezionabili come owner subito, anche prima che
+        facciano il login: quando si registreranno con Google usando questa email verranno
+        automaticamente riconosciute.
       </p>
 
       <div className="bg-white border border-slate-200 rounded-xl p-4 mb-6 flex flex-wrap gap-2 items-end">
-        <div className="flex-1 min-w-[220px]">
-          <label className="text-xs font-medium text-slate-500">Email</label>
-          <input
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="persona@azienda.com"
-            className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1"
-          />
-        </div>
         <div className="flex-1 min-w-[180px]">
           <label className="text-xs font-medium text-slate-500">Nome *</label>
           <input
@@ -72,9 +92,18 @@ export default function TeamView() {
             className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1"
           />
         </div>
+        <div className="flex-1 min-w-[220px]">
+          <label className="text-xs font-medium text-slate-500">Email *</label>
+          <input
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="persona@azienda.com"
+            className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1"
+          />
+        </div>
         <button
           onClick={invite}
-          disabled={saving || !email.trim() || !name.trim()}
+          disabled={saving || !name.trim() || !email.trim()}
           className="px-4 py-2 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700 disabled:opacity-50"
         >
           Aggiungi al team
@@ -85,33 +114,67 @@ export default function TeamView() {
         <table className="w-full text-sm">
           <thead className="bg-slate-50 border-b border-slate-200">
             <tr>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Email</th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Nome</th>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Email</th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Stato registrazione</th>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Ruolo</th>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Attivo</th>
             </tr>
           </thead>
           <tbody>
             {loading && (
               <tr>
-                <td colSpan={3} className="text-center py-6 text-slate-400">
+                <td colSpan={5} className="text-center py-6 text-slate-400">
                   Caricamento...
                 </td>
               </tr>
             )}
             {!loading &&
               members.map((m) => (
-                <tr key={m.id} className="border-b border-slate-100">
-                  <td className="px-4 py-2">{m.email}</td>
+                <tr key={m.id} className={clsx('border-b border-slate-100', !m.active && 'opacity-50')}>
                   <td className="px-4 py-2">{m.matchedUser?.name || m.name || '—'}</td>
+                  <td className="px-4 py-2">{m.email}</td>
                   <td className="px-4 py-2">
                     <span
                       className={clsx(
                         'px-2 py-1 rounded-full text-xs font-medium',
-                        m.matchedUser ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'
+                        m.hasLoggedIn ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'
                       )}
                     >
-                      {m.matchedUser ? 'Registrato' : 'In attesa di registrazione'}
+                      {m.hasLoggedIn ? 'Registrato' : 'Invitato, non connesso'}
                     </span>
+                  </td>
+                  <td className="px-4 py-2">
+                    {isAdmin ? (
+                      <select
+                        value={m.matchedUser?.role || 'normale'}
+                        onChange={(e) => updateRole(m.id, e.target.value)}
+                        className="text-xs border border-slate-200 rounded-md px-2 py-1"
+                      >
+                        <option value="admin">Admin</option>
+                        <option value="normale">Normale</option>
+                        <option value="sola_lettura">Sola lettura</option>
+                      </select>
+                    ) : (
+                      <span className="text-slate-600 text-xs">
+                        {ROLE_LABELS[m.matchedUser?.role || 'normale']}
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-4 py-2">
+                    {isAdmin ? (
+                      <button
+                        onClick={() => toggleActive(m.id, !m.active)}
+                        className={clsx(
+                          'px-2 py-1 rounded-full text-xs font-medium',
+                          m.active ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'
+                        )}
+                      >
+                        {m.active ? 'Attivo' : 'Inattivo'}
+                      </button>
+                    ) : (
+                      <span className="text-xs text-slate-600">{m.active ? 'Attivo' : 'Inattivo'}</span>
+                    )}
                   </td>
                 </tr>
               ))}
