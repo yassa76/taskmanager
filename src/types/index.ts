@@ -21,6 +21,7 @@ export interface TaskDTO {
   startDate: string | null
   endDate: string | null
   owner: OwnerLite
+  clientId: string | null
   clientName: string | null
   projectName: string | null
   projectId: string | null
