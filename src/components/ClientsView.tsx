@@ -1,9 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import Link from 'next/link'
 import type { ClientDTO, TeamMemberDTO } from '@/types'
 
 const INDUSTRIES = ['GPS', 'TMT', 'ER&I', 'FSI', 'CONS']
+
+type SortKey = 'name' | 'industry' | 'owner'
+type SortDir = 'asc' | 'desc'
 
 interface OwnerLite {
   id: string
@@ -25,13 +29,12 @@ export default function ClientsView() {
   const [owners, setOwners] = useState<OwnerLite[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [sortKey, setSortKey] = useState<SortKey>('name')
+  const [sortDir, setSortDir] = useState<SortDir>('asc')
 
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState<ClientFormState>(emptyForm)
-
-  const [newProjectName, setNewProjectName] = useState<Record<string, string>>({})
-  const [savingProject, setSavingProject] = useState<string | null>(null)
 
   async function load() {
     setLoading(true)
@@ -49,6 +52,41 @@ export default function ClientsView() {
   useEffect(() => {
     load()
   }, [])
+
+  const sortedClients = useMemo(() => {
+    const arr = [...clients]
+    arr.sort((a, b) => {
+      let av = ''
+      let bv = ''
+      switch (sortKey) {
+        case 'name':
+          av = a.name.toLowerCase()
+          bv = b.name.toLowerCase()
+          break
+        case 'industry':
+          av = (a.industry || '').toLowerCase()
+          bv = (b.industry || '').toLowerCase()
+          break
+        case 'owner':
+          av = (a.owner?.name || a.owner?.email || '').toLowerCase()
+          bv = (b.owner?.name || b.owner?.email || '').toLowerCase()
+          break
+      }
+      if (av < bv) return sortDir === 'asc' ? -1 : 1
+      if (av > bv) return sortDir === 'asc' ? 1 : -1
+      return 0
+    })
+    return arr
+  }, [clients, sortKey, sortDir])
+
+  function toggleSort(key: SortKey) {
+    if (sortKey === key) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
+    } else {
+      setSortKey(key)
+      setSortDir('asc')
+    }
+  }
 
   function openNewForm() {
     setEditingId(null)
@@ -99,26 +137,21 @@ export default function ClientsView() {
   async function deleteClient(c: ClientDTO) {
     const confirmMsg =
       c.projects.length > 0
-        ? `Eliminare "${c.name}"? Verranno eliminati anche i suoi ${c.projects.length} progetti collegati. I task esistenti non verranno cancellati ma perderanno il riferimento a questo cliente/progetto.`
+        ? `Eliminare "${c.name}"? Verranno eliminati anche i suoi ${c.projects.length} progetti collegati. I task esistenti non verranno cancellati ma perderanno il riferimento a questo cliente.`
         : `Eliminare il cliente "${c.name}"?`
     if (!confirm(confirmMsg)) return
     await fetch(`/api/clients/${c.id}`, { method: 'DELETE' })
     load()
   }
 
-  async function addProject(clientId: string) {
-    const name = (newProjectName[clientId] || '').trim()
-    if (!name) return
-    setSavingProject(clientId)
-    await fetch('/api/projects', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, clientId })
-    })
-    setNewProjectName((p) => ({ ...p, [clientId]: '' }))
-    setSavingProject(null)
-    load()
-  }
+  const SortHeader = ({ label, k }: { label: string; k: SortKey }) => (
+    <th
+      onClick={() => toggleSort(k)}
+      className="cursor-pointer px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide hover:text-brand-600"
+    >
+      {label} {sortKey === k ? (sortDir === 'asc' ? '▲' : '▼') : ''}
+    </th>
+  )
 
   return (
     <div>
@@ -132,78 +165,66 @@ export default function ClientsView() {
         </button>
       </div>
 
-      {loading && <p className="text-slate-400">Caricamento...</p>}
-
-      <div className="space-y-3">
-        {!loading &&
-          clients.map((c) => (
-            <div key={c.id} className="bg-white border border-slate-200 rounded-xl p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h2 className="font-semibold text-slate-800">{c.name}</h2>
+      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+        <table className="w-full text-sm">
+          <thead className="bg-slate-50 border-b border-slate-200">
+            <tr>
+              <SortHeader label="Nome" k="name" />
+              <SortHeader label="Industry" k="industry" />
+              <SortHeader label="Owner" k="owner" />
+              <th className="px-4 py-2 text-right text-xs font-semibold text-slate-500 uppercase">Azioni</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading && (
+              <tr>
+                <td colSpan={4} className="text-center py-8 text-slate-400">
+                  Caricamento...
+                </td>
+              </tr>
+            )}
+            {!loading &&
+              sortedClients.map((c) => (
+                <tr key={c.id} className="border-b border-slate-100 hover:bg-slate-50">
+                  <td className="px-4 py-2">
+                    <Link href={`/clients/${c.id}`} className="text-brand-600 font-semibold hover:underline">
+                      {c.name}
+                    </Link>
+                  </td>
+                  <td className="px-4 py-2">
                     {c.industry && (
                       <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-brand-50 text-brand-700">
                         {c.industry}
                       </span>
                     )}
-                  </div>
-                  {c.description && <p className="text-sm text-slate-500 mt-1">{c.description}</p>}
-                  <p className="text-xs text-slate-400 mt-1">
-                    Owner: {c.owner ? c.owner.name || c.owner.email : '—'}
-                  </p>
-                </div>
-                <div className="flex gap-2 shrink-0">
-                  <button
-                    onClick={() => openEditForm(c)}
-                    className="text-xs text-brand-600 font-medium hover:underline"
-                  >
-                    Modifica
-                  </button>
-                  <button
-                    onClick={() => deleteClient(c)}
-                    className="text-xs text-red-500 font-medium hover:underline"
-                  >
-                    Elimina
-                  </button>
-                </div>
-              </div>
-
-              <div className="mt-3 pt-3 border-t border-slate-100">
-                {c.projects.length > 0 && (
-                  <ul className="mb-2 space-y-1">
-                    {c.projects.map((p) => (
-                      <li key={p.id} className="text-sm text-slate-600 pl-3 border-l-2 border-slate-200">
-                        {p.name}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                {c.projects.length === 0 && (
-                  <p className="text-sm text-slate-400 mb-2">Nessun progetto/opportunità ancora.</p>
-                )}
-                <div className="flex gap-2">
-                  <input
-                    value={newProjectName[c.id] || ''}
-                    onChange={(e) => setNewProjectName((p) => ({ ...p, [c.id]: e.target.value }))}
-                    onKeyDown={(e) => e.key === 'Enter' && addProject(c.id)}
-                    placeholder="Nome progetto/opportunità"
-                    className="flex-1 border border-slate-200 rounded-lg px-3 py-1.5 text-sm"
-                  />
-                  <button
-                    onClick={() => addProject(c.id)}
-                    disabled={savingProject === c.id || !(newProjectName[c.id] || '').trim()}
-                    className="px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-medium hover:bg-slate-100 disabled:opacity-50"
-                  >
-                    + Aggiungi progetto
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        {!loading && clients.length === 0 && (
-          <p className="text-slate-400 text-sm">Nessun cliente ancora. Aggiungine uno con il pulsante sopra.</p>
-        )}
+                    {!c.industry && <span className="text-slate-300">—</span>}
+                  </td>
+                  <td className="px-4 py-2">{c.owner ? c.owner.name || c.owner.email : '—'}</td>
+                  <td className="px-4 py-2 text-right whitespace-nowrap">
+                    <button
+                      onClick={() => openEditForm(c)}
+                      className="text-xs text-brand-600 font-medium hover:underline mr-3"
+                    >
+                      Modifica
+                    </button>
+                    <button
+                      onClick={() => deleteClient(c)}
+                      className="text-xs text-red-500 font-medium hover:underline"
+                    >
+                      Elimina
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            {!loading && sortedClients.length === 0 && (
+              <tr>
+                <td colSpan={4} className="text-center py-8 text-slate-400">
+                  Nessun cliente ancora. Aggiungine uno con il pulsante sopra.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
 
       {showForm && (
