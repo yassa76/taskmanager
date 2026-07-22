@@ -8,6 +8,7 @@ import { STATUS_COLORS, STATUS_LABELS } from '@/lib/taskStatus'
 import type { TaskDTO, TeamMemberDTO, ClientDTO } from '@/types'
 import TaskFormModal from './TaskFormModal'
 import CloseParentModal from './CloseParentModal'
+import Breadcrumbs from './Breadcrumbs'
 
 export default function TaskDetailView({ taskId }: { taskId: string }) {
   const router = useRouter()
@@ -78,6 +79,15 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
     load()
   }
 
+  async function updateSubtaskDate(subtaskId: string, field: 'startDate' | 'endDate', value: string) {
+    await fetch(`/api/subtasks/${subtaskId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ [field]: value || null })
+    })
+    load()
+  }
+
   async function deleteSubtask(subtaskId: string) {
     if (!confirm('Eliminare questo sub-task?')) return
     await fetch(`/api/subtasks/${subtaskId}`, { method: 'DELETE' })
@@ -121,9 +131,12 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
 
   return (
     <div>
-      <Link href="/tasks" className="text-sm text-brand-600 hover:underline mb-4 inline-block">
-        ← Torna ai task
-      </Link>
+      <Breadcrumbs
+        items={[
+          { label: 'Task', href: '/tasks' },
+          { label: task.title }
+        ]}
+      />
 
       <div className="bg-white border border-slate-200 rounded-xl p-5 mb-6">
         <div className="flex items-start justify-between gap-3 flex-wrap">
@@ -137,6 +150,12 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
             {task.description && <p className="text-slate-500 text-sm mt-2">{task.description}</p>}
           </div>
           <div className="flex gap-2 shrink-0">
+            <button
+              onClick={load}
+              className="px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-medium text-slate-600 hover:bg-slate-100"
+            >
+              ↻ Aggiorna
+            </button>
             <button
               onClick={() => setShowEditForm(true)}
               className="px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-medium hover:bg-slate-100"
@@ -184,8 +203,14 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
       </div>
 
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-        <div className="px-5 py-3 border-b border-slate-200">
+        <div className="px-5 py-3 border-b border-slate-200 flex items-center justify-between">
           <h2 className="font-semibold text-slate-800">Sub-task</h2>
+          <button
+            onClick={load}
+            className="text-xs text-slate-500 font-medium hover:text-brand-600"
+          >
+            ↻ Aggiorna
+          </button>
         </div>
 
         <table className="w-full text-sm">
@@ -193,6 +218,8 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
             <tr>
               <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Nome</th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Owner</th>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Data inizio</th>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Data fine</th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Stato</th>
               <th className="px-4 py-2 text-right text-xs font-semibold text-slate-500 uppercase">Azioni</th>
             </tr>
@@ -213,6 +240,22 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
                       </option>
                     ))}
                   </select>
+                </td>
+                <td className="px-4 py-2">
+                  <input
+                    type="date"
+                    value={s.startDate.slice(0, 10)}
+                    onChange={(e) => updateSubtaskDate(s.id, 'startDate', e.target.value)}
+                    className="text-xs border border-slate-200 rounded-md px-2 py-1"
+                  />
+                </td>
+                <td className="px-4 py-2">
+                  <input
+                    type="date"
+                    value={s.endDate ? s.endDate.slice(0, 10) : ''}
+                    onChange={(e) => updateSubtaskDate(s.id, 'endDate', e.target.value)}
+                    className="text-xs border border-slate-200 rounded-md px-2 py-1"
+                  />
                 </td>
                 <td className="px-4 py-2">
                   <select
@@ -237,7 +280,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
             ))}
             {task.subtasks.length === 0 && (
               <tr>
-                <td colSpan={4} className="text-center py-6 text-slate-400">
+                <td colSpan={6} className="text-center py-6 text-slate-400">
                   Nessun sub-task ancora.
                 </td>
               </tr>
@@ -273,6 +316,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
           </button>
         </div>
       </div>
+
 
       {showEditForm && (
         <TaskFormModal
