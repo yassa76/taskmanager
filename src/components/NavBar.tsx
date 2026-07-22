@@ -7,6 +7,7 @@ import clsx from 'clsx'
 
 const links = [
   { href: '/tasks', label: 'Task' },
+  { href: '/clients', label: 'Clienti' },
   { href: '/team', label: 'Team' },
   { href: '/reports', label: 'Report & KPI' }
 ]
