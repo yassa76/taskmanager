@@ -78,8 +78,12 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
           <tbody>
             {tasks.map((t) => (
               <tr key={t.id} className="border-b border-slate-100 hover:bg-slate-50">
-                <td className="px-4 py-2">
-                  <Link href={`/tasks/${t.id}`} className="text-brand-600 font-semibold hover:underline">
+                <td className="px-4 py-2 max-w-xs">
+                  <Link
+                    href={`/tasks/${t.id}`}
+                    className="block truncate text-brand-600 font-semibold hover:underline"
+                    title={t.title}
+                  >
                     {t.title}
                   </Link>
                 </td>
