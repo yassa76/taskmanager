@@ -40,7 +40,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
       }
       const data = await taskRes.json()
       setTask(data)
-      setNewSubtaskOwnerId((prev) => prev || data.owner.id)
+      setNewSubtaskOwnerId((prev) => prev || data.owner?.id || '')
       setTeam(teamRes.ok ? await teamRes.json() : [])
       setClients(clientsRes.ok ? await clientsRes.json() : [])
     } catch (e: any) {
