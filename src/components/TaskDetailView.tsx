@@ -227,7 +227,11 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
           <tbody>
             {task.subtasks.map((s) => (
               <tr key={s.id} className="border-b border-slate-100 hover:bg-slate-50">
-                <td className="px-4 py-2 text-slate-700">{s.title}</td>
+                <td className="px-4 py-2 text-slate-700 max-w-xs">
+                  <span className="block truncate" title={s.title}>
+                    {s.title}
+                  </span>
+                </td>
                 <td className="px-4 py-2">
                   <select
                     value={s.owner.id}
