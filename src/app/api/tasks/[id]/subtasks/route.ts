@@ -11,7 +11,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   if (!task) return NextResponse.json({ error: 'Task non trovato' }, { status: 404 })
 
   const body = await req.json()
-  const { title, ownerId, status } = body
+  const { title, ownerId, status, startDate, endDate } = body
 
   if (!title) return NextResponse.json({ error: 'Titolo obbligatorio' }, { status: 400 })
 
@@ -19,6 +19,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     data: {
       title,
       status: status || 'da_avviare',
+      ...(startDate ? { startDate: new Date(startDate) } : {}),
+      endDate: endDate ? new Date(endDate) : null,
       ownerId: ownerId || task.ownerId, // default: owner del task padre
       taskId: task.id
     },
