@@ -9,6 +9,7 @@ import type { TaskDTO, TeamMemberDTO, ClientDTO } from '@/types'
 import TaskFormModal from './TaskFormModal'
 import Filters, { FilterState } from './Filters'
 import Breadcrumbs from './Breadcrumbs'
+import { EditIcon, DeleteIcon } from './icons'
 
 type SortKey = 'title' | 'clientName' | 'owner' | 'startDate' | 'endDate' | 'status'
 type SortDir = 'asc' | 'desc'
@@ -251,17 +252,17 @@ export default function TasksView() {
                       setEditingTask(t)
                       setShowForm(true)
                     }}
-                    className="text-slate-400 hover:text-brand-600 mr-2 text-base"
+                    className="inline-flex text-slate-400 hover:text-brand-600 mr-3 align-middle"
                     title="Modifica"
                   >
-                    ✎
+                    <EditIcon />
                   </button>
                   <button
                     onClick={() => deleteTask(t)}
-                    className="text-slate-400 hover:text-red-600 text-base"
+                    className="inline-flex text-slate-400 hover:text-red-600 align-middle"
                     title="Elimina"
                   >
-                    🗑
+                    <DeleteIcon />
                   </button>
                 </td>
               </tr>
