@@ -8,6 +8,8 @@ export interface SubtaskDTO {
   id: string
   title: string
   status: 'da_avviare' | 'in_corso' | 'completato'
+  startDate: string
+  endDate: string | null
   owner: OwnerLite
   taskId: string
   createdAt: string
