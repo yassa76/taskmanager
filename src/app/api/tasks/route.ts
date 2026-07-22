@@ -94,8 +94,11 @@ export async function POST(req: NextRequest) {
   const body = await req.json()
   const { title, description, startDate, endDate, ownerId, clientId, projectId, subtasks } = body
 
-  if (!title || !ownerId) {
+if (!title || !ownerId) {
     return NextResponse.json({ error: 'Titolo e owner sono obbligatori' }, { status: 400 })
+  }
+  if (!endDate) {
+    return NextResponse.json({ error: 'La data di scadenza è obbligatoria' }, { status: 400 })
   }
 
   const task = await prisma.task.create({
