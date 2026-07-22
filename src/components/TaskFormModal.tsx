@@ -11,7 +11,7 @@ interface OwnerLite {
 
 export default function TaskFormModal({
   owners,
-  clients,
+  clients: initialClients,
   onClose,
   onCreated
 }: {
@@ -20,6 +20,7 @@ export default function TaskFormModal({
   onClose: () => void
   onCreated: () => void
 }) {
+  const [clients, setClients] = useState<ClientDTO[]>(initialClients)
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [startDate, setStartDate] = useState('')
@@ -30,7 +31,52 @@ export default function TaskFormModal({
   const [subtasks, setSubtasks] = useState<{ title: string; ownerId: string }[]>([])
   const [saving, setSaving] = useState(false)
 
+  const [showNewClient, setShowNewClient] = useState(false)
+  const [newClientName, setNewClientName] = useState('')
+  const [savingClient, setSavingClient] = useState(false)
+
+  const [showNewProject, setShowNewProject] = useState(false)
+  const [newProjectName, setNewProjectName] = useState('')
+  const [savingProject, setSavingProject] = useState(false)
+
   const selectedClient = clients.find((c) => c.id === clientId)
+
+  async function createClient() {
+    if (!newClientName.trim()) return
+    setSavingClient(true)
+    const res = await fetch('/api/clients', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: newClientName.trim() })
+    })
+    const created = await res.json()
+    const newClient: ClientDTO = { id: created.id, name: created.name, projects: [] }
+    setClients((prev) => [...prev, newClient])
+    setClientId(created.id)
+    setNewClientName('')
+    setShowNewClient(false)
+    setSavingClient(false)
+  }
+
+  async function createProject() {
+    if (!newProjectName.trim() || !clientId) return
+    setSavingProject(true)
+    const res = await fetch('/api/projects', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: newProjectName.trim(), clientId })
+    })
+    const created = await res.json()
+    setClients((prev) =>
+      prev.map((c) =>
+        c.id === clientId ? { ...c, projects: [...c.projects, { id: created.id, name: created.name }] } : c
+      )
+    )
+    setProjectId(created.id)
+    setNewProjectName('')
+    setShowNewProject(false)
+    setSavingProject(false)
+  }
 
   function addSubtask() {
     setSubtasks((s) => [...s, { title: '', ownerId }])
@@ -123,38 +169,98 @@ export default function TaskFormModal({
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-medium text-slate-500">Cliente</label>
-              <select
-                value={clientId}
-                onChange={(e) => {
-                  setClientId(e.target.value)
-                  setProjectId('')
-                }}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1"
-              >
-                <option value="">—</option>
-                {clients.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-medium text-slate-500">Cliente</label>
+                <button
+                  type="button"
+                  onClick={() => setShowNewClient((v) => !v)}
+                  className="text-xs text-brand-600 font-medium hover:underline"
+                >
+                  {showNewClient ? 'Annulla' : '+ Nuovo cliente'}
+                </button>
+              </div>
+              {!showNewClient && (
+                <select
+                  value={clientId}
+                  onChange={(e) => {
+                    setClientId(e.target.value)
+                    setProjectId('')
+                  }}
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1"
+                >
+                  <option value="">—</option>
+                  {clients.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+              {showNewClient && (
+                <div className="flex gap-2 mt-1">
+                  <input
+                    value={newClientName}
+                    onChange={(e) => setNewClientName(e.target.value)}
+                    placeholder="Nome nuovo cliente"
+                    className="flex-1 border border-slate-200 rounded-lg px-3 py-2"
+                  />
+                  <button
+                    type="button"
+                    onClick={createClient}
+                    disabled={savingClient || !newClientName.trim()}
+                    className="px-3 py-2 rounded-lg bg-brand-600 text-white text-sm font-medium disabled:opacity-50"
+                  >
+                    Salva
+                  </button>
+                </div>
+              )}
             </div>
             <div>
-              <label className="text-xs font-medium text-slate-500">Progetto/Opportunità</label>
-              <select
-                value={projectId}
-                onChange={(e) => setProjectId(e.target.value)}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1"
-                disabled={!selectedClient}
-              >
-                <option value="">—</option>
-                {selectedClient?.projects.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-medium text-slate-500">Progetto/Opportunità</label>
+                {clientId && (
+                  <button
+                    type="button"
+                    onClick={() => setShowNewProject((v) => !v)}
+                    className="text-xs text-brand-600 font-medium hover:underline"
+                  >
+                    {showNewProject ? 'Annulla' : '+ Nuovo progetto'}
+                  </button>
+                )}
+              </div>
+              {!showNewProject && (
+                <select
+                  value={projectId}
+                  onChange={(e) => setProjectId(e.target.value)}
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1"
+                  disabled={!selectedClient}
+                >
+                  <option value="">—</option>
+                  {selectedClient?.projects.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+              {showNewProject && (
+                <div className="flex gap-2 mt-1">
+                  <input
+                    value={newProjectName}
+                    onChange={(e) => setNewProjectName(e.target.value)}
+                    placeholder="Nome nuovo progetto"
+                    className="flex-1 border border-slate-200 rounded-lg px-3 py-2"
+                  />
+                  <button
+                    type="button"
+                    onClick={createProject}
+                    disabled={savingProject || !newProjectName.trim()}
+                    className="px-3 py-2 rounded-lg bg-brand-600 text-white text-sm font-medium disabled:opacity-50"
+                  >
+                    Salva
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
