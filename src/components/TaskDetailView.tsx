@@ -80,16 +80,6 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
     load()
   }
 
-  async function updateSubtaskTitle(subtaskId: string, title: string) {
-    if (!title.trim()) return
-    await fetch(`/api/subtasks/${subtaskId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: title.trim() })
-    })
-    load()
-  }
-
   async function updateSubtaskDate(subtaskId: string, field: 'startDate' | 'endDate', value: string) {
     await fetch(`/api/subtasks/${subtaskId}`, {
       method: 'PATCH',
@@ -145,6 +135,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
       <Breadcrumbs
         items={[
           { label: 'Task', href: '/tasks' },
+          ...(task.clientId ? [{ label: task.clientName || 'Cliente', href: `/clients/${task.clientId}` }] : []),
           { label: task.title }
         ]}
       />
@@ -241,15 +232,13 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
             {task.subtasks.map((s) => (
               <tr key={s.id} className="border-b border-slate-100 hover:bg-slate-50">
                 <td className="px-4 py-2 max-w-xs">
-                  <input
-                    key={s.id}
-                    defaultValue={s.title}
-                    onBlur={(e) => {
-                      if (e.target.value !== s.title) updateSubtaskTitle(s.id, e.target.value)
-                    }}
+                  <Link
+                    href={`/subtasks/${s.id}`}
+                    className="block truncate text-brand-600 font-medium hover:underline"
                     title={s.title}
-                    className="w-full border-0 bg-transparent text-slate-700 focus:bg-white focus:border focus:border-slate-300 rounded-md px-1 py-0.5 truncate"
-                  />
+                  >
+                    {s.title}
+                  </Link>
                 </td>
                 <td className="px-4 py-2">
                   <select
