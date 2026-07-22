@@ -11,6 +11,7 @@ export interface SubtaskDTO {
   status: 'da_avviare' | 'in_corso' | 'completato'
   startDate: string
   endDate: string | null
+  closedAt: string | null
   owner: OwnerLite
   taskId: string
   createdAt: string
@@ -59,6 +60,14 @@ export interface TeamMemberDTO {
   id: string
   email: string
   name: string | null
+  active: boolean
   invitedAt: string
-  matchedUser: { id: string; name: string | null; email: string; image: string | null } | null
+  matchedUser: {
+    id: string
+    name: string | null
+    email: string
+    image: string | null
+    role: string
+  } | null
+  hasLoggedIn: boolean
 }
