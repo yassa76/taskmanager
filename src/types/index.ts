@@ -7,6 +7,7 @@ export interface OwnerLite {
 export interface SubtaskDTO {
   id: string
   title: string
+  description: string | null
   status: 'da_avviare' | 'in_corso' | 'completato'
   startDate: string
   endDate: string | null
@@ -14,6 +15,15 @@ export interface SubtaskDTO {
   taskId: string
   createdAt: string
   updatedAt: string
+}
+
+export interface SubtaskDetailDTO extends SubtaskDTO {
+  task: {
+    id: string
+    title: string
+    clientId: string | null
+    clientName: string | null
+  }
 }
 
 export interface TaskDTO {
