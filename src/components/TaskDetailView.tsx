@@ -9,6 +9,7 @@ import type { TaskDTO, TeamMemberDTO, ClientDTO } from '@/types'
 import TaskFormModal from './TaskFormModal'
 import CloseParentModal from './CloseParentModal'
 import Breadcrumbs from './Breadcrumbs'
+import { EditIcon, DeleteIcon } from './icons'
 
 export default function TaskDetailView({ taskId }: { taskId: string }) {
   const router = useRouter()
@@ -75,6 +76,16 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ownerId })
+    })
+    load()
+  }
+
+  async function updateSubtaskTitle(subtaskId: string, title: string) {
+    if (!title.trim()) return
+    await fetch(`/api/subtasks/${subtaskId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: title.trim() })
     })
     load()
   }
@@ -158,17 +169,17 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
             </button>
             <button
               onClick={() => setShowEditForm(true)}
-              className="px-3 py-1.5 rounded-lg border border-slate-300 text-base hover:bg-slate-100"
+              className="inline-flex items-center px-3 py-1.5 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-100"
               title="Modifica"
             >
-              ✎
+              <EditIcon />
             </button>
             <button
               onClick={deleteTask}
-              className="px-3 py-1.5 rounded-lg border border-red-200 text-red-600 text-base hover:bg-red-50"
+              className="inline-flex items-center px-3 py-1.5 rounded-lg border border-red-200 text-red-600 hover:bg-red-50"
               title="Elimina"
             >
-              🗑
+              <DeleteIcon />
             </button>
           </div>
         </div>
@@ -229,10 +240,16 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
           <tbody>
             {task.subtasks.map((s) => (
               <tr key={s.id} className="border-b border-slate-100 hover:bg-slate-50">
-                <td className="px-4 py-2 text-slate-700 max-w-xs">
-                  <span className="block truncate" title={s.title}>
-                    {s.title}
-                  </span>
+                <td className="px-4 py-2 max-w-xs">
+                  <input
+                    key={s.id}
+                    defaultValue={s.title}
+                    onBlur={(e) => {
+                      if (e.target.value !== s.title) updateSubtaskTitle(s.id, e.target.value)
+                    }}
+                    title={s.title}
+                    className="w-full border-0 bg-transparent text-slate-700 focus:bg-white focus:border focus:border-slate-300 rounded-md px-1 py-0.5 truncate"
+                  />
                 </td>
                 <td className="px-4 py-2">
                   <select
@@ -277,10 +294,10 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
                 <td className="px-4 py-2 text-right">
                   <button
                     onClick={() => deleteSubtask(s.id)}
-                    className="text-slate-400 hover:text-red-600 text-base"
+                    className="inline-flex text-slate-400 hover:text-red-600 align-middle"
                     title="Elimina"
                   >
-                    🗑
+                    <DeleteIcon />
                   </button>
                 </td>
               </tr>
