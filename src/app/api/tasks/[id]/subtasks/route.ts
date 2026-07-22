@@ -11,13 +11,14 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   if (!task) return NextResponse.json({ error: 'Task non trovato' }, { status: 404 })
 
   const body = await req.json()
-  const { title, ownerId, status, startDate, endDate } = body
+  const { title, ownerId, status, startDate, endDate, description } = body
 
   if (!title) return NextResponse.json({ error: 'Titolo obbligatorio' }, { status: 400 })
 
   const subtask = await prisma.subtask.create({
     data: {
       title,
+      description: description || null,
       status: status || 'da_avviare',
       ...(startDate ? { startDate: new Date(startDate) } : {}),
       endDate: endDate ? new Date(endDate) : null,
