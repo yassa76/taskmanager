@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import type { ClientDTO, TeamMemberDTO } from '@/types'
+import Breadcrumbs from './Breadcrumbs'
 
 const INDUSTRIES = ['GPS', 'TMT', 'ER&I', 'FSI', 'CONS']
 
@@ -155,14 +156,23 @@ export default function ClientsView() {
 
   return (
     <div>
+      <Breadcrumbs items={[{ label: 'Clienti' }]} />
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-bold text-slate-800">Clienti</h1>
-        <button
-          onClick={openNewForm}
-          className="px-4 py-2 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700"
-        >
-          + Nuovo cliente
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={load}
+            className="px-4 py-2 rounded-lg border border-slate-300 text-sm font-medium text-slate-700 hover:bg-slate-100"
+          >
+            ↻ Aggiorna
+          </button>
+          <button
+            onClick={openNewForm}
+            className="px-4 py-2 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700"
+          >
+            + Nuovo cliente
+          </button>
+        </div>
       </div>
 
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
@@ -203,15 +213,17 @@ export default function ClientsView() {
                   <td className="px-4 py-2 text-right whitespace-nowrap">
                     <button
                       onClick={() => openEditForm(c)}
-                      className="text-xs text-brand-600 font-medium hover:underline mr-3"
+                      className="text-slate-400 hover:text-brand-600 mr-2 text-base"
+                      title="Modifica"
                     >
-                      Modifica
+                      ✎
                     </button>
                     <button
                       onClick={() => deleteClient(c)}
-                      className="text-xs text-red-500 font-medium hover:underline"
+                      className="text-slate-400 hover:text-red-600 text-base"
+                      title="Elimina"
                     >
-                      Elimina
+                      🗑
                     </button>
                   </td>
                 </tr>
