@@ -15,6 +15,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
   const [team, setTeam] = useState<TeamMemberDTO[]>([])
   const [clients, setClients] = useState<ClientDTO[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [showEditForm, setShowEditForm] = useState(false)
   const [pendingClose, setPendingClose] = useState(false)
 
@@ -24,19 +25,28 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
 
   const load = useCallback(async () => {
     setLoading(true)
-    const [taskRes, teamRes, clientsRes] = await Promise.all([
-      fetch(`/api/tasks/${taskId}`),
-      fetch('/api/team'),
-      fetch('/api/clients')
-    ])
-    if (taskRes.ok) {
+    setError(null)
+    try {
+      const [taskRes, teamRes, clientsRes] = await Promise.all([
+        fetch(`/api/tasks/${taskId}`),
+        fetch('/api/team'),
+        fetch('/api/clients')
+      ])
+      if (!taskRes.ok) {
+        const body = await taskRes.json().catch(() => ({}))
+        setError(body.error || `Errore nel caricare il task (status ${taskRes.status})`)
+        return
+      }
       const data = await taskRes.json()
       setTask(data)
       setNewSubtaskOwnerId((prev) => prev || data.owner.id)
+      setTeam(teamRes.ok ? await teamRes.json() : [])
+      setClients(clientsRes.ok ? await clientsRes.json() : [])
+    } catch (e: any) {
+      setError(`Errore imprevisto: ${e?.message || e}`)
+    } finally {
+      setLoading(false)
     }
-    setTeam(await teamRes.json())
-    setClients(await clientsRes.json())
-    setLoading(false)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [taskId])
 
@@ -106,6 +116,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
   }
 
   if (loading) return <p className="text-slate-400">Caricamento...</p>
+  if (error) return <p className="text-red-500">{error}</p>
   if (!task) return <p className="text-slate-400">Task non trovato.</p>
 
   return (
