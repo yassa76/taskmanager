@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
   const placeholderUser = await prisma.user.upsert({
     where: { email },
     update: { name, teamMemberId: member.id },
-    create: { email, name, role: 'normale', teamMemberId: member.id }
+    create: { email, name, role: 'normal', teamMemberId: member.id }
   })
 
   return NextResponse.json({ member, user: placeholderUser }, { status: 201 })
