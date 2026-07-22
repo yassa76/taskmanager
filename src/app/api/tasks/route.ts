@@ -29,6 +29,8 @@ function toTaskDTO(task: any): TaskDTO {
       id: s.id,
       title: s.title,
       status: s.status,
+      startDate: s.startDate.toISOString(),
+      endDate: s.endDate ? s.endDate.toISOString() : null,
       owner: { id: s.owner.id, name: s.owner.name, email: s.owner.email },
       taskId: s.taskId,
       createdAt: s.createdAt.toISOString(),
