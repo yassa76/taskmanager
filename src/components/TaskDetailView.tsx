@@ -158,15 +158,17 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
             </button>
             <button
               onClick={() => setShowEditForm(true)}
-              className="px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-medium hover:bg-slate-100"
+              className="px-3 py-1.5 rounded-lg border border-slate-300 text-base hover:bg-slate-100"
+              title="Modifica"
             >
-              Modifica
+              ✎
             </button>
             <button
               onClick={deleteTask}
-              className="px-3 py-1.5 rounded-lg border border-red-200 text-red-600 text-sm font-medium hover:bg-red-50"
+              className="px-3 py-1.5 rounded-lg border border-red-200 text-red-600 text-base hover:bg-red-50"
+              title="Elimina"
             >
-              Elimina
+              🗑
             </button>
           </div>
         </div>
