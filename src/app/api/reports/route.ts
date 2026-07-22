@@ -11,7 +11,7 @@ export async function GET() {
   const tasks = await prisma.task.findMany({
     include: {
       owner: true,
-      project: { include: { client: true } },
+      client: true,
       subtasks: true
     }
   })
@@ -50,7 +50,7 @@ export async function GET() {
   // Task per cliente
   const byClientMap = new Map<string, { name: string; total: number }>()
   for (const t of enriched) {
-    const key = t.project?.client?.name || 'Senza cliente'
+    const key = t.client?.name || 'Senza cliente'
     const cur = byClientMap.get(key) || { name: key, total: 0 }
     cur.total += 1
     byClientMap.set(key, cur)
