@@ -244,7 +244,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
                 <td className="px-4 py-2">
                   <input
                     type="date"
-                    value={s.startDate.slice(0, 10)}
+                    value={s.startDate ? s.startDate.slice(0, 10) : ''}
                     onChange={(e) => updateSubtaskDate(s.id, 'startDate', e.target.value)}
                     className="text-xs border border-slate-200 rounded-md px-2 py-1"
                   />
@@ -316,7 +316,6 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
           </button>
         </div>
       </div>
-
 
       {showEditForm && (
         <TaskFormModal
