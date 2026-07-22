@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import {
   BarChart,
   Bar,
@@ -13,6 +13,7 @@ import {
   Cell,
   Legend
 } from 'recharts'
+import Breadcrumbs from './Breadcrumbs'
 
 interface ReportData {
   kpi: {
@@ -45,17 +46,30 @@ function KpiCard({ label, value, accent }: { label: string; value: string | numb
 export default function ReportsView() {
   const [data, setData] = useState<ReportData | null>(null)
 
-  useEffect(() => {
+  const load = useCallback(() => {
     fetch('/api/reports')
       .then((r) => r.json())
       .then(setData)
   }, [])
 
+  useEffect(() => {
+    load()
+  }, [load])
+
   if (!data) return <p className="text-slate-400">Caricamento report...</p>
 
   return (
     <div>
-      <h1 className="text-xl font-bold text-slate-800 mb-6">Report & KPI</h1>
+      <Breadcrumbs items={[{ label: 'Report & KPI' }]} />
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-xl font-bold text-slate-800">Report & KPI</h1>
+        <button
+          onClick={load}
+          className="px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-medium text-slate-700 hover:bg-slate-100"
+        >
+          ↻ Aggiorna
+        </button>
+      </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <KpiCard label="Task totali" value={data.kpi.totalTasks} />
@@ -64,8 +78,8 @@ export default function ReportsView() {
         <KpiCard label="In ritardo" value={data.kpi.overdue} accent="text-red-600" />
         <KpiCard label="Da avviare" value={data.kpi.notStarted} />
         <KpiCard label="Completati" value={data.kpi.completed} accent="text-emerald-600" />
-        <KpiCard label="Sotto-task totali" value={data.kpi.totalSubtasks} />
-        <KpiCard label="% sotto-task completati" value={`${data.kpi.subtaskCompletionRate}%`} />
+        <KpiCard label="Sub-task totali" value={data.kpi.totalSubtasks} />
+        <KpiCard label="% sub-task completati" value={`${data.kpi.subtaskCompletionRate}%`} />
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
