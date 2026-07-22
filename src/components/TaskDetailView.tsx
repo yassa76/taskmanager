@@ -23,6 +23,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
 
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('')
   const [newSubtaskOwnerId, setNewSubtaskOwnerId] = useState('')
+  const [newSubtaskEndDate, setNewSubtaskEndDate] = useState('')
   const [savingSubtask, setSavingSubtask] = useState(false)
 
   const load = useCallback(async () => {
@@ -57,7 +58,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
   }, [load])
 
   const owners = team
-    .filter((t) => t.matchedUser)
+    .filter((t) => t.active && t.matchedUser)
     .map((t) => ({ id: t.matchedUser!.id, name: t.matchedUser!.name || t.email, email: t.email }))
 
   async function updateSubtaskStatus(subtaskId: string, status: string) {
@@ -96,14 +97,19 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
   }
 
   async function addSubtask() {
-    if (!newSubtaskTitle.trim() || !task) return
+    if (!newSubtaskTitle.trim() || !newSubtaskEndDate || !task) return
     setSavingSubtask(true)
     await fetch(`/api/tasks/${task.id}/subtasks`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: newSubtaskTitle.trim(), ownerId: newSubtaskOwnerId })
+      body: JSON.stringify({
+        title: newSubtaskTitle.trim(),
+        ownerId: newSubtaskOwnerId,
+        endDate: newSubtaskEndDate
+      })
     })
     setNewSubtaskTitle('')
+    setNewSubtaskEndDate('')
     setSavingSubtask(false)
     load()
   }
@@ -175,7 +181,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-4 pt-4 border-t border-slate-100 text-sm">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4 pt-4 border-t border-slate-100 text-sm">
           <div>
             <p className="text-xs text-slate-400 uppercase">Cliente</p>
             {task.clientId ? (
@@ -191,10 +197,12 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
             <p className="text-slate-700">{task.owner.name || task.owner.email}</p>
           </div>
           <div>
-            <p className="text-xs text-slate-400 uppercase">Date</p>
-            <p className="text-slate-700">
-              {task.startDate ? task.startDate.slice(0, 10) : '—'} → {task.endDate ? task.endDate.slice(0, 10) : '—'}
-            </p>
+            <p className="text-xs text-slate-400 uppercase">Data avvio</p>
+            <p className="text-slate-700">{task.startDate ? task.startDate.slice(0, 10) : '—'}</p>
+          </div>
+          <div>
+            <p className="text-xs text-slate-400 uppercase">Data di scadenza</p>
+            <p className="text-slate-700">{task.endDate ? task.endDate.slice(0, 10) : '—'}</p>
           </div>
         </div>
 
@@ -223,7 +231,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
               <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Nome</th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Owner</th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Data inizio</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Data fine</th>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Data scadenza</th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Stato</th>
               <th className="px-4 py-2 text-right text-xs font-semibold text-slate-500 uppercase">Azioni</th>
             </tr>
@@ -301,13 +309,12 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
           </tbody>
         </table>
 
-        <div className="flex gap-2 p-4 border-t border-slate-100">
+        <div className="flex gap-2 p-4 border-t border-slate-100 flex-wrap">
           <input
             value={newSubtaskTitle}
             onChange={(e) => setNewSubtaskTitle(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && addSubtask()}
             placeholder="Nuovo sub-task"
-            className="flex-1 border border-slate-200 rounded-lg px-3 py-1.5 text-sm"
+            className="flex-1 min-w-[160px] border border-slate-200 rounded-lg px-3 py-1.5 text-sm"
           />
           <select
             value={newSubtaskOwnerId}
@@ -320,9 +327,16 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
               </option>
             ))}
           </select>
+          <input
+            type="date"
+            value={newSubtaskEndDate}
+            onChange={(e) => setNewSubtaskEndDate(e.target.value)}
+            title="Data di scadenza (obbligatoria)"
+            className="border border-slate-200 rounded-lg px-2 py-1.5 text-sm"
+          />
           <button
             onClick={addSubtask}
-            disabled={savingSubtask || !newSubtaskTitle.trim()}
+            disabled={savingSubtask || !newSubtaskTitle.trim() || !newSubtaskEndDate}
             className="px-3 py-1.5 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700 disabled:opacity-50"
           >
             + Aggiungi
