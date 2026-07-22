@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { deriveTaskStatus } from '@/lib/taskStatus'
+import { canEditRecord } from '@/lib/permissions'
 import type { SubtaskDetailDTO } from '@/types'
 
 function toSubtaskDetailDTO(subtask: any): SubtaskDetailDTO {
@@ -13,6 +14,7 @@ function toSubtaskDetailDTO(subtask: any): SubtaskDetailDTO {
     status: subtask.status,
     startDate: subtask.startDate.toISOString(),
     endDate: subtask.endDate ? subtask.endDate.toISOString() : null,
+    closedAt: subtask.closedAt ? subtask.closedAt.toISOString() : null,
     owner: { id: subtask.owner.id, name: subtask.owner.name, email: subtask.owner.email },
     taskId: subtask.taskId,
     createdAt: subtask.createdAt.toISOString(),
@@ -43,8 +45,14 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
 
+  const existing = await prisma.subtask.findUnique({ where: { id: params.id } })
+  if (!existing) return NextResponse.json({ error: 'Sub-task non trovato' }, { status: 404 })
+  if (!canEditRecord(session, existing.ownerId)) {
+    return NextResponse.json({ error: 'Non hai i permessi per modificare questo sub-task' }, { status: 403 })
+  }
+
   const body = await req.json()
-  const { title, description, status, ownerId, startDate, endDate } = body
+  const { title, description, status, ownerId, startDate, endDate, closedAt } = body
 
   const subtask = await prisma.subtask.update({
     where: { id: params.id },
@@ -54,7 +62,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       ...(status !== undefined ? { status } : {}),
       ...(ownerId !== undefined ? { ownerId } : {}),
       ...(startDate !== undefined ? { startDate: startDate ? new Date(startDate) : new Date() } : {}),
-      ...(endDate !== undefined ? { endDate: endDate ? new Date(endDate) : null } : {})
+      ...(endDate !== undefined ? { endDate: endDate ? new Date(endDate) : null } : {}),
+      ...(closedAt !== undefined ? { closedAt: closedAt ? new Date(closedAt) : null } : {})
     },
     include: { owner: true, task: { include: { subtasks: true, client: true } } }
   })
@@ -82,6 +91,12 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
+
+  const existing = await prisma.subtask.findUnique({ where: { id: params.id } })
+  if (!existing) return NextResponse.json({ error: 'Sub-task non trovato' }, { status: 404 })
+  if (!canEditRecord(session, existing.ownerId)) {
+    return NextResponse.json({ error: 'Non hai i permessi per eliminare questo sub-task' }, { status: 403 })
+  }
 
   await prisma.subtask.delete({ where: { id: params.id } })
   return NextResponse.json({ ok: true })
