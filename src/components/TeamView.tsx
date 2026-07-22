@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import clsx from 'clsx'
 import type { TeamMemberDTO } from '@/types'
+import Breadcrumbs from './Breadcrumbs'
 
 export default function TeamView() {
   const [members, setMembers] = useState<TeamMemberDTO[]>([])
@@ -38,7 +39,16 @@ export default function TeamView() {
 
   return (
     <div>
-      <h1 className="text-xl font-bold text-slate-800 mb-1">Team</h1>
+      <Breadcrumbs items={[{ label: 'Team' }]} />
+      <div className="flex items-center justify-between mb-1">
+        <h1 className="text-xl font-bold text-slate-800">Team</h1>
+        <button
+          onClick={load}
+          className="px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-medium text-slate-700 hover:bg-slate-100"
+        >
+          ↻ Aggiorna
+        </button>
+      </div>
       <p className="text-slate-500 text-sm mb-6">
         Aggiungi qui le email delle persone del team. Quando faranno il login con Google usando
         una di queste email, verranno automaticamente riconosciute e associate.
