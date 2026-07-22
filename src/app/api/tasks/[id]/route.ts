@@ -29,6 +29,8 @@ function toTaskDTO(task: any): TaskDTO {
       id: s.id,
       title: s.title,
       status: s.status,
+      startDate: s.startDate.toISOString(),
+      endDate: s.endDate ? s.endDate.toISOString() : null,
       owner: { id: s.owner.id, name: s.owner.name, email: s.owner.email },
       taskId: s.taskId,
       createdAt: s.createdAt.toISOString(),
@@ -39,57 +41,86 @@ function toTaskDTO(task: any): TaskDTO {
   }
 }
 
-export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
 
-  const task = await prisma.task.findUnique({
-    where: { id: params.id },
-    include: {
-      owner: true,
-      client: true,
-      project: true,
-      subtasks: { include: { owner: true }, orderBy: { createdAt: 'asc' } }
-    }
-  })
-  if (!task) return NextResponse.json({ error: 'Task non trovato' }, { status: 404 })
+  const { searchParams } = new URL(req.url)
+  const mine = searchParams.get('mine') === 'true'
+  const ownerId = searchParams.get('ownerId')
+  const clientId = searchParams.get('clientId')
+  const projectId = searchParams.get('projectId')
+  const status = searchParams.get('status') // filtro applicato dopo il calcolo (derivato)
+  const search = searchParams.get('search')
 
-  return NextResponse.json(toTaskDTO(task))
-}
-
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
-  const session = await getServerSession(authOptions)
-  if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
-
-  const body = await req.json()
-  const { title, description, startDate, endDate, ownerId, clientId, projectId } = body
-
-  const task = await prisma.task.update({
-    where: { id: params.id },
-    data: {
-      ...(title !== undefined ? { title } : {}),
-      ...(description !== undefined ? { description } : {}),
-      ...(startDate !== undefined ? { startDate: startDate ? new Date(startDate) : null } : {}),
-      ...(endDate !== undefined ? { endDate: endDate ? new Date(endDate) : null } : {}),
-      ...(ownerId !== undefined ? { ownerId } : {}),
-      ...(clientId !== undefined ? { clientId: clientId || null } : {}),
-      ...(projectId !== undefined ? { projectId: projectId || null } : {})
+  const tasks = await prisma.task.findMany({
+    where: {
+      ...(mine ? { ownerId: (session.user as any).id } : {}),
+      ...(ownerId ? { ownerId } : {}),
+      ...(projectId ? { projectId } : {}),
+      ...(clientId ? { clientId } : {}),
+      ...(search
+        ? {
+            OR: [
+              { title: { contains: search, mode: 'insensitive' } },
+              { description: { contains: search, mode: 'insensitive' } }
+            ]
+          }
+        : {})
     },
     include: {
       owner: true,
       client: true,
       project: true,
-      subtasks: { include: { owner: true }, orderBy: { createdAt: 'asc' } }
-    }
+      subtasks: { include: { owner: true } }
+    },
+    orderBy: { updatedAt: 'desc' }
   })
 
-  return NextResponse.json(toTaskDTO(task))
+  let dtos = tasks.map(toTaskDTO)
+
+  if (status) {
+    dtos = dtos.filter((t) => t.status === status)
+  }
+
+  return NextResponse.json(dtos)
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
 
-  await prisma.task.delete({ where: { id: params.id } })
-  return NextResponse.json({ ok: true })
+  const body = await req.json()
+  const { title, description, startDate, endDate, ownerId, clientId, projectId, subtasks } = body
+
+  if (!title || !ownerId) {
+    return NextResponse.json({ error: 'Titolo e owner sono obbligatori' }, { status: 400 })
+  }
+
+  const task = await prisma.task.create({
+    data: {
+      title,
+      description: description || null,
+      startDate: startDate ? new Date(startDate) : null,
+      endDate: endDate ? new Date(endDate) : null,
+      ownerId,
+      clientId: clientId || null,
+      projectId: projectId || null,
+      subtasks: {
+        create: (subtasks || []).map((s: any) => ({
+          title: s.title,
+          ownerId: s.ownerId || ownerId,
+          status: s.status || 'da_avviare'
+        }))
+      }
+    },
+    include: {
+      owner: true,
+      client: true,
+      project: true,
+      subtasks: { include: { owner: true } }
+    }
+  })
+
+  return NextResponse.json(toTaskDTO(task), { status: 201 })
 }
