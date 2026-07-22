@@ -1,0 +1,268 @@
+'use client'
+
+import { useEffect, useState, useCallback } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import clsx from 'clsx'
+import { STATUS_COLORS, STATUS_LABELS } from '@/lib/taskStatus'
+import type { TaskDTO, TeamMemberDTO, ClientDTO } from '@/types'
+import TaskFormModal from './TaskFormModal'
+import CloseParentModal from './CloseParentModal'
+
+export default function TaskDetailView({ taskId }: { taskId: string }) {
+  const router = useRouter()
+  const [task, setTask] = useState<TaskDTO | null>(null)
+  const [team, setTeam] = useState<TeamMemberDTO[]>([])
+  const [clients, setClients] = useState<ClientDTO[]>([])
+  const [loading, setLoading] = useState(true)
+  const [showEditForm, setShowEditForm] = useState(false)
+  const [pendingClose, setPendingClose] = useState(false)
+
+  const [newSubtaskTitle, setNewSubtaskTitle] = useState('')
+  const [newSubtaskOwnerId, setNewSubtaskOwnerId] = useState('')
+  const [savingSubtask, setSavingSubtask] = useState(false)
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    const [taskRes, teamRes, clientsRes] = await Promise.all([
+      fetch(`/api/tasks/${taskId}`),
+      fetch('/api/team'),
+      fetch('/api/clients')
+    ])
+    if (taskRes.ok) {
+      const data = await taskRes.json()
+      setTask(data)
+      setNewSubtaskOwnerId((prev) => prev || data.owner.id)
+    }
+    setTeam(await teamRes.json())
+    setClients(await clientsRes.json())
+    setLoading(false)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [taskId])
+
+  useEffect(() => {
+    load()
+  }, [load])
+
+  const owners = team
+    .filter((t) => t.matchedUser)
+    .map((t) => ({ id: t.matchedUser!.id, name: t.matchedUser!.name || t.email, email: t.email }))
+
+  async function updateSubtaskStatus(subtaskId: string, status: string) {
+    const res = await fetch(`/api/subtasks/${subtaskId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status })
+    })
+    const data = await res.json()
+    await load()
+    if (data.pendingClosure) setPendingClose(true)
+  }
+
+  async function updateSubtaskOwner(subtaskId: string, ownerId: string) {
+    await fetch(`/api/subtasks/${subtaskId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ownerId })
+    })
+    load()
+  }
+
+  async function deleteSubtask(subtaskId: string) {
+    if (!confirm('Eliminare questo sotto-task?')) return
+    await fetch(`/api/subtasks/${subtaskId}`, { method: 'DELETE' })
+    load()
+  }
+
+  async function addSubtask() {
+    if (!newSubtaskTitle.trim() || !task) return
+    setSavingSubtask(true)
+    await fetch(`/api/tasks/${task.id}/subtasks`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: newSubtaskTitle.trim(), ownerId: newSubtaskOwnerId })
+    })
+    setNewSubtaskTitle('')
+    setSavingSubtask(false)
+    load()
+  }
+
+  async function deleteTask() {
+    if (!task) return
+    if (!confirm(`Eliminare il task "${task.title}" e tutti i suoi sotto-task?`)) return
+    await fetch(`/api/tasks/${task.id}`, { method: 'DELETE' })
+    router.push('/tasks')
+  }
+
+  async function confirmCloseParent(confirmValue: boolean) {
+    if (!task) return
+    await fetch(`/api/tasks/${task.id}/close`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ confirm: confirmValue })
+    })
+    setPendingClose(false)
+    load()
+  }
+
+  if (loading) return <p className="text-slate-400">Caricamento...</p>
+  if (!task) return <p className="text-slate-400">Task non trovato.</p>
+
+  return (
+    <div>
+      <Link href="/tasks" className="text-sm text-brand-600 hover:underline mb-4 inline-block">
+        ← Torna ai task
+      </Link>
+
+      <div className="bg-white border border-slate-200 rounded-xl p-5 mb-6">
+        <div className="flex items-start justify-between gap-3 flex-wrap">
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-xl font-bold text-slate-800">{task.title}</h1>
+              <span className={clsx('px-2 py-1 rounded-full text-xs font-medium', STATUS_COLORS[task.status])}>
+                {STATUS_LABELS[task.status]}
+              </span>
+            </div>
+            {task.description && <p className="text-slate-500 text-sm mt-2">{task.description}</p>}
+          </div>
+          <div className="flex gap-2 shrink-0">
+            <button
+              onClick={() => setShowEditForm(true)}
+              className="px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-medium hover:bg-slate-100"
+            >
+              Modifica
+            </button>
+            <button
+              onClick={deleteTask}
+              className="px-3 py-1.5 rounded-lg border border-red-200 text-red-600 text-sm font-medium hover:bg-red-50"
+            >
+              Elimina
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4 pt-4 border-t border-slate-100 text-sm">
+          <div>
+            <p className="text-xs text-slate-400 uppercase">Cliente</p>
+            <p className="text-slate-700">{task.clientName || '—'}</p>
+          </div>
+          <div>
+            <p className="text-xs text-slate-400 uppercase">Progetto</p>
+            <p className="text-slate-700">{task.projectName || '—'}</p>
+          </div>
+          <div>
+            <p className="text-xs text-slate-400 uppercase">Owner</p>
+            <p className="text-slate-700">{task.owner.name || task.owner.email}</p>
+          </div>
+          <div>
+            <p className="text-xs text-slate-400 uppercase">Date</p>
+            <p className="text-slate-700">
+              {task.startDate ? task.startDate.slice(0, 10) : '—'} → {task.endDate ? task.endDate.slice(0, 10) : '—'}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-4">
+          <div className="w-full bg-slate-100 rounded-full h-2">
+            <div className="bg-brand-500 h-2 rounded-full" style={{ width: `${task.progress}%` }} />
+          </div>
+          <span className="text-xs text-slate-400">{task.progress}% completato</span>
+        </div>
+      </div>
+
+      <div className="bg-white border border-slate-200 rounded-xl p-5">
+        <h2 className="font-semibold text-slate-800 mb-3">Sotto-task</h2>
+
+        <div className="space-y-2 mb-4">
+          {task.subtasks.map((s) => (
+            <div
+              key={s.id}
+              className="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2"
+            >
+              <span className="flex-1 text-slate-700 text-sm">{s.title}</span>
+              <select
+                value={s.owner.id}
+                onChange={(e) => updateSubtaskOwner(s.id, e.target.value)}
+                className="text-xs border border-slate-200 rounded-md px-2 py-1"
+              >
+                {owners.map((o) => (
+                  <option key={o.id} value={o.id}>
+                    {o.name}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={s.status}
+                onChange={(e) => updateSubtaskStatus(s.id, e.target.value)}
+                className={clsx('text-xs rounded-md px-2 py-1 border-0 font-medium', STATUS_COLORS[s.status])}
+              >
+                <option value="da_avviare">Da avviare</option>
+                <option value="in_corso">In corso</option>
+                <option value="completato">Completato</option>
+              </select>
+              <button
+                onClick={() => deleteSubtask(s.id)}
+                className="text-slate-400 hover:text-red-600 px-1"
+                title="Elimina sotto-task"
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+          {task.subtasks.length === 0 && (
+            <p className="text-sm text-slate-400">Nessun sotto-task ancora.</p>
+          )}
+        </div>
+
+        <div className="flex gap-2 pt-3 border-t border-slate-100">
+          <input
+            value={newSubtaskTitle}
+            onChange={(e) => setNewSubtaskTitle(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && addSubtask()}
+            placeholder="Nuovo sotto-task"
+            className="flex-1 border border-slate-200 rounded-lg px-3 py-1.5 text-sm"
+          />
+          <select
+            value={newSubtaskOwnerId}
+            onChange={(e) => setNewSubtaskOwnerId(e.target.value)}
+            className="border border-slate-200 rounded-lg px-2 py-1.5 text-sm"
+          >
+            {owners.map((o) => (
+              <option key={o.id} value={o.id}>
+                {o.name}
+              </option>
+            ))}
+          </select>
+          <button
+            onClick={addSubtask}
+            disabled={savingSubtask || !newSubtaskTitle.trim()}
+            className="px-3 py-1.5 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700 disabled:opacity-50"
+          >
+            + Aggiungi
+          </button>
+        </div>
+      </div>
+
+      {showEditForm && (
+        <TaskFormModal
+          owners={owners}
+          clients={clients}
+          task={task}
+          onClose={() => setShowEditForm(false)}
+          onSaved={() => {
+            setShowEditForm(false)
+            load()
+          }}
+        />
+      )}
+
+      {pendingClose && (
+        <CloseParentModal
+          task={task}
+          onConfirm={(confirm) => confirmCloseParent(confirm)}
+          onDismiss={() => setPendingClose(false)}
+        />
+      )}
+    </div>
+  )
+}
