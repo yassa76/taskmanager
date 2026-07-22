@@ -17,7 +17,8 @@ function toTaskDTO(task: any): TaskDTO {
     startDate: task.startDate ? task.startDate.toISOString() : null,
     endDate: task.endDate ? task.endDate.toISOString() : null,
     owner: { id: task.owner.id, name: task.owner.name, email: task.owner.email },
-    clientName: task.project?.client?.name ?? null,
+    clientId: task.clientId,
+    clientName: task.client?.name ?? null,
     projectName: task.project?.name ?? null,
     projectId: task.projectId,
     closedManually: task.closedManually,
@@ -55,7 +56,7 @@ export async function GET(req: NextRequest) {
       ...(mine ? { ownerId: (session.user as any).id } : {}),
       ...(ownerId ? { ownerId } : {}),
       ...(projectId ? { projectId } : {}),
-      ...(clientId ? { project: { clientId } } : {}),
+      ...(clientId ? { clientId } : {}),
       ...(search
         ? {
             OR: [
@@ -67,7 +68,8 @@ export async function GET(req: NextRequest) {
     },
     include: {
       owner: true,
-      project: { include: { client: true } },
+      client: true,
+      project: true,
       subtasks: { include: { owner: true } }
     },
     orderBy: { updatedAt: 'desc' }
@@ -87,7 +89,7 @@ export async function POST(req: NextRequest) {
   if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
 
   const body = await req.json()
-  const { title, description, startDate, endDate, ownerId, projectId, subtasks } = body
+  const { title, description, startDate, endDate, ownerId, clientId, projectId, subtasks } = body
 
   if (!title || !ownerId) {
     return NextResponse.json({ error: 'Titolo e owner sono obbligatori' }, { status: 400 })
@@ -100,6 +102,7 @@ export async function POST(req: NextRequest) {
       startDate: startDate ? new Date(startDate) : null,
       endDate: endDate ? new Date(endDate) : null,
       ownerId,
+      clientId: clientId || null,
       projectId: projectId || null,
       subtasks: {
         create: (subtasks || []).map((s: any) => ({
@@ -111,7 +114,8 @@ export async function POST(req: NextRequest) {
     },
     include: {
       owner: true,
-      project: { include: { client: true } },
+      client: true,
+      project: true,
       subtasks: { include: { owner: true } }
     }
   })
