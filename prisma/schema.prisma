@@ -64,6 +64,7 @@ model User {
 
   ownedTasks    Task[]    @relation("TaskOwner")
   ownedSubtasks Subtask[] @relation("SubtaskOwner")
+  ownedClients  Client[]  @relation("ClientOwner")
 }
 
 // Elenco email del team, gestito dagli admin. Quando un utente si registra
