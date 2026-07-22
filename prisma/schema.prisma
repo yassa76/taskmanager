@@ -53,7 +53,7 @@ model User {
   emailVerified DateTime?
   name          String?
   image         String?
-  role          String    @default("member") // "member" | "admin"
+  role          String    @default("normale") // "admin" | "normale" | "sola_lettura"
   createdAt     DateTime  @default(now())
 
   accounts Account[]
@@ -69,10 +69,13 @@ model User {
 
 // Elenco email del team, gestito dagli admin. Quando un utente si registra
 // (login Google) con un'email presente qui, viene fatto il match automatico.
+// Ogni membro ha subito un account "segnaposto" creato all'invito, cosi'
+// puo' essere assegnato come owner anche prima di essersi mai loggato.
 model TeamMember {
   id        String   @id @default(cuid())
   email     String   @unique
   name      String?
+  active    Boolean  @default(true)
   invitedAt DateTime @default(now())
 
   user User?
@@ -127,7 +130,8 @@ model Subtask {
   description String?
   status      String    @default("da_avviare") // "da_avviare" | "in_corso" | "completato"
   startDate   DateTime  @default(now())
-  endDate     DateTime?
+  endDate     DateTime?  // Data di scadenza (deadline)
+  closedAt    DateTime?  // Data di chiusura effettiva (quando e' stato completato)
   ownerId     String
   owner       User      @relation("SubtaskOwner", fields: [ownerId], references: [id])
   taskId      String
