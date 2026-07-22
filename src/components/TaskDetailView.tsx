@@ -79,7 +79,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
   }
 
   async function deleteSubtask(subtaskId: string) {
-    if (!confirm('Eliminare questo sotto-task?')) return
+    if (!confirm('Eliminare questo sub-task?')) return
     await fetch(`/api/subtasks/${subtaskId}`, { method: 'DELETE' })
     load()
   }
@@ -99,7 +99,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
 
   async function deleteTask() {
     if (!task) return
-    if (!confirm(`Eliminare il task "${task.title}" e tutti i suoi sotto-task?`)) return
+    if (!confirm(`Eliminare il task "${task.title}" e tutti i suoi sub-task?`)) return
     await fetch(`/api/tasks/${task.id}`, { method: 'DELETE' })
     router.push('/tasks')
   }
@@ -183,56 +183,74 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
         </div>
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-xl p-5">
-        <h2 className="font-semibold text-slate-800 mb-3">Sotto-task</h2>
-
-        <div className="space-y-2 mb-4">
-          {task.subtasks.map((s) => (
-            <div
-              key={s.id}
-              className="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2"
-            >
-              <span className="flex-1 text-slate-700 text-sm">{s.title}</span>
-              <select
-                value={s.owner.id}
-                onChange={(e) => updateSubtaskOwner(s.id, e.target.value)}
-                className="text-xs border border-slate-200 rounded-md px-2 py-1"
-              >
-                {owners.map((o) => (
-                  <option key={o.id} value={o.id}>
-                    {o.name}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={s.status}
-                onChange={(e) => updateSubtaskStatus(s.id, e.target.value)}
-                className={clsx('text-xs rounded-md px-2 py-1 border-0 font-medium', STATUS_COLORS[s.status])}
-              >
-                <option value="da_avviare">Da avviare</option>
-                <option value="in_corso">In corso</option>
-                <option value="completato">Completato</option>
-              </select>
-              <button
-                onClick={() => deleteSubtask(s.id)}
-                className="text-slate-400 hover:text-red-600 px-1"
-                title="Elimina sotto-task"
-              >
-                ✕
-              </button>
-            </div>
-          ))}
-          {task.subtasks.length === 0 && (
-            <p className="text-sm text-slate-400">Nessun sotto-task ancora.</p>
-          )}
+      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+        <div className="px-5 py-3 border-b border-slate-200">
+          <h2 className="font-semibold text-slate-800">Sub-task</h2>
         </div>
 
-        <div className="flex gap-2 pt-3 border-t border-slate-100">
+        <table className="w-full text-sm">
+          <thead className="bg-slate-50 border-b border-slate-200">
+            <tr>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Nome</th>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Owner</th>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Stato</th>
+              <th className="px-4 py-2 text-right text-xs font-semibold text-slate-500 uppercase">Azioni</th>
+            </tr>
+          </thead>
+          <tbody>
+            {task.subtasks.map((s) => (
+              <tr key={s.id} className="border-b border-slate-100 hover:bg-slate-50">
+                <td className="px-4 py-2 text-slate-700">{s.title}</td>
+                <td className="px-4 py-2">
+                  <select
+                    value={s.owner.id}
+                    onChange={(e) => updateSubtaskOwner(s.id, e.target.value)}
+                    className="text-xs border border-slate-200 rounded-md px-2 py-1"
+                  >
+                    {owners.map((o) => (
+                      <option key={o.id} value={o.id}>
+                        {o.name}
+                      </option>
+                    ))}
+                  </select>
+                </td>
+                <td className="px-4 py-2">
+                  <select
+                    value={s.status}
+                    onChange={(e) => updateSubtaskStatus(s.id, e.target.value)}
+                    className={clsx('text-xs rounded-md px-2 py-1 border-0 font-medium', STATUS_COLORS[s.status])}
+                  >
+                    <option value="da_avviare">Da avviare</option>
+                    <option value="in_corso">In corso</option>
+                    <option value="completato">Completato</option>
+                  </select>
+                </td>
+                <td className="px-4 py-2 text-right">
+                  <button
+                    onClick={() => deleteSubtask(s.id)}
+                    className="text-xs text-red-500 font-medium hover:underline"
+                  >
+                    Elimina
+                  </button>
+                </td>
+              </tr>
+            ))}
+            {task.subtasks.length === 0 && (
+              <tr>
+                <td colSpan={4} className="text-center py-6 text-slate-400">
+                  Nessun sub-task ancora.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+
+        <div className="flex gap-2 p-4 border-t border-slate-100">
           <input
             value={newSubtaskTitle}
             onChange={(e) => setNewSubtaskTitle(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && addSubtask()}
-            placeholder="Nuovo sotto-task"
+            placeholder="Nuovo sub-task"
             className="flex-1 border border-slate-200 rounded-lg px-3 py-1.5 text-sm"
           />
           <select
