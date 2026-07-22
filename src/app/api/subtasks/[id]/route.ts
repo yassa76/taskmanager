@@ -9,14 +9,16 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
 
   const body = await req.json()
-  const { title, status, ownerId } = body
+  const { title, status, ownerId, startDate, endDate } = body
 
   const subtask = await prisma.subtask.update({
     where: { id: params.id },
     data: {
       ...(title !== undefined ? { title } : {}),
       ...(status !== undefined ? { status } : {}),
-      ...(ownerId !== undefined ? { ownerId } : {})
+      ...(ownerId !== undefined ? { ownerId } : {}),
+      ...(startDate !== undefined ? { startDate: startDate ? new Date(startDate) : new Date() } : {}),
+      ...(endDate !== undefined ? { endDate: endDate ? new Date(endDate) : null } : {})
     },
     include: { owner: true, task: { include: { subtasks: true } } }
   })
@@ -35,7 +37,14 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   }
 
   return NextResponse.json({
-    subtask: { id: subtask.id, title: subtask.title, status: subtask.status, ownerId: subtask.ownerId },
+    subtask: {
+      id: subtask.id,
+      title: subtask.title,
+      status: subtask.status,
+      ownerId: subtask.ownerId,
+      startDate: subtask.startDate.toISOString(),
+      endDate: subtask.endDate ? subtask.endDate.toISOString() : null
+    },
     taskId: subtask.taskId,
     pendingClosure
   })
