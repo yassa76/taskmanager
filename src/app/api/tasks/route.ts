@@ -28,6 +28,7 @@ function toTaskDTO(task: any): TaskDTO {
     subtasks: task.subtasks.map((s: any) => ({
       id: s.id,
       title: s.title,
+      description: s.description,
       status: s.status,
       startDate: s.startDate.toISOString(),
       endDate: s.endDate ? s.endDate.toISOString() : null,
