@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import * as XLSX from 'xlsx'
 import clsx from 'clsx'
 import { STATUS_COLORS, STATUS_LABELS } from '@/lib/taskStatus'
@@ -9,20 +9,18 @@ import type { TaskDTO, TeamMemberDTO, ClientDTO } from '@/types'
 import TaskFormModal from './TaskFormModal'
 import Filters, { FilterState } from './Filters'
 
-type SortKey = 'title' | 'clientName' | 'projectName' | 'owner' | 'startDate' | 'endDate' | 'status'
+type SortKey = 'title' | 'clientName' | 'owner' | 'startDate' | 'endDate' | 'status'
 type SortDir = 'asc' | 'desc'
 
 const defaultFilters: FilterState = {
   view: 'all',
   clientId: '',
-  projectId: '',
   ownerId: '',
   status: '',
   search: ''
 }
 
 export default function TasksView() {
-  const router = useRouter()
   const [tasks, setTasks] = useState<TaskDTO[]>([])
   const [team, setTeam] = useState<TeamMemberDTO[]>([])
   const [clients, setClients] = useState<ClientDTO[]>([])
@@ -39,7 +37,6 @@ export default function TasksView() {
     if (filters.view === 'mine') params.set('mine', 'true')
     if (filters.ownerId) params.set('ownerId', filters.ownerId)
     if (filters.clientId) params.set('clientId', filters.clientId)
-    if (filters.projectId) params.set('projectId', filters.projectId)
     if (filters.status) params.set('status', filters.status)
     if (filters.search) params.set('search', filters.search)
 
@@ -80,10 +77,6 @@ export default function TasksView() {
         case 'clientName':
           av = (a.clientName || '').toLowerCase()
           bv = (b.clientName || '').toLowerCase()
-          break
-        case 'projectName':
-          av = (a.projectName || '').toLowerCase()
-          bv = (b.projectName || '').toLowerCase()
           break
         case 'owner':
           av = (a.owner.name || a.owner.email).toLowerCase()
@@ -127,7 +120,6 @@ export default function TasksView() {
   function exportXls() {
     const rows = sortedTasks.map((t) => ({
       Cliente: t.clientName || '',
-      Progetto: t.projectName || '',
       Task: t.title,
       Descrizione: t.description || '',
       Owner: t.owner.name || t.owner.email,
@@ -183,7 +175,6 @@ export default function TasksView() {
           <thead className="bg-slate-50 border-b border-slate-200">
             <tr>
               <SortHeader label="Cliente" k="clientName" />
-              <SortHeader label="Progetto" k="projectName" />
               <SortHeader label="Task" k="title" />
               <SortHeader label="Owner" k="owner" />
               <SortHeader label="Data avvio" k="startDate" />
@@ -196,27 +187,34 @@ export default function TasksView() {
           <tbody>
             {loading && (
               <tr>
-                <td colSpan={9} className="text-center py-8 text-slate-400">
+                <td colSpan={8} className="text-center py-8 text-slate-400">
                   Caricamento...
                 </td>
               </tr>
             )}
             {!loading && sortedTasks.length === 0 && (
               <tr>
-                <td colSpan={9} className="text-center py-8 text-slate-400">
+                <td colSpan={8} className="text-center py-8 text-slate-400">
                   Nessun task trovato.
                 </td>
               </tr>
             )}
             {sortedTasks.map((t) => (
-              <tr
-                key={t.id}
-                className="border-b border-slate-100 hover:bg-slate-50 cursor-pointer"
-                onClick={() => router.push(`/tasks/${t.id}`)}
-              >
-                <td className="px-3 py-2">{t.clientName || '—'}</td>
-                <td className="px-3 py-2">{t.projectName || '—'}</td>
-                <td className="px-3 py-2 font-medium text-slate-800">{t.title}</td>
+              <tr key={t.id} className="border-b border-slate-100 hover:bg-slate-50">
+                <td className="px-3 py-2">
+                  {t.clientId ? (
+                    <Link href={`/clients/${t.clientId}`} className="text-brand-600 font-medium hover:underline">
+                      {t.clientName}
+                    </Link>
+                  ) : (
+                    <span className="text-slate-400">—</span>
+                  )}
+                </td>
+                <td className="px-3 py-2">
+                  <Link href={`/tasks/${t.id}`} className="text-brand-600 font-semibold hover:underline">
+                    {t.title}
+                  </Link>
+                </td>
                 <td className="px-3 py-2">{t.owner.name || t.owner.email}</td>
                 <td className="px-3 py-2">{t.startDate ? t.startDate.slice(0, 10) : '—'}</td>
                 <td className="px-3 py-2">{t.endDate ? t.endDate.slice(0, 10) : '—'}</td>
@@ -231,7 +229,7 @@ export default function TasksView() {
                   </div>
                   <span className="text-xs text-slate-400">{t.progress}%</span>
                 </td>
-                <td className="px-3 py-2 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                <td className="px-3 py-2 text-right whitespace-nowrap">
                   <button
                     onClick={() => {
                       setEditingTask(t)
