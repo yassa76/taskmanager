@@ -251,15 +251,17 @@ export default function TasksView() {
                       setEditingTask(t)
                       setShowForm(true)
                     }}
-                    className="text-xs text-brand-600 font-medium hover:underline mr-3"
+                    className="text-slate-400 hover:text-brand-600 mr-2 text-base"
+                    title="Modifica"
                   >
-                    Modifica
+                    ✎
                   </button>
                   <button
                     onClick={() => deleteTask(t)}
-                    className="text-xs text-red-500 font-medium hover:underline"
+                    className="text-slate-400 hover:text-red-600 text-base"
+                    title="Elimina"
                   >
-                    Elimina
+                    🗑
                   </button>
                 </td>
               </tr>
