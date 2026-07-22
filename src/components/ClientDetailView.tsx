@@ -10,18 +10,27 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
   const [client, setClient] = useState<ClientDTO | null>(null)
   const [tasks, setTasks] = useState<TaskDTO[]>([])
   const [loading, setLoading] = useState(true)
-  const [newProjectName, setNewProjectName] = useState('')
-  const [savingProject, setSavingProject] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   async function load() {
     setLoading(true)
-    const [clientRes, tasksRes] = await Promise.all([
-      fetch(`/api/clients/${clientId}`),
-      fetch(`/api/tasks?clientId=${clientId}`)
-    ])
-    setClient(await clientRes.json())
-    setTasks(await tasksRes.json())
-    setLoading(false)
+    setError(null)
+    try {
+      const [clientRes, tasksRes] = await Promise.all([
+        fetch(`/api/clients/${clientId}`),
+        fetch(`/api/tasks?clientId=${clientId}`)
+      ])
+      if (!clientRes.ok) {
+        setError(`Errore nel caricare il cliente (status ${clientRes.status})`)
+        return
+      }
+      setClient(await clientRes.json())
+      setTasks(tasksRes.ok ? await tasksRes.json() : [])
+    } catch (e: any) {
+      setError(`Errore imprevisto: ${e?.message || e}`)
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => {
@@ -29,20 +38,8 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clientId])
 
-  async function addProject() {
-    if (!newProjectName.trim()) return
-    setSavingProject(true)
-    await fetch('/api/projects', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: newProjectName.trim(), clientId })
-    })
-    setNewProjectName('')
-    setSavingProject(false)
-    load()
-  }
-
   if (loading) return <p className="text-slate-400">Caricamento...</p>
+  if (error) return <p className="text-red-500">{error}</p>
   if (!client) return <p className="text-slate-400">Cliente non trovato.</p>
 
   return (
@@ -64,38 +61,6 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
         <p className="text-xs text-slate-400 mt-2">
           Owner: {client.owner ? client.owner.name || client.owner.email : '—'}
         </p>
-      </div>
-
-      <div className="bg-white border border-slate-200 rounded-xl p-5 mb-6">
-        <h2 className="font-semibold text-slate-800 mb-3">Progetti / Opportunità</h2>
-        {client.projects.length > 0 && (
-          <ul className="mb-3 space-y-1">
-            {client.projects.map((p) => (
-              <li key={p.id} className="text-sm text-slate-600 pl-3 border-l-2 border-slate-200">
-                {p.name}
-              </li>
-            ))}
-          </ul>
-        )}
-        {client.projects.length === 0 && (
-          <p className="text-sm text-slate-400 mb-3">Nessun progetto/opportunità ancora.</p>
-        )}
-        <div className="flex gap-2">
-          <input
-            value={newProjectName}
-            onChange={(e) => setNewProjectName(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && addProject()}
-            placeholder="Nome progetto/opportunità"
-            className="flex-1 border border-slate-200 rounded-lg px-3 py-1.5 text-sm"
-          />
-          <button
-            onClick={addProject}
-            disabled={savingProject || !newProjectName.trim()}
-            className="px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-medium hover:bg-slate-100 disabled:opacity-50"
-          >
-            + Aggiungi progetto
-          </button>
-        </div>
       </div>
 
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
