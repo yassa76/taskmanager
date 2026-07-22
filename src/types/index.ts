@@ -36,6 +36,9 @@ export interface TaskDTO {
 export interface ClientDTO {
   id: string
   name: string
+  description: string | null
+  industry: string | null
+  owner: OwnerLite | null
   projects: { id: string; name: string }[]
 }
 
