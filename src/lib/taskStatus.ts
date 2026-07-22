@@ -3,26 +3,12 @@ export type DerivedStatus = 'da_avviare' | 'in_corso' | 'completato'
 
 export interface DerivedTaskStatus {
   status: DerivedStatus
-  // true quando tutti i figli sono completati ma il padre non e' ancora
-  // stato chiuso esplicitamente: il frontend deve proporre la conferma.
   pendingClosure: boolean
-  progress: number // 0-100, percentuale sotto-task completati
+  progress: number
 }
 
-/**
- * Deriva lo stato del task padre a partire dallo stato dei sotto-task,
- * secondo le regole:
- * - nessun sotto-task -> "da_avviare"
- * - almeno un sotto-task "in_corso" -> "in_corso"
- * - tutti i sotto-task "da_avviare" -> "da_avviare"
- * - misto (alcuni completati, alcuni da avviare, nessuno in corso) -> "in_corso"
- * - tutti "completato":
- *      - se closedManually === true -> "completato"
- *      - altrimenti resta "in_corso" con pendingClosure = true, cosi' il
- *        frontend puo' chiedere conferma prima di chiudere il padre.
- */
 export function deriveTaskStatus(
-  subtaskStatuses: SubtaskStatus[],
+  subtaskStatuses: string[],
   closedManually: boolean
 ): DerivedTaskStatus {
   const total = subtaskStatuses.length
@@ -51,7 +37,6 @@ export function deriveTaskStatus(
     return { status: 'da_avviare', pendingClosure: false, progress: 0 }
   }
 
-  // Misto: alcuni completati, alcuni da avviare, nessuno in corso
   return { status: 'in_corso', pendingClosure: false, progress }
 }
 
