@@ -16,7 +16,7 @@ export default function CloseParentModal({
       <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl">
         <h2 className="text-lg font-bold text-slate-800 mb-2">Chiudere anche il task padre?</h2>
         <p className="text-sm text-slate-500 mb-6">
-          Tutti i sotto-task di <span className="font-semibold text-slate-700">&quot;{task.title}&quot;</span> risultano
+          Tutti i sub-task di <span className="font-semibold text-slate-700">&quot;{task.title}&quot;</span> risultano
           completati. Vuoi contrassegnare come completato anche il task padre?
         </p>
         <div className="flex justify-end gap-2">
