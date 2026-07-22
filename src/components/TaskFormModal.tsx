@@ -32,7 +32,7 @@ export default function TaskFormModal({
   const [description, setDescription] = useState(task?.description || '')
   const [startDate, setStartDate] = useState(task?.startDate ? task.startDate.slice(0, 10) : today())
   const [endDate, setEndDate] = useState(task?.endDate ? task.endDate.slice(0, 10) : '')
-  const [ownerId, setOwnerId] = useState(task?.owner.id || owners[0]?.id || '')
+  const [ownerId, setOwnerId] = useState(task?.owner?.id || owners[0]?.id || '')
   const [clientId, setClientId] = useState(task?.clientId || '')
   const [subtasks, setSubtasks] = useState<{ title: string; ownerId: string }[]>([])
   const [saving, setSaving] = useState(false)
