@@ -209,14 +209,22 @@ export default function TasksView() {
             )}
             {sortedTasks.map((t) => (
               <tr key={t.id} className="border-b border-slate-100 hover:bg-slate-50">
-                <td className="px-3 py-2">
-                  <Link href={`/tasks/${t.id}`} className="text-brand-600 font-semibold hover:underline">
+                <td className="px-3 py-2 max-w-xs">
+                  <Link
+                    href={`/tasks/${t.id}`}
+                    className="block truncate text-brand-600 font-semibold hover:underline"
+                    title={t.title}
+                  >
                     {t.title}
                   </Link>
                 </td>
-                <td className="px-3 py-2">
+                <td className="px-3 py-2 max-w-[160px]">
                   {t.clientId ? (
-                    <Link href={`/clients/${t.clientId}`} className="text-brand-600 font-medium hover:underline">
+                    <Link
+                      href={`/clients/${t.clientId}`}
+                      className="block truncate text-brand-600 font-medium hover:underline"
+                      title={t.clientName || ''}
+                    >
                       {t.clientName}
                     </Link>
                   ) : (
