@@ -78,10 +78,14 @@ model TeamMember {
 }
 
 model Client {
-  id       String    @id @default(cuid())
-  name     String    @unique
-  projects Project[]
-  createdAt DateTime @default(now())
+  id          String    @id @default(cuid())
+  name        String    @unique
+  description String?
+  industry    String?   // "GPS" | "TMT" | "ER&I" | "FSI" | "CONS"
+  ownerId     String?
+  owner       User?     @relation("ClientOwner", fields: [ownerId], references: [id])
+  projects    Project[]
+  createdAt   DateTime  @default(now())
 }
 
 model Project {
