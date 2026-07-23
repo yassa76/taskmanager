@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { deriveTaskStatus } from '@/lib/taskStatus'
+import { canCreate } from '@/lib/permissions'
 import type { TaskDTO } from '@/types'
 
 function toTaskDTO(task: any): TaskDTO {
@@ -34,6 +35,7 @@ function toTaskDTO(task: any): TaskDTO {
       status: s.status,
       startDate: s.startDate.toISOString(),
       endDate: s.endDate ? s.endDate.toISOString() : null,
+      closedAt: s.closedAt ? s.closedAt.toISOString() : null,
       owner: { id: s.owner.id, name: s.owner.name, email: s.owner.email },
       taskId: s.taskId,
       createdAt: s.createdAt.toISOString(),
@@ -53,7 +55,7 @@ export async function GET(req: NextRequest) {
   const ownerId = searchParams.get('ownerId')
   const clientId = searchParams.get('clientId')
   const projectId = searchParams.get('projectId')
-  const status = searchParams.get('status') // filtro applicato dopo il calcolo (derivato)
+  const status = searchParams.get('status')
   const search = searchParams.get('search')
 
   const tasks = await prisma.task.findMany({
@@ -92,11 +94,12 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
+  if (!canCreate(session)) return NextResponse.json({ error: 'Utente in sola lettura' }, { status: 403 })
 
   const body = await req.json()
   const { title, description, startDate, endDate, ownerId, clientId, projectId, subtasks } = body
 
-if (!title || !ownerId) {
+  if (!title || !ownerId) {
     return NextResponse.json({ error: 'Titolo e owner sono obbligatori' }, { status: 400 })
   }
   if (!endDate) {
@@ -116,7 +119,8 @@ if (!title || !ownerId) {
         create: (subtasks || []).map((s: any) => ({
           title: s.title,
           ownerId: s.ownerId || ownerId,
-          status: s.status || 'da_avviare'
+          status: s.status || 'da_avviare',
+          endDate: s.endDate ? new Date(s.endDate) : null
         }))
       }
     },
