@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import clsx from 'clsx'
 import Breadcrumbs from './Breadcrumbs'
+import DeadlineCalendar, { CalendarItem } from './DeadlineCalendar'
 
 interface UpcomingTask {
   id: string
@@ -36,6 +37,7 @@ interface HomeData {
   }
   upcomingTasks: UpcomingTask[]
   upcomingSubtasks: UpcomingSubtask[]
+  calendarItems: CalendarItem[]
 }
 
 function KpiCard({ label, value, accent }: { label: string; value: number; accent?: string }) {
@@ -97,7 +99,11 @@ export default function HomeView({ userName }: { userName: string }) {
             <KpiCard label="Sub-task in ritardo" value={data.kpi.overdueSubtasks} accent="text-red-600" />
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid md:grid-cols-3 gap-6 mb-6">
+            <div className="md:col-span-1">
+              <DeadlineCalendar items={data.calendarItems} />
+            </div>
+            <div className="md:col-span-2 grid sm:grid-cols-2 gap-6">
             <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
               <div className="px-5 py-3 border-b border-slate-200">
                 <h2 className="font-semibold text-slate-800">I miei task in scadenza</h2>
@@ -184,6 +190,7 @@ export default function HomeView({ userName }: { userName: string }) {
                   )}
                 </tbody>
               </table>
+            </div>
             </div>
           </div>
         </>
