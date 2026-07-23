@@ -36,7 +36,8 @@ export async function GET(req: NextRequest) {
   const enrichedTasks = tasks.map((t) => {
     const derived = deriveTaskStatus(
       t.subtasks.map((s) => s.status),
-      t.closedManually
+      t.closedManually,
+      t.statusOverride
     )
     const overdue = !!t.endDate && t.endDate < now && derived.status !== 'completato'
     return {
