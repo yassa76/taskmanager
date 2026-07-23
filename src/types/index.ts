@@ -40,7 +40,7 @@ export interface TaskDTO {
   projectId: string | null
   closedManually: boolean
   statusOverride: string | null
-  status: 'da_avviare' | 'in_corso' | 'completato'
+  status: 'da_avviare' | 'in_corso' | 'completato' | 'annullato'
   pendingClosure: boolean
   progress: number
   subtasks: SubtaskDTO[]
