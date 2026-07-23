@@ -9,18 +9,23 @@ export interface DerivedTaskStatus {
 
 export function deriveTaskStatus(
   subtaskStatuses: string[],
-  closedManually: boolean
+  closedManually: boolean,
+  statusOverride?: string | null
 ): DerivedTaskStatus {
   const total = subtaskStatuses.length
+  const completedCount = subtaskStatuses.filter((s) => s === 'completato').length
+  const progress = total > 0 ? Math.round((completedCount / total) * 100) : statusOverride === 'completato' ? 100 : 0
+
+  if (statusOverride === 'da_avviare' || statusOverride === 'in_corso' || statusOverride === 'completato') {
+    return { status: statusOverride, pendingClosure: false, progress }
+  }
 
   if (total === 0) {
     return { status: 'da_avviare', pendingClosure: false, progress: 0 }
   }
 
-  const completedCount = subtaskStatuses.filter((s) => s === 'completato').length
   const inProgressCount = subtaskStatuses.filter((s) => s === 'in_corso').length
   const notStartedCount = subtaskStatuses.filter((s) => s === 'da_avviare').length
-  const progress = Math.round((completedCount / total) * 100)
 
   if (completedCount === total) {
     if (closedManually) {
