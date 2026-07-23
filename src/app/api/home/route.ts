@@ -48,7 +48,6 @@ export async function GET() {
   const upcomingTasks = enrichedTasks
     .filter((t) => t.status !== 'completato' && t.endDate)
     .sort((a, b) => (a.endDate! < b.endDate! ? -1 : a.endDate! > b.endDate! ? 1 : 0))
-    .slice(0, 8)
 
   const upcomingSubtasks = mySubtasks
     .filter((s) => s.status !== 'completato')
@@ -64,7 +63,6 @@ export async function GET() {
     }))
     .filter((s) => s.endDate)
     .sort((a, b) => (a.endDate! < b.endDate! ? -1 : a.endDate! > b.endDate! ? 1 : 0))
-    .slice(0, 8)
 
   const kpi = {
     totalTasks: enrichedTasks.length,
