@@ -72,7 +72,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   // annulliamo un'eventuale chiusura manuale precedente del padre.
   const derived = deriveTaskStatus(
     subtask.task.subtasks.map((s) => s.status),
-    subtask.task.closedManually
+    subtask.task.closedManually,
+    subtask.task.statusOverride
   )
 
   let pendingClosure = derived.pendingClosure
