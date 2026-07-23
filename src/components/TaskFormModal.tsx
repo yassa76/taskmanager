@@ -36,6 +36,7 @@ export default function TaskFormModal({
   const [endDate, setEndDate] = useState(task?.endDate ? task.endDate.slice(0, 10) : '')
   const [ownerId, setOwnerId] = useState(task?.owner?.id || owners[0]?.id || '')
   const [clientId, setClientId] = useState(task?.clientId || defaultClientId || '')
+  const [status, setStatus] = useState(task?.statusOverride || 'auto')
   const [subtasks, setSubtasks] = useState<{ title: string; ownerId: string; endDate: string }[]>([])
   const [saving, setSaving] = useState(false)
 
@@ -100,6 +101,7 @@ export default function TaskFormModal({
       endDate: endDate || null,
       ownerId,
       clientId: clientId || null,
+      ...(isEditing ? { status } : {}),
       ...(isEditing
         ? {}
         : {
@@ -186,6 +188,25 @@ export default function TaskFormModal({
               ))}
             </select>
           </div>
+          {isEditing && (
+            <div>
+              <label className="text-xs font-medium text-slate-500">Stato</label>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1"
+              >
+                <option value="auto">Automatico (in base ai sotto-task)</option>
+                <option value="da_avviare">Da avviare</option>
+                <option value="in_corso">In corso</option>
+                <option value="completato">Completato</option>
+              </select>
+              <p className="text-xs text-slate-400 mt-1">
+                Impostando uno stato manuale, questo avrà la precedenza sui sotto-task finché non torni su
+                &quot;Automatico&quot;.
+              </p>
+            </div>
+          )}
           <div>
             <div className="flex items-center justify-between">
               <label className="text-xs font-medium text-slate-500">Cliente (opzionale)</label>
