@@ -241,7 +241,17 @@ export default function TasksView() {
                 </td>
                 <td className="px-3 py-2">{t.owner.name || t.owner.email}</td>
                 <td className="px-3 py-2">{t.startDate ? t.startDate.slice(0, 10) : '—'}</td>
-                <td className="px-3 py-2">{t.endDate ? t.endDate.slice(0, 10) : '—'}</td>
+                <td className="px-3 py-2">
+                <span
+                  className={clsx(
+                    t.endDate && new Date(t.endDate) < new Date() && t.status !== 'completato'
+                      ? 'text-red-600 font-semibold'
+                      : ''
+                  )}
+                >
+                  {t.endDate ? t.endDate.slice(0, 10) : '—'}
+                </span>
+              </td>
                 <td className="px-3 py-2">
                   <span className={clsx('px-2 py-1 rounded-full text-xs font-medium', STATUS_COLORS[t.status])}>
                     {STATUS_LABELS[t.status]}
