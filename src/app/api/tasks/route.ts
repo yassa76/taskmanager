@@ -8,7 +8,8 @@ import type { TaskDTO } from '@/types'
 function toTaskDTO(task: any): TaskDTO {
   const derived = deriveTaskStatus(
     task.subtasks.map((s: any) => s.status),
-    task.closedManually
+    task.closedManually,
+    task.statusOverride
   )
   return {
     id: task.id,
