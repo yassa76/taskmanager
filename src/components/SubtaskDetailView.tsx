@@ -202,7 +202,12 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1"
+                className={clsx(
+                  'w-full border rounded-lg px-3 py-2 mt-1',
+                  endDate && new Date(endDate) < new Date() && status !== 'completato'
+                    ? 'border-red-300 text-red-600 font-semibold'
+                    : 'border-slate-200'
+                )}
               />
             </div>
             <div>
