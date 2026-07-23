@@ -75,12 +75,11 @@ model TeamMember {
   id        String   @id @default(cuid())
   email     String   @unique
   name      String?
-  active    Boolean  @default(true)
+  status    String   @default("new") // "new" | "invited" | "active" | "inactive"
   invitedAt DateTime @default(now())
 
   user User?
 }
-
 model Client {
   id          String    @id @default(cuid())
   name        String    @unique
