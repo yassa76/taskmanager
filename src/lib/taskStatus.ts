@@ -1,5 +1,5 @@
 export type SubtaskStatus = 'da_avviare' | 'in_corso' | 'completato'
-export type DerivedStatus = 'da_avviare' | 'in_corso' | 'completato'
+export type DerivedStatus = 'da_avviare' | 'in_corso' | 'completato' | 'annullato'
 
 export interface DerivedTaskStatus {
   status: DerivedStatus
@@ -16,7 +16,12 @@ export function deriveTaskStatus(
   const completedCount = subtaskStatuses.filter((s) => s === 'completato').length
   const progress = total > 0 ? Math.round((completedCount / total) * 100) : statusOverride === 'completato' ? 100 : 0
 
-  if (statusOverride === 'da_avviare' || statusOverride === 'in_corso' || statusOverride === 'completato') {
+  if (
+    statusOverride === 'da_avviare' ||
+    statusOverride === 'in_corso' ||
+    statusOverride === 'completato' ||
+    statusOverride === 'annullato'
+  ) {
     return { status: statusOverride, pendingClosure: false, progress }
   }
 
@@ -48,11 +53,13 @@ export function deriveTaskStatus(
 export const STATUS_LABELS: Record<DerivedStatus, string> = {
   da_avviare: 'Da avviare',
   in_corso: 'In corso',
-  completato: 'Completato'
+  completato: 'Completato',
+  annullato: 'Annullato'
 }
 
 export const STATUS_COLORS: Record<DerivedStatus, string> = {
   da_avviare: 'bg-gray-200 text-gray-700',
   in_corso: 'bg-amber-100 text-amber-800',
-  completato: 'bg-emerald-100 text-emerald-800'
+  completato: 'bg-emerald-100 text-emerald-800',
+  annullato: 'bg-slate-300 text-slate-700'
 }
