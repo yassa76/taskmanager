@@ -24,7 +24,7 @@ export default async function LoginPage({
           </p>
         ) : (
           <p className="text-slate-500 mb-8 text-sm">
-            Accedi con il tuo account Google aziendale per registrarti e accedere ai task del team.
+            Accedi con il tuo account Google per registrarti e accedere ai task del team.
           </p>
         )}
         <SignInButton />
