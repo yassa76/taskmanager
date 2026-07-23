@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
+import { useSession } from 'next-auth/react'
 import clsx from 'clsx'
 import Breadcrumbs from './Breadcrumbs'
 import DeadlineCalendar, { CalendarItem } from './DeadlineCalendar'
@@ -40,12 +41,28 @@ interface HomeData {
   calendarItems: CalendarItem[]
 }
 
-function KpiCard({ label, value, accent }: { label: string; value: number; accent?: string }) {
-  return (
-    <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+function KpiCard({
+  label,
+  value,
+  accent,
+  href
+}: {
+  label: string
+  value: number
+  accent?: string
+  href?: string
+}) {
+  const content = (
+    <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm h-full hover:border-brand-300 hover:shadow-md transition">
       <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">{label}</p>
       <p className={clsx('text-2xl font-bold mt-1', accent || 'text-slate-800')}>{value}</p>
     </div>
+  )
+  if (!href) return content
+  return (
+    <Link href={href} className="block h-full">
+      {content}
+    </Link>
   )
 }
 
@@ -59,35 +76,65 @@ function daysLeftLabel(endDate: string | null, overdue: boolean) {
 }
 
 export default function HomeView({ userName }: { userName: string }) {
+  const { data: session } = useSession()
+  const isAdmin = (session?.user as any)?.role === 'admin'
+
   const [data, setData] = useState<HomeData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [scope, setScope] = useState<'mine' | 'team'>('mine')
   const [taskPage, setTaskPage] = useState(1)
   const [subtaskPage, setSubtaskPage] = useState(1)
   const PAGE_SIZE = 10
 
   const load = useCallback(() => {
     setLoading(true)
-    fetch('/api/home')
+    fetch(`/api/home?scope=${scope}`)
       .then((r) => r.json())
       .then(setData)
       .finally(() => setLoading(false))
-  }, [])
+  }, [scope])
 
   useEffect(() => {
     load()
+    setTaskPage(1)
+    setSubtaskPage(1)
   }, [load])
+
+  function tasksHref(extra: string) {
+    const params = new URLSearchParams(extra)
+    if (scope === 'mine') params.set('view', 'mine')
+    return `/tasks?${params.toString()}`
+  }
 
   return (
     <div>
       <Breadcrumbs items={[{ label: 'Home' }]} />
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
         <h1 className="text-xl font-bold text-slate-800">Ciao, {userName.split(' ')[0] || userName} 👋</h1>
-        <button
-          onClick={load}
-          className="px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-medium text-slate-700 hover:bg-slate-100"
-        >
-          ↻ Aggiorna
-        </button>
+        <div className="flex items-center gap-2">
+          {isAdmin && (
+            <div className="flex bg-slate-100 rounded-lg p-1">
+              {(['mine', 'team'] as const).map((v) => (
+                <button
+                  key={v}
+                  onClick={() => setScope(v)}
+                  className={clsx(
+                    'px-3 py-1.5 rounded-md text-sm font-medium transition',
+                    scope === v ? 'bg-white shadow text-brand-700' : 'text-slate-500'
+                  )}
+                >
+                  {v === 'mine' ? 'I miei record' : 'Tutto il team'}
+                </button>
+              ))}
+            </div>
+          )}
+          <button
+            onClick={load}
+            className="px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-medium text-slate-700 hover:bg-slate-100"
+          >
+            ↻ Aggiorna
+          </button>
+        </div>
       </div>
 
       {loading && <p className="text-slate-400">Caricamento...</p>}
@@ -95,11 +142,30 @@ export default function HomeView({ userName }: { userName: string }) {
       {!loading && data && (
         <>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-            <KpiCard label="I miei task" value={data.kpi.totalTasks} />
-            <KpiCard label="In corso" value={data.kpi.inProgress} accent="text-amber-600" />
-            <KpiCard label="Da avviare" value={data.kpi.notStarted} />
-            <KpiCard label="Task in ritardo" value={data.kpi.overdueTasks} accent="text-red-600" />
-            <KpiCard label="Sub-task in ritardo" value={data.kpi.overdueSubtasks} accent="text-red-600" />
+            <KpiCard label={scope === 'mine' ? 'I miei task' : 'Task del team'} value={data.kpi.totalTasks} href={tasksHref('')} />
+            <KpiCard
+              label="In corso"
+              value={data.kpi.inProgress}
+              accent="text-amber-600"
+              href={tasksHref('status=in_corso')}
+            />
+            <KpiCard
+              label="Da avviare"
+              value={data.kpi.notStarted}
+              href={tasksHref('status=da_avviare')}
+            />
+            <KpiCard
+              label="Task in ritardo"
+              value={data.kpi.overdueTasks}
+              accent="text-red-600"
+              href={tasksHref('overdue=true')}
+            />
+            <KpiCard
+              label="Sub-task in ritardo"
+              value={data.kpi.overdueSubtasks}
+              accent="text-red-600"
+              href="#subtask-deadlines"
+            />
           </div>
 
           <div className="grid md:grid-cols-3 gap-6 mb-6">
@@ -109,7 +175,9 @@ export default function HomeView({ userName }: { userName: string }) {
             <div className="md:col-span-2 grid sm:grid-cols-2 gap-6">
             <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
               <div className="px-5 py-3 border-b border-slate-200">
-                <h2 className="font-semibold text-slate-800">I miei task in scadenza</h2>
+                <h2 className="font-semibold text-slate-800">
+                  {scope === 'mine' ? 'I miei task in scadenza' : 'Task del team in scadenza'}
+                </h2>
               </div>
               <table className="w-full text-sm">
                 <thead className="bg-slate-50 border-b border-slate-200">
@@ -175,9 +243,11 @@ export default function HomeView({ userName }: { userName: string }) {
               )}
             </div>
 
-            <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+            <div id="subtask-deadlines" className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm scroll-mt-20">
               <div className="px-5 py-3 border-b border-slate-200">
-                <h2 className="font-semibold text-slate-800">I miei sub-task in scadenza</h2>
+                <h2 className="font-semibold text-slate-800">
+                  {scope === 'mine' ? 'I miei sub-task in scadenza' : 'Sub-task del team in scadenza'}
+                </h2>
               </div>
               <table className="w-full text-sm">
                 <thead className="bg-slate-50 border-b border-slate-200">
