@@ -200,6 +200,7 @@ export default function TaskFormModal({
                 <option value="da_avviare">Da avviare</option>
                 <option value="in_corso">In corso</option>
                 <option value="completato">Completato</option>
+                <option value="annullato">Annullato</option>
               </select>
               <p className="text-xs text-slate-400 mt-1">
                 Impostando uno stato manuale, questo avrà la precedenza sui sotto-task finché non torni su
