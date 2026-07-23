@@ -117,8 +117,8 @@ model Task {
   client         Client?   @relation("ClientTasks", fields: [clientId], references: [id])
   projectId      String?
   project        Project?  @relation(fields: [projectId], references: [id])
-  // Se true, il padre e' stato chiuso esplicitamente dall'utente (dopo conferma)
   closedManually Boolean   @default(false)
+  statusOverride String?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
