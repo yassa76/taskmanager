@@ -59,6 +59,20 @@ export const authOptions: NextAuthOptions = {
       if (userCount === 1) {
         await prisma.user.update({ where: { id: user.id }, data: { role: 'admin' } })
       }
+    },
+
+    // Si attiva ogni volta che un account Google viene collegato con successo
+    // a un utente (sia per una registrazione nuova, sia per un account
+    // "segnaposto" gia' invitato in precedenza): e' il momento in cui sappiamo
+    // per certo che la persona si e' davvero loggata almeno una volta.
+    async linkAccount({ user }) {
+      const dbUser = await prisma.user.findUnique({ where: { id: user.id } })
+      if (dbUser?.teamMemberId) {
+        await prisma.teamMember.update({
+          where: { id: dbUser.teamMemberId },
+          data: { status: 'active' }
+        })
+      }
     }
   }
 }
