@@ -21,6 +21,7 @@ interface ReportData {
     completed: number
     inProgress: number
     notStarted: number
+    cancelled: number
     overdue: number
     completionRate: number
     totalSubtasks: number
@@ -32,7 +33,7 @@ interface ReportData {
   statusDistribution: { name: string; value: number }[]
 }
 
-const COLORS = ['#94a3b8', '#f59e0b', '#10b981']
+const COLORS = ['#94a3b8', '#f59e0b', '#10b981', '#64748b']
 
 function KpiCard({ label, value, accent }: { label: string; value: string | number; accent?: string }) {
   return (
