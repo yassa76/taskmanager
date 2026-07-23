@@ -23,6 +23,7 @@ function toTaskDTO(task: any): TaskDTO {
     projectName: task.project?.name ?? null,
     projectId: task.projectId,
     closedManually: task.closedManually,
+    statusOverride: task.statusOverride,
     status: derived.status,
     pendingClosure: derived.pendingClosure,
     progress: derived.progress,
