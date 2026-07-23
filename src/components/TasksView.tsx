@@ -252,7 +252,7 @@ export default function TasksView() {
                 <td className="px-3 py-2">
                   <span
                     className={clsx(
-                      t.endDate && new Date(t.endDate) < new Date() && t.status !== 'completato'
+                      t.endDate && new Date(t.endDate) < new Date() && t.status !== 'completato' && t.status !== 'annullato'
                         ? 'text-red-600 font-semibold'
                         : ''
                     )}
