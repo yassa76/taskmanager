@@ -79,6 +79,7 @@ export default function ReportsView() {
         <KpiCard label="In ritardo" value={data.kpi.overdue} accent="text-red-600" />
         <KpiCard label="Da avviare" value={data.kpi.notStarted} />
         <KpiCard label="Completati" value={data.kpi.completed} accent="text-emerald-600" />
+        <KpiCard label="Annullati" value={data.kpi.cancelled} accent="text-slate-500" />
         <KpiCard label="Sub-task totali" value={data.kpi.totalSubtasks} />
         <KpiCard label="% sub-task completati" value={`${data.kpi.subtaskCompletionRate}%`} />
       </div>
