@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import clsx from 'clsx'
 import { STATUS_COLORS, STATUS_LABELS } from '@/lib/taskStatus'
-import type { TaskDTO, TeamMemberDTO, ClientDTO } from '@/types'
+import type { TaskDTO, TeamMemberDTO, ClientDTO, SubtaskDTO } from '@/types'
 import TaskFormModal from './TaskFormModal'
 import CloseParentModal from './CloseParentModal'
 import Breadcrumbs from './Breadcrumbs'
@@ -25,6 +25,16 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
   const [newSubtaskOwnerId, setNewSubtaskOwnerId] = useState('')
   const [newSubtaskEndDate, setNewSubtaskEndDate] = useState('')
   const [savingSubtask, setSavingSubtask] = useState(false)
+
+  const [editingSubtask, setEditingSubtask] = useState<SubtaskDTO | null>(null)
+  const [subTitle, setSubTitle] = useState('')
+  const [subDescription, setSubDescription] = useState('')
+  const [subOwnerId, setSubOwnerId] = useState('')
+  const [subStatus, setSubStatus] = useState('da_avviare')
+  const [subStartDate, setSubStartDate] = useState('')
+  const [subEndDate, setSubEndDate] = useState('')
+  const [subClosedAt, setSubClosedAt] = useState('')
+  const [savingSubtaskEdit, setSavingSubtaskEdit] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -61,33 +71,38 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
     .filter((t) => t.status !== 'inactive' && t.matchedUser)
     .map((t) => ({ id: t.matchedUser!.id, name: t.matchedUser!.name || t.email, email: t.email }))
 
-  async function updateSubtaskStatus(subtaskId: string, status: string) {
-    const res = await fetch(`/api/subtasks/${subtaskId}`, {
+  function openEditSubtask(s: SubtaskDTO) {
+    setEditingSubtask(s)
+    setSubTitle(s.title)
+    setSubDescription(s.description || '')
+    setSubOwnerId(s.owner.id)
+    setSubStatus(s.status)
+    setSubStartDate(s.startDate.slice(0, 10))
+    setSubEndDate(s.endDate ? s.endDate.slice(0, 10) : '')
+    setSubClosedAt(s.closedAt ? s.closedAt.slice(0, 10) : '')
+  }
+
+  async function saveSubtaskEdit() {
+    if (!editingSubtask) return
+    setSavingSubtaskEdit(true)
+    const res = await fetch(`/api/subtasks/${editingSubtask.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status })
+      body: JSON.stringify({
+        title: subTitle.trim(),
+        description: subDescription.trim() || null,
+        ownerId: subOwnerId,
+        status: subStatus,
+        startDate: subStartDate || null,
+        endDate: subEndDate || null,
+        closedAt: subClosedAt || null
+      })
     })
-    const data = await res.json()
+    const data = await res.json().catch(() => ({}))
+    setSavingSubtaskEdit(false)
+    setEditingSubtask(null)
     await load()
     if (data.pendingClosure) setPendingClose(true)
-  }
-
-  async function updateSubtaskOwner(subtaskId: string, ownerId: string) {
-    await fetch(`/api/subtasks/${subtaskId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ownerId })
-    })
-    load()
-  }
-
-  async function updateSubtaskDate(subtaskId: string, field: 'startDate' | 'endDate', value: string) {
-    await fetch(`/api/subtasks/${subtaskId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ [field]: value || null })
-    })
-    load()
   }
 
   async function deleteSubtask(subtaskId: string) {
@@ -154,6 +169,14 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
               <span className={clsx('px-2 py-1 rounded-full text-xs font-medium', STATUS_COLORS[task.status])}>
                 {STATUS_LABELS[task.status]}
               </span>
+              {task.statusOverride && (
+                <span
+                  className="text-xs text-slate-400"
+                  title="Lo stato è stato impostato manualmente, non deriva più dai sotto-task"
+                >
+                  (manuale)
+                </span>
+              )}
             </div>
             {task.description && <p className="text-slate-500 text-sm mt-2">{task.description}</p>}
           </div>
@@ -200,7 +223,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
             <p className="text-xs text-slate-400 uppercase">Data avvio</p>
             <p className="text-slate-700">{task.startDate ? task.startDate.slice(0, 10) : '—'}</p>
           </div>
-         <div>
+          <div>
             <p className="text-xs text-slate-400 uppercase">Data di scadenza</p>
             <p
               className={clsx(
@@ -213,6 +236,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
             </p>
           </div>
         </div>
+
         <div className="mt-4">
           <div className="w-full bg-slate-100 rounded-full h-2">
             <div className="bg-brand-500 h-2 rounded-full" style={{ width: `${task.progress}%` }} />
@@ -244,73 +268,50 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
             </tr>
           </thead>
           <tbody>
-            {task.subtasks.map((s) => (
-              <tr key={s.id} className="border-b border-slate-100 hover:bg-slate-50">
-                <td className="px-4 py-2 max-w-xs">
-                  <Link
-                    href={`/subtasks/${s.id}`}
-                    className="block truncate text-brand-600 font-medium hover:underline"
-                    title={s.title}
-                  >
-                    {s.title}
-                  </Link>
-                </td>
-                <td className="px-4 py-2">
-                  <select
-                    value={s.owner.id}
-                    onChange={(e) => updateSubtaskOwner(s.id, e.target.value)}
-                    className="text-xs border border-slate-200 rounded-md px-2 py-1"
-                  >
-                    {owners.map((o) => (
-                      <option key={o.id} value={o.id}>
-                        {o.name}
-                      </option>
-                    ))}
-                  </select>
-                </td>
-                <td className="px-4 py-2">
-                  <input
-                    type="date"
-                    value={s.startDate ? s.startDate.slice(0, 10) : ''}
-                    onChange={(e) => updateSubtaskDate(s.id, 'startDate', e.target.value)}
-                    className="text-xs border border-slate-200 rounded-md px-2 py-1"
-                  />
-                </td>
-               <td className="px-4 py-2">
-                  <input
-                    type="date"
-                    value={s.endDate ? s.endDate.slice(0, 10) : ''}
-                    onChange={(e) => updateSubtaskDate(s.id, 'endDate', e.target.value)}
-                    className={clsx(
-                      'text-xs border rounded-md px-2 py-1',
-                      s.endDate && new Date(s.endDate) < new Date() && s.status !== 'completato'
-                        ? 'border-red-300 text-red-600 font-semibold'
-                        : 'border-slate-200'
-                    )}
-                  />
-                </td>
-                <td className="px-4 py-2">
-                  <select
-                    value={s.status}
-                    onChange={(e) => updateSubtaskStatus(s.id, e.target.value)}
-                    className={clsx('text-xs rounded-md px-2 py-1 border-0 font-medium', STATUS_COLORS[s.status])}
-                  >
-                    <option value="da_avviare">Da avviare</option>
-                    <option value="in_corso">In corso</option>
-                    <option value="completato">Completato</option>
-                  </select>
-                </td>
-                <td className="px-4 py-2 text-right">
-                  <button
-                    onClick={() => deleteSubtask(s.id)}
-                    className="inline-flex text-slate-400 hover:text-red-600 align-middle"
-                    title="Elimina"
-                  >
-                    <DeleteIcon />
-                  </button>
-                </td>
-              </tr>
-            ))}
+            {task.subtasks.map((s) => {
+              const overdue = s.endDate && new Date(s.endDate) < new Date() && s.status !== 'completato'
+              return (
+                <tr key={s.id} className="border-b border-slate-100 hover:bg-slate-50">
+                  <td className="px-4 py-2 max-w-xs">
+                    <Link
+                      href={`/subtasks/${s.id}`}
+                      className="block truncate text-brand-600 font-medium hover:underline"
+                      title={s.title}
+                    >
+                      {s.title}
+                    </Link>
+                  </td>
+                  <td className="px-4 py-2 text-slate-700">{s.owner.name || s.owner.email}</td>
+                  <td className="px-4 py-2 text-slate-700">{s.startDate ? s.startDate.slice(0, 10) : '—'}</td>
+                  <td className="px-4 py-2">
+                    <span className={clsx(overdue ? 'text-red-600 font-semibold' : 'text-slate-700')}>
+                      {s.endDate ? s.endDate.slice(0, 10) : '—'}
+                    </span>
+                  </td>
+                  <td className="px-4 py-2">
+                    <span className={clsx('px-2 py-1 rounded-full text-xs font-medium', STATUS_COLORS[s.status])}>
+                      {STATUS_LABELS[s.status]}
+                    </span>
+                  </td>
+                  <td className="px-4 py-2 text-right whitespace-nowrap">
+                    <button
+                      onClick={() => openEditSubtask(s)}
+                      className="inline-flex text-slate-400 hover:text-brand-600 mr-3 align-middle"
+                      title="Modifica"
+                    >
+                      <EditIcon />
+                    </button>
+                    <button
+                      onClick={() => deleteSubtask(s.id)}
+                      className="inline-flex text-slate-400 hover:text-red-600 align-middle"
+                      title="Elimina"
+                    >
+                      <DeleteIcon />
+                    </button>
+                  </td>
+                </tr>
+              )
+            })}
             {task.subtasks.length === 0 && (
               <tr>
                 <td colSpan={6} className="text-center py-6 text-slate-400">
@@ -367,6 +368,105 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
             load()
           }}
         />
+      )}
+
+      {editingSubtask && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 shadow-2xl">
+            <h2 className="text-lg font-bold text-slate-800 mb-4">Modifica sub-task</h2>
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-medium text-slate-500">Nome</label>
+                <input
+                  value={subTitle}
+                  onChange={(e) => setSubTitle(e.target.value)}
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-500">Dettagli / note</label>
+                <textarea
+                  value={subDescription}
+                  onChange={(e) => setSubDescription(e.target.value)}
+                  rows={3}
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-medium text-slate-500">Owner</label>
+                  <select
+                    value={subOwnerId}
+                    onChange={(e) => setSubOwnerId(e.target.value)}
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1"
+                  >
+                    {owners.map((o) => (
+                      <option key={o.id} value={o.id}>
+                        {o.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-slate-500">Stato</label>
+                  <select
+                    value={subStatus}
+                    onChange={(e) => setSubStatus(e.target.value)}
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1"
+                  >
+                    <option value="da_avviare">Da avviare</option>
+                    <option value="in_corso">In corso</option>
+                    <option value="completato">Completato</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="text-xs font-medium text-slate-500">Data inizio</label>
+                  <input
+                    type="date"
+                    value={subStartDate}
+                    onChange={(e) => setSubStartDate(e.target.value)}
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-slate-500">Data di scadenza *</label>
+                  <input
+                    type="date"
+                    value={subEndDate}
+                    onChange={(e) => setSubEndDate(e.target.value)}
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-slate-500">Data di chiusura</label>
+                  <input
+                    type="date"
+                    value={subClosedAt}
+                    onChange={(e) => setSubClosedAt(e.target.value)}
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1"
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 mt-6">
+              <button
+                onClick={() => setEditingSubtask(null)}
+                className="px-4 py-2 rounded-lg text-slate-600 text-sm font-medium hover:bg-slate-100"
+              >
+                Annulla
+              </button>
+              <button
+                onClick={saveSubtaskEdit}
+                disabled={savingSubtaskEdit || !subTitle.trim() || !subEndDate}
+                className="px-4 py-2 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700 disabled:opacity-50"
+              >
+                {savingSubtaskEdit ? 'Salvataggio...' : 'Salva modifiche'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {pendingClose && (
