@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react'
 import clsx from 'clsx'
 import type { TeamMemberDTO } from '@/types'
 import Breadcrumbs from './Breadcrumbs'
+import { EditIcon, DeleteIcon } from './icons'
 
 const ROLE_LABELS: Record<string, string> = {
   admin: 'Admin',
@@ -21,6 +22,12 @@ export default function TeamView() {
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+
+  const [editingMember, setEditingMember] = useState<TeamMemberDTO | null>(null)
+  const [editName, setEditName] = useState('')
+  const [editRole, setEditRole] = useState('normal')
+  const [editActive, setEditActive] = useState(true)
+  const [savingEdit, setSavingEdit] = useState(false)
 
   async function load() {
     setLoading(true)
@@ -47,28 +54,36 @@ export default function TeamView() {
     load()
   }
 
-  async function updateRole(memberId: string, role: string) {
-    const res = await fetch(`/api/team/${memberId}`, {
+  function openEdit(m: TeamMemberDTO) {
+    setEditingMember(m)
+    setEditName(m.matchedUser?.name || m.name || '')
+    setEditRole(m.matchedUser?.role || 'normal')
+    setEditActive(m.active)
+  }
+
+  async function saveEdit() {
+    if (!editingMember) return
+    setSavingEdit(true)
+    const res = await fetch(`/api/team/${editingMember.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ role })
+      body: JSON.stringify({ name: editName.trim(), role: editRole, active: editActive })
     })
     if (!res.ok) {
       const body = await res.json().catch(() => ({}))
       alert(body.error || `Errore nel salvataggio (status ${res.status})`)
     }
+    setSavingEdit(false)
+    setEditingMember(null)
     load()
   }
 
-  async function updateStatus(memberId: string, value: string) {
-    const res = await fetch(`/api/team/${memberId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ active: value !== 'inactive' })
-    })
+  async function deleteMember(m: TeamMemberDTO) {
+    if (!confirm(`Rimuovere "${m.name || m.email}" dal team?`)) return
+    const res = await fetch(`/api/team/${m.id}`, { method: 'DELETE' })
     if (!res.ok) {
       const body = await res.json().catch(() => ({}))
-      alert(body.error || `Errore nel salvataggio (status ${res.status})`)
+      alert(body.error || `Errore nell'eliminazione (status ${res.status})`)
     }
     load()
   }
@@ -126,12 +141,13 @@ export default function TeamView() {
               <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Email</th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Stato</th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Ruolo</th>
+              <th className="px-4 py-2 text-right text-xs font-semibold text-slate-500 uppercase">Azioni</th>
             </tr>
           </thead>
           <tbody>
             {loading && (
               <tr>
-                <td colSpan={4} className="text-center py-6 text-slate-400">
+                <td colSpan={5} className="text-center py-6 text-slate-400">
                   Caricamento...
                 </td>
               </tr>
@@ -142,45 +158,44 @@ export default function TeamView() {
                   <td className="px-4 py-2">{m.matchedUser?.name || m.name || '—'}</td>
                   <td className="px-4 py-2">{m.email}</td>
                   <td className="px-4 py-2">
-                    {isAdmin ? (
-                      <select
-                        value={m.active ? 'active' : 'inactive'}
-                        onChange={(e) => updateStatus(m.id, e.target.value)}
-                        className="text-xs border border-slate-200 rounded-md px-2 py-1"
-                      >
-                        <option value="active">{m.hasLoggedIn ? 'Registrato, non connesso' : 'Invitato'}</option>
-                        <option value="inactive">Inattivo</option>
-                      </select>
-                    ) : (
-                      <span
-                        className={clsx(
-                          'px-2 py-1 rounded-full text-xs font-medium',
-                          !m.active
-                            ? 'bg-slate-200 text-slate-600'
-                            : m.hasLoggedIn
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : 'bg-amber-100 text-amber-800'
-                        )}
-                      >
-                        {!m.active ? 'Inattivo' : m.hasLoggedIn ? 'Registrato, non connesso' : 'Invitato'}
-                      </span>
-                    )}
+                    <span
+                      className={clsx(
+                        'px-2 py-1 rounded-full text-xs font-medium',
+                        !m.active
+                          ? 'bg-slate-200 text-slate-600'
+                          : m.hasLoggedIn
+                          ? 'bg-emerald-100 text-emerald-800'
+                          : 'bg-amber-100 text-amber-800'
+                      )}
+                    >
+                      {!m.active ? 'Inattivo' : m.hasLoggedIn ? 'Registrato, non connesso' : 'Invitato'}
+                    </span>
                   </td>
                   <td className="px-4 py-2">
+                    <span className="text-slate-600 text-xs">
+                      {ROLE_LABELS[m.matchedUser?.role || 'normal']}
+                    </span>
+                  </td>
+                  <td className="px-4 py-2 text-right whitespace-nowrap">
                     {isAdmin ? (
-                      <select
-                        value={m.matchedUser?.role || 'normal'}
-                        onChange={(e) => updateRole(m.id, e.target.value)}
-                        className="text-xs border border-slate-200 rounded-md px-2 py-1"
-                      >
-                        <option value="admin">Admin</option>
-                        <option value="normal">Normale</option>
-                        <option value="read_only">Sola lettura</option>
-                      </select>
+                      <>
+                        <button
+                          onClick={() => openEdit(m)}
+                          className="inline-flex text-slate-400 hover:text-brand-600 mr-3 align-middle"
+                          title="Modifica"
+                        >
+                          <EditIcon />
+                        </button>
+                        <button
+                          onClick={() => deleteMember(m)}
+                          className="inline-flex text-slate-400 hover:text-red-600 align-middle"
+                          title="Elimina"
+                        >
+                          <DeleteIcon />
+                        </button>
+                      </>
                     ) : (
-                      <span className="text-slate-600 text-xs">
-                        {ROLE_LABELS[m.matchedUser?.role || 'normal']}
-                      </span>
+                      <span className="text-slate-300 text-xs">—</span>
                     )}
                   </td>
                 </tr>
@@ -188,6 +203,72 @@ export default function TeamView() {
           </tbody>
         </table>
       </div>
+
+      {editingMember && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl">
+            <h2 className="text-lg font-bold text-slate-800 mb-4">Modifica membro del team</h2>
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-medium text-slate-500">Nome</label>
+                <input
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-500">Email</label>
+                <input
+                  value={editingMember.email}
+                  disabled
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1 bg-slate-50 text-slate-400"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-medium text-slate-500">Ruolo</label>
+                  <select
+                    value={editRole}
+                    onChange={(e) => setEditRole(e.target.value)}
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1"
+                  >
+                    <option value="admin">Admin</option>
+                    <option value="normal">Normale</option>
+                    <option value="read_only">Sola lettura</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-slate-500">Stato</label>
+                  <select
+                    value={editActive ? 'active' : 'inactive'}
+                    onChange={(e) => setEditActive(e.target.value !== 'inactive')}
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1"
+                  >
+                    <option value="active">Attivo</option>
+                    <option value="inactive">Inattivo</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 mt-6">
+              <button
+                onClick={() => setEditingMember(null)}
+                className="px-4 py-2 rounded-lg text-slate-600 text-sm font-medium hover:bg-slate-100"
+              >
+                Annulla
+              </button>
+              <button
+                onClick={saveEdit}
+                disabled={savingEdit}
+                className="px-4 py-2 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700 disabled:opacity-50"
+              >
+                {savingEdit ? 'Salvataggio...' : 'Salva modifiche'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
