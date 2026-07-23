@@ -86,7 +86,9 @@ export async function GET(req: NextRequest) {
         id: t.id,
         type: 'task' as const,
         title: t.title,
-        date: t.endDate!.toISOString().slice(0, 10)
+        date: t.endDate!.toISOString().slice(0, 10),
+        clientName: t.client?.name ?? null,
+        ownerName: t.owner.name || t.owner.email
       })),
     ...subtasks
       .filter((s) => s.endDate)
@@ -94,7 +96,9 @@ export async function GET(req: NextRequest) {
         id: s.id,
         type: 'subtask' as const,
         title: s.title,
-        date: s.endDate!.toISOString().slice(0, 10)
+        date: s.endDate!.toISOString().slice(0, 10),
+        clientName: s.task.client?.name ?? null,
+        ownerName: s.owner.name || s.owner.email
       }))
   ]
 
