@@ -9,6 +9,7 @@ export interface FilterState {
   ownerId: string
   status: string
   search: string
+  overdue: boolean
 }
 
 export default function Filters({
@@ -75,6 +76,18 @@ export default function Filters({
         <option value="in_corso">In corso</option>
         <option value="completato">Completato</option>
       </select>
+
+      <button
+        onClick={() => onChange({ ...filters, overdue: !filters.overdue })}
+        className={clsx(
+          'px-3 py-1.5 rounded-lg text-sm font-medium border transition',
+          filters.overdue
+            ? 'bg-red-50 border-red-200 text-red-700'
+            : 'border-slate-200 text-slate-500 hover:bg-slate-50'
+        )}
+      >
+        ⚠ In ritardo
+      </button>
 
       <input
         value={filters.search}
