@@ -17,6 +17,19 @@ export const authOptions: NextAuthOptions = {
     signIn: '/login'
   },
   callbacks: {
+    // Blocca l'accesso a chi e' stato segnato come "Inattivo" nel Team,
+    // anche se aveva gia' un account valido.
+    async signIn({ user }) {
+      if (!user.email) return true
+      const dbUser = await prisma.user.findUnique({
+        where: { email: user.email },
+        include: { teamMember: true }
+      })
+      if (dbUser?.teamMember?.status === 'inactive') {
+        return '/login?error=account_inactive'
+      }
+      return true
+    },
     async session({ session, user }) {
       if (session.user) {
         ;(session.user as any).id = user.id
@@ -43,7 +56,7 @@ export const authOptions: NextAuthOptions = {
         })
       } else {
         const newTeamMember = await prisma.teamMember.create({
-          data: { email: user.email, name: user.name ?? undefined }
+          data: { email: user.email }
         })
         await prisma.user.update({
           where: { id: user.id },
