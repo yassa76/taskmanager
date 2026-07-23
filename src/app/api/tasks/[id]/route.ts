@@ -3,12 +3,14 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { deriveTaskStatus } from '@/lib/taskStatus'
+import { canEditRecord } from '@/lib/permissions'
 import type { TaskDTO } from '@/types'
 
 function toTaskDTO(task: any): TaskDTO {
   const derived = deriveTaskStatus(
     task.subtasks.map((s: any) => s.status),
-    task.closedManually
+    task.closedManually,
+    task.statusOverride
   )
   return {
     id: task.id,
@@ -22,6 +24,7 @@ function toTaskDTO(task: any): TaskDTO {
     projectName: task.project?.name ?? null,
     projectId: task.projectId,
     closedManually: task.closedManually,
+    statusOverride: task.statusOverride,
     status: derived.status,
     pendingClosure: derived.pendingClosure,
     progress: derived.progress,
@@ -32,6 +35,7 @@ function toTaskDTO(task: any): TaskDTO {
       status: s.status,
       startDate: s.startDate.toISOString(),
       endDate: s.endDate ? s.endDate.toISOString() : null,
+      closedAt: s.closedAt ? s.closedAt.toISOString() : null,
       owner: { id: s.owner.id, name: s.owner.name, email: s.owner.email },
       taskId: s.taskId,
       createdAt: s.createdAt.toISOString(),
@@ -64,8 +68,14 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
 
+  const existing = await prisma.task.findUnique({ where: { id: params.id } })
+  if (!existing) return NextResponse.json({ error: 'Task non trovato' }, { status: 404 })
+  if (!canEditRecord(session, existing.ownerId)) {
+    return NextResponse.json({ error: 'Non hai i permessi per modificare questo task' }, { status: 403 })
+  }
+
   const body = await req.json()
-  const { title, description, startDate, endDate, ownerId, clientId, projectId } = body
+  const { title, description, startDate, endDate, ownerId, clientId, projectId, status } = body
 
   const task = await prisma.task.update({
     where: { id: params.id },
@@ -76,7 +86,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       ...(endDate !== undefined ? { endDate: endDate ? new Date(endDate) : null } : {}),
       ...(ownerId !== undefined ? { ownerId } : {}),
       ...(clientId !== undefined ? { clientId: clientId || null } : {}),
-      ...(projectId !== undefined ? { projectId: projectId || null } : {})
+      ...(projectId !== undefined ? { projectId: projectId || null } : {}),
+      ...(status !== undefined ? { statusOverride: status && status !== 'auto' ? status : null } : {})
     },
     include: {
       owner: true,
@@ -92,6 +103,12 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
+
+  const existing = await prisma.task.findUnique({ where: { id: params.id } })
+  if (!existing) return NextResponse.json({ error: 'Task non trovato' }, { status: 404 })
+  if (!canEditRecord(session, existing.ownerId)) {
+    return NextResponse.json({ error: 'Non hai i permessi per eliminare questo task' }, { status: 403 })
+  }
 
   await prisma.task.delete({ where: { id: params.id } })
   return NextResponse.json({ ok: true })
