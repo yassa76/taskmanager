@@ -13,7 +13,7 @@ function toClientDTO(client: any): ClientDTO {
       t.closedManually,
       t.statusOverride
     )
-    return derived.status !== 'completato'
+    return derived.status !== 'completato' && derived.status !== 'annullato'
   }).length
 
   return {
