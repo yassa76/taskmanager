@@ -61,6 +61,9 @@ function daysLeftLabel(endDate: string | null, overdue: boolean) {
 export default function HomeView({ userName }: { userName: string }) {
   const [data, setData] = useState<HomeData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [taskPage, setTaskPage] = useState(1)
+  const [subtaskPage, setSubtaskPage] = useState(1)
+  const PAGE_SIZE = 10
 
   const load = useCallback(() => {
     setLoading(true)
@@ -117,7 +120,7 @@ export default function HomeView({ userName }: { userName: string }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {data.upcomingTasks.map((t) => (
+                  {data.upcomingTasks.slice((taskPage - 1) * PAGE_SIZE, taskPage * PAGE_SIZE).map((t) => (
                     <tr key={t.id} className="border-b border-slate-100 hover:bg-slate-50">
                       <td className="px-4 py-2 max-w-[160px]">
                         <Link
@@ -145,6 +148,31 @@ export default function HomeView({ userName }: { userName: string }) {
                   )}
                 </tbody>
               </table>
+              {data.upcomingTasks.length > PAGE_SIZE && (
+                <div className="flex items-center justify-between px-4 py-2 border-t border-slate-100 text-xs text-slate-500">
+                  <span>
+                    Pagina {taskPage} di {Math.ceil(data.upcomingTasks.length / PAGE_SIZE)}
+                  </span>
+                  <div className="flex gap-1">
+                    <button
+                      onClick={() => setTaskPage((p) => Math.max(1, p - 1))}
+                      disabled={taskPage === 1}
+                      className="px-2 py-1 rounded border border-slate-200 disabled:opacity-40 hover:bg-slate-100"
+                    >
+                      ←
+                    </button>
+                    <button
+                      onClick={() =>
+                        setTaskPage((p) => Math.min(Math.ceil(data.upcomingTasks.length / PAGE_SIZE), p + 1))
+                      }
+                      disabled={taskPage === Math.ceil(data.upcomingTasks.length / PAGE_SIZE)}
+                      className="px-2 py-1 rounded border border-slate-200 disabled:opacity-40 hover:bg-slate-100"
+                    >
+                      →
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
@@ -160,7 +188,7 @@ export default function HomeView({ userName }: { userName: string }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {data.upcomingSubtasks.map((s) => (
+                  {data.upcomingSubtasks.slice((subtaskPage - 1) * PAGE_SIZE, subtaskPage * PAGE_SIZE).map((s) => (
                     <tr key={s.id} className="border-b border-slate-100 hover:bg-slate-50">
                       <td className="px-4 py-2 max-w-[160px]">
                         <Link
@@ -190,6 +218,31 @@ export default function HomeView({ userName }: { userName: string }) {
                   )}
                 </tbody>
               </table>
+              {data.upcomingSubtasks.length > PAGE_SIZE && (
+                <div className="flex items-center justify-between px-4 py-2 border-t border-slate-100 text-xs text-slate-500">
+                  <span>
+                    Pagina {subtaskPage} di {Math.ceil(data.upcomingSubtasks.length / PAGE_SIZE)}
+                  </span>
+                  <div className="flex gap-1">
+                    <button
+                      onClick={() => setSubtaskPage((p) => Math.max(1, p - 1))}
+                      disabled={subtaskPage === 1}
+                      className="px-2 py-1 rounded border border-slate-200 disabled:opacity-40 hover:bg-slate-100"
+                    >
+                      ←
+                    </button>
+                    <button
+                      onClick={() =>
+                        setSubtaskPage((p) => Math.min(Math.ceil(data.upcomingSubtasks.length / PAGE_SIZE), p + 1))
+                      }
+                      disabled={subtaskPage === Math.ceil(data.upcomingSubtasks.length / PAGE_SIZE)}
+                      className="px-2 py-1 rounded border border-slate-200 disabled:opacity-40 hover:bg-slate-100"
+                    >
+                      →
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
             </div>
           </div>
