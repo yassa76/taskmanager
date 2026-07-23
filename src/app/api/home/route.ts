@@ -1,18 +1,21 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { deriveTaskStatus } from '@/lib/taskStatus'
+import { isAdmin } from '@/lib/permissions'
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
 
   const userId = (session.user as any).id
+  const { searchParams } = new URL(req.url)
+  const teamScope = searchParams.get('scope') === 'team' && isAdmin(session)
 
-  const [myTasks, mySubtasks] = await Promise.all([
+  const [tasks, subtasks] = await Promise.all([
     prisma.task.findMany({
-      where: { ownerId: userId },
+      where: teamScope ? {} : { ownerId: userId },
       include: {
         owner: true,
         client: true,
@@ -20,8 +23,9 @@ export async function GET() {
       }
     }),
     prisma.subtask.findMany({
-      where: { ownerId: userId },
+      where: teamScope ? {} : { ownerId: userId },
       include: {
+        owner: true,
         task: { include: { client: true } }
       }
     })
@@ -29,7 +33,7 @@ export async function GET() {
 
   const now = new Date()
 
-  const enrichedTasks = myTasks.map((t) => {
+  const enrichedTasks = tasks.map((t) => {
     const derived = deriveTaskStatus(
       t.subtasks.map((s) => s.status),
       t.closedManually
@@ -39,6 +43,7 @@ export async function GET() {
       id: t.id,
       title: t.title,
       clientName: t.client?.name ?? null,
+      ownerName: t.owner.name || t.owner.email,
       endDate: t.endDate ? t.endDate.toISOString() : null,
       status: derived.status,
       overdue
@@ -49,7 +54,7 @@ export async function GET() {
     .filter((t) => t.status !== 'completato' && t.endDate)
     .sort((a, b) => (a.endDate! < b.endDate! ? -1 : a.endDate! > b.endDate! ? 1 : 0))
 
-  const upcomingSubtasks = mySubtasks
+  const upcomingSubtasks = subtasks
     .filter((s) => s.status !== 'completato')
     .map((s) => ({
       id: s.id,
@@ -57,6 +62,7 @@ export async function GET() {
       taskId: s.taskId,
       taskTitle: s.task.title,
       clientName: s.task.client?.name ?? null,
+      ownerName: s.owner.name || s.owner.email,
       endDate: s.endDate ? s.endDate.toISOString() : null,
       status: s.status,
       overdue: !!s.endDate && s.endDate < now
@@ -70,12 +76,11 @@ export async function GET() {
     notStarted: enrichedTasks.filter((t) => t.status === 'da_avviare').length,
     completed: enrichedTasks.filter((t) => t.status === 'completato').length,
     overdueTasks: enrichedTasks.filter((t) => t.overdue).length,
-    overdueSubtasks: mySubtasks.filter((s) => s.status !== 'completato' && s.endDate && s.endDate < now).length
+    overdueSubtasks: subtasks.filter((s) => s.status !== 'completato' && s.endDate && s.endDate < now).length
   }
 
-  // Tutte le scadenze (task + sub-task) per il calendario, senza limite di 8.
   const calendarItems = [
-    ...myTasks
+    ...tasks
       .filter((t) => t.endDate)
       .map((t) => ({
         id: t.id,
@@ -83,7 +88,7 @@ export async function GET() {
         title: t.title,
         date: t.endDate!.toISOString().slice(0, 10)
       })),
-    ...mySubtasks
+    ...subtasks
       .filter((s) => s.endDate)
       .map((s) => ({
         id: s.id,
@@ -93,5 +98,5 @@ export async function GET() {
       }))
   ]
 
-  return NextResponse.json({ kpi, upcomingTasks, upcomingSubtasks, calendarItems })
+  return NextResponse.json({ kpi, upcomingTasks, upcomingSubtasks, calendarItems, teamScope })
 }
