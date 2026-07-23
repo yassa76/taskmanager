@@ -36,7 +36,6 @@ export default function TeamView() {
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [invitingId, setInvitingId] = useState<string | null>(null)
 
   const [editingMember, setEditingMember] = useState<TeamMemberDTO | null>(null)
   const [editName, setEditName] = useState('')
@@ -66,17 +65,6 @@ export default function TeamView() {
     setName('')
     setEmail('')
     setSaving(false)
-    load()
-  }
-
-  async function sendInvite(m: TeamMemberDTO) {
-    setInvitingId(m.id)
-    const res = await fetch(`/api/team/${m.id}/invite`, { method: 'POST' })
-    const body = await res.json().catch(() => ({}))
-    if (!res.ok) {
-      alert(body.error || `Errore nell'invio (status ${res.status})`)
-    }
-    setInvitingId(null)
     load()
   }
 
@@ -128,8 +116,8 @@ export default function TeamView() {
       </div>
       <p className="text-slate-500 text-sm mb-6">
         Aggiungi qui le persone del team. Sono selezionabili come owner subito (tranne quelle
-        Inattive). Quando invii l&apos;invito passano a &quot;Invitato&quot;; quando si registrano
-        con Google diventano automaticamente &quot;Attivo&quot;.
+        Inattive). Quando si registrano con Google diventano automaticamente &quot;Attivo&quot;;
+        puoi anche cambiare lo stato manualmente da qui (es. per segnare &quot;Invitato&quot;).
       </p>
 
       <div className="bg-white border border-slate-200 rounded-xl p-4 mb-6 flex flex-wrap gap-2 items-end">
@@ -192,15 +180,6 @@ export default function TeamView() {
                     <span className="text-slate-600 text-xs">{ROLE_LABELS[m.matchedUser?.role || 'normal']}</span>
                   </td>
                   <td className="px-4 py-2 text-right whitespace-nowrap">
-                    {isAdmin && m.status === 'new' && (
-                      <button
-                        onClick={() => sendInvite(m)}
-                        disabled={invitingId === m.id}
-                        className="text-xs text-brand-600 font-medium hover:underline mr-3 disabled:opacity-50"
-                      >
-                        {invitingId === m.id ? 'Invio...' : '✉ Invita'}
-                      </button>
-                    )}
                     {isAdmin ? (
                       <>
                         <button
