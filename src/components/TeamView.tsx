@@ -48,20 +48,28 @@ export default function TeamView() {
   }
 
   async function updateRole(memberId: string, role: string) {
-    await fetch(`/api/team/${memberId}`, {
+    const res = await fetch(`/api/team/${memberId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ role })
     })
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}))
+      alert(body.error || `Errore nel salvataggio (status ${res.status})`)
+    }
     load()
   }
 
-  async function toggleActive(memberId: string, active: boolean) {
-    await fetch(`/api/team/${memberId}`, {
+  async function updateStatus(memberId: string, value: string) {
+    const res = await fetch(`/api/team/${memberId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ active })
+      body: JSON.stringify({ active: value !== 'inactive' })
     })
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}))
+      alert(body.error || `Errore nel salvataggio (status ${res.status})`)
+    }
     load()
   }
 
@@ -116,15 +124,14 @@ export default function TeamView() {
             <tr>
               <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Nome</th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Email</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Stato registrazione</th>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Stato</th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Ruolo</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Attivo</th>
             </tr>
           </thead>
           <tbody>
             {loading && (
               <tr>
-                <td colSpan={5} className="text-center py-6 text-slate-400">
+                <td colSpan={4} className="text-center py-6 text-slate-400">
                   Caricamento...
                 </td>
               </tr>
@@ -135,14 +142,29 @@ export default function TeamView() {
                   <td className="px-4 py-2">{m.matchedUser?.name || m.name || '—'}</td>
                   <td className="px-4 py-2">{m.email}</td>
                   <td className="px-4 py-2">
-                    <span
-                      className={clsx(
-                        'px-2 py-1 rounded-full text-xs font-medium',
-                        m.hasLoggedIn ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'
-                      )}
-                    >
-                      {m.hasLoggedIn ? 'Registrato' : 'Invitato, non connesso'}
-                    </span>
+                    {isAdmin ? (
+                      <select
+                        value={m.active ? 'active' : 'inactive'}
+                        onChange={(e) => updateStatus(m.id, e.target.value)}
+                        className="text-xs border border-slate-200 rounded-md px-2 py-1"
+                      >
+                        <option value="active">{m.hasLoggedIn ? 'Registrato, non connesso' : 'Invitato'}</option>
+                        <option value="inactive">Inattivo</option>
+                      </select>
+                    ) : (
+                      <span
+                        className={clsx(
+                          'px-2 py-1 rounded-full text-xs font-medium',
+                          !m.active
+                            ? 'bg-slate-200 text-slate-600'
+                            : m.hasLoggedIn
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : 'bg-amber-100 text-amber-800'
+                        )}
+                      >
+                        {!m.active ? 'Inattivo' : m.hasLoggedIn ? 'Registrato, non connesso' : 'Invitato'}
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-2">
                     {isAdmin ? (
@@ -159,21 +181,6 @@ export default function TeamView() {
                       <span className="text-slate-600 text-xs">
                         {ROLE_LABELS[m.matchedUser?.role || 'normal']}
                       </span>
-                    )}
-                  </td>
-                  <td className="px-4 py-2">
-                    {isAdmin ? (
-                      <button
-                        onClick={() => toggleActive(m.id, !m.active)}
-                        className={clsx(
-                          'px-2 py-1 rounded-full text-xs font-medium',
-                          m.active ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'
-                        )}
-                      >
-                        {m.active ? 'Attivo' : 'Inattivo'}
-                      </button>
-                    ) : (
-                      <span className="text-xs text-slate-600">{m.active ? 'Attivo' : 'Inattivo'}</span>
                     )}
                   </td>
                 </tr>
