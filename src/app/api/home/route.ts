@@ -75,5 +75,25 @@ export async function GET() {
     overdueSubtasks: mySubtasks.filter((s) => s.status !== 'completato' && s.endDate && s.endDate < now).length
   }
 
-  return NextResponse.json({ kpi, upcomingTasks, upcomingSubtasks })
+  // Tutte le scadenze (task + sub-task) per il calendario, senza limite di 8.
+  const calendarItems = [
+    ...myTasks
+      .filter((t) => t.endDate)
+      .map((t) => ({
+        id: t.id,
+        type: 'task' as const,
+        title: t.title,
+        date: t.endDate!.toISOString().slice(0, 10)
+      })),
+    ...mySubtasks
+      .filter((s) => s.endDate)
+      .map((s) => ({
+        id: s.id,
+        type: 'subtask' as const,
+        title: s.title,
+        date: s.endDate!.toISOString().slice(0, 10)
+      }))
+  ]
+
+  return NextResponse.json({ kpi, upcomingTasks, upcomingSubtasks, calendarItems })
 }
