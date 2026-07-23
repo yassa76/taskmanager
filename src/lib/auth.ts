@@ -9,9 +9,6 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
-      // Permette di collegare il login Google a un account "segnaposto"
-      // gia' creato quando la persona e' stata invitata nel Team, anche
-      // se non si e' ancora mai loggata.
       allowDangerousEmailAccountLinking: true
     })
   ],
@@ -24,14 +21,14 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         ;(session.user as any).id = user.id
         ;(session.user as any).role = (user as any).role ?? 'normal'
+        ;(session.user as any).themeColor = (user as any).themeColor ?? 'blue'
+        ;(session.user as any).firstName = (user as any).firstName ?? null
+        ;(session.user as any).lastName = (user as any).lastName ?? null
       }
       return session
     }
   },
   events: {
-    // Al primo login/registrazione: prova a fare il match con la lista Team.
-    // Se l'email non e' ancora nella lista Team, viene creata automaticamente
-    // cosi' compare nella vista Team (utile per il primo utente/admin).
     async createUser({ user }) {
       if (!user.email) return
 
@@ -54,17 +51,12 @@ export const authOptions: NextAuthOptions = {
         })
       }
 
-      // Il primissimo utente registrato in assoluto diventa admin.
       const userCount = await prisma.user.count()
       if (userCount === 1) {
         await prisma.user.update({ where: { id: user.id }, data: { role: 'admin' } })
       }
     },
 
-    // Si attiva ogni volta che un account Google viene collegato con successo
-    // a un utente (sia per una registrazione nuova, sia per un account
-    // "segnaposto" gia' invitato in precedenza): e' il momento in cui sappiamo
-    // per certo che la persona si e' davvero loggata almeno una volta.
     async linkAccount({ user }) {
       const dbUser = await prisma.user.findUnique({ where: { id: user.id } })
       if (dbUser?.teamMemberId) {
