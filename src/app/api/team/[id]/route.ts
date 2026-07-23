@@ -10,27 +10,34 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   if (!isAdmin(session)) return NextResponse.json({ error: 'Solo un admin puo modificare il team' }, { status: 403 })
 
   const body = await req.json()
-  const { name, active, role } = body
+  const { firstName, lastName, status, role } = body
 
   const member = await prisma.teamMember.update({
     where: { id: params.id },
     data: {
-      ...(name !== undefined ? { name } : {}),
-      ...(active !== undefined ? { active } : {})
+      ...(status !== undefined ? { status } : {})
     },
     include: { user: true }
   })
 
-  if (role !== undefined) {
+  const userUpdates: Record<string, any> = {}
+  if (role !== undefined) userUpdates.role = role
+  if (firstName !== undefined) userUpdates.firstName = firstName || null
+  if (lastName !== undefined) userUpdates.lastName = lastName || null
+  if (firstName !== undefined || lastName !== undefined) {
+    const fName = firstName !== undefined ? firstName : member.user?.firstName
+    const lName = lastName !== undefined ? lastName : member.user?.lastName
+    userUpdates.name = [fName, lName].filter(Boolean).join(' ') || undefined
+  }
+
+  if (Object.keys(userUpdates).length > 0) {
     if (member.user) {
-      await prisma.user.update({ where: { id: member.user.id }, data: { role } })
+      await prisma.user.update({ where: { id: member.user.id }, data: userUpdates })
     } else {
-      // Non aveva ancora un account collegato (caso raro, membri creati prima
-      // di questa funzione): lo creiamo ora cosi' il ruolo si puo' comunque salvare.
       await prisma.user.upsert({
         where: { email: member.email },
-        update: { role, teamMemberId: member.id },
-        create: { email: member.email, name: member.name, role, teamMemberId: member.id }
+        update: { ...userUpdates, teamMemberId: member.id },
+        create: { email: member.email, role: 'normal', ...userUpdates, teamMemberId: member.id }
       })
     }
   }
