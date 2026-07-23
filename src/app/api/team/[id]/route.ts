@@ -21,8 +21,18 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     include: { user: true }
   })
 
-  if (role !== undefined && member.user) {
-    await prisma.user.update({ where: { id: member.user.id }, data: { role } })
+  if (role !== undefined) {
+    if (member.user) {
+      await prisma.user.update({ where: { id: member.user.id }, data: { role } })
+    } else {
+      // Non aveva ancora un account collegato (caso raro, membri creati prima
+      // di questa funzione): lo creiamo ora cosi' il ruolo si puo' comunque salvare.
+      await prisma.user.upsert({
+        where: { email: member.email },
+        update: { role, teamMemberId: member.id },
+        create: { email: member.email, name: member.name, role, teamMemberId: member.id }
+      })
+    }
   }
 
   return NextResponse.json({ ok: true })
