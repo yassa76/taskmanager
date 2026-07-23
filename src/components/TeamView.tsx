@@ -13,6 +13,20 @@ const ROLE_LABELS: Record<string, string> = {
   read_only: 'Sola lettura'
 }
 
+const STATUS_LABELS: Record<string, string> = {
+  new: 'Nuovo',
+  invited: 'Invitato',
+  active: 'Attivo',
+  inactive: 'Inattivo'
+}
+
+const STATUS_COLORS: Record<string, string> = {
+  new: 'bg-slate-200 text-slate-600',
+  invited: 'bg-amber-100 text-amber-800',
+  active: 'bg-emerald-100 text-emerald-800',
+  inactive: 'bg-red-100 text-red-700'
+}
+
 export default function TeamView() {
   const { data: session } = useSession()
   const isAdmin = (session?.user as any)?.role === 'admin'
@@ -26,7 +40,7 @@ export default function TeamView() {
   const [editingMember, setEditingMember] = useState<TeamMemberDTO | null>(null)
   const [editName, setEditName] = useState('')
   const [editRole, setEditRole] = useState('normal')
-  const [editActive, setEditActive] = useState(true)
+  const [editStatus, setEditStatus] = useState('new')
   const [savingEdit, setSavingEdit] = useState(false)
 
   async function load() {
@@ -58,7 +72,7 @@ export default function TeamView() {
     setEditingMember(m)
     setEditName(m.matchedUser?.name || m.name || '')
     setEditRole(m.matchedUser?.role || 'normal')
-    setEditActive(m.active)
+    setEditStatus(m.status)
   }
 
   async function saveEdit() {
@@ -67,7 +81,7 @@ export default function TeamView() {
     const res = await fetch(`/api/team/${editingMember.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: editName.trim(), role: editRole, active: editActive })
+      body: JSON.stringify({ name: editName.trim(), role: editRole, status: editStatus })
     })
     if (!res.ok) {
       const body = await res.json().catch(() => ({}))
@@ -101,9 +115,9 @@ export default function TeamView() {
         </button>
       </div>
       <p className="text-slate-500 text-sm mb-6">
-        Aggiungi qui le persone del team. Sono selezionabili come owner subito, anche prima che
-        facciano il login: quando si registreranno con Google usando questa email verranno
-        automaticamente riconosciute.
+        Aggiungi qui le persone del team. Sono selezionabili come owner subito (tranne quelle
+        Inattive). Quando si registrano con Google diventano automaticamente &quot;Attivo&quot;;
+        puoi anche cambiare lo stato manualmente da qui (es. per segnare &quot;Invitato&quot;).
       </p>
 
       <div className="bg-white border border-slate-200 rounded-xl p-4 mb-6 flex flex-wrap gap-2 items-end">
@@ -154,27 +168,16 @@ export default function TeamView() {
             )}
             {!loading &&
               members.map((m) => (
-                <tr key={m.id} className={clsx('border-b border-slate-100', !m.active && 'opacity-50')}>
+                <tr key={m.id} className={clsx('border-b border-slate-100', m.status === 'inactive' && 'opacity-50')}>
                   <td className="px-4 py-2">{m.matchedUser?.name || m.name || '—'}</td>
                   <td className="px-4 py-2">{m.email}</td>
                   <td className="px-4 py-2">
-                    <span
-                      className={clsx(
-                        'px-2 py-1 rounded-full text-xs font-medium',
-                        !m.active
-                          ? 'bg-slate-200 text-slate-600'
-                          : m.hasLoggedIn
-                          ? 'bg-emerald-100 text-emerald-800'
-                          : 'bg-amber-100 text-amber-800'
-                      )}
-                    >
-                      {!m.active ? 'Inattivo' : m.hasLoggedIn ? 'Registrato, non connesso' : 'Invitato'}
+                    <span className={clsx('px-2 py-1 rounded-full text-xs font-medium', STATUS_COLORS[m.status])}>
+                      {STATUS_LABELS[m.status]}
                     </span>
                   </td>
                   <td className="px-4 py-2">
-                    <span className="text-slate-600 text-xs">
-                      {ROLE_LABELS[m.matchedUser?.role || 'normal']}
-                    </span>
+                    <span className="text-slate-600 text-xs">{ROLE_LABELS[m.matchedUser?.role || 'normal']}</span>
                   </td>
                   <td className="px-4 py-2 text-right whitespace-nowrap">
                     {isAdmin ? (
@@ -241,10 +244,12 @@ export default function TeamView() {
                 <div>
                   <label className="text-xs font-medium text-slate-500">Stato</label>
                   <select
-                    value={editActive ? 'active' : 'inactive'}
-                    onChange={(e) => setEditActive(e.target.value !== 'inactive')}
+                    value={editStatus}
+                    onChange={(e) => setEditStatus(e.target.value)}
                     className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1"
                   >
+                    <option value="new">Nuovo</option>
+                    <option value="invited">Invitato</option>
                     <option value="active">Attivo</option>
                     <option value="inactive">Inattivo</option>
                   </select>
