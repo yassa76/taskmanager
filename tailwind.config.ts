@@ -6,11 +6,11 @@ const config: Config = {
     extend: {
       colors: {
         brand: {
-          50: '#eef4ff',
-          100: '#dbe6ff',
-          500: '#3b5bdb',
-          600: '#2f49b3',
-          700: '#26398a'
+          50: 'rgb(var(--brand-50) / <alpha-value>)',
+          100: 'rgb(var(--brand-100) / <alpha-value>)',
+          500: 'rgb(var(--brand-500) / <alpha-value>)',
+          600: 'rgb(var(--brand-600) / <alpha-value>)',
+          700: 'rgb(var(--brand-700) / <alpha-value>)'
         }
       }
     }
