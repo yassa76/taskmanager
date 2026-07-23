@@ -37,3 +37,12 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
   return NextResponse.json({ ok: true })
 }
+
+export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+  const session = await getServerSession(authOptions)
+  if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
+  if (!isAdmin(session)) return NextResponse.json({ error: 'Solo un admin puo modificare il team' }, { status: 403 })
+
+  await prisma.teamMember.delete({ where: { id: params.id } })
+  return NextResponse.json({ ok: true })
+}
