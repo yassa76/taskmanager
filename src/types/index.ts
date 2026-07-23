@@ -39,6 +39,7 @@ export interface TaskDTO {
   projectName: string | null
   projectId: string | null
   closedManually: boolean
+  statusOverride: string | null
   status: 'da_avviare' | 'in_corso' | 'completato'
   pendingClosure: boolean
   progress: number
@@ -54,6 +55,7 @@ export interface ClientDTO {
   industry: string | null
   owner: OwnerLite | null
   projects: { id: string; name: string }[]
+  activeTasksCount: number
 }
 
 export interface TeamMemberDTO {
