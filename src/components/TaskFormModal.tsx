@@ -67,7 +67,8 @@ export default function TaskFormModal({
       description: created.description ?? null,
       industry: created.industry ?? null,
       owner: created.owner ?? null,
-      projects: []
+      projects: [],
+      activeTasksCount: 0
     }
     setClients((prev) => [...prev, newClient])
     setClientId(created.id)
