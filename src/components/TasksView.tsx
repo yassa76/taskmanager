@@ -112,7 +112,7 @@ export default function TasksView() {
   const filteredTasks = useMemo(() => {
     if (!filters.overdue) return sortedTasks
     const now = new Date()
-    return sortedTasks.filter((t) => t.endDate && new Date(t.endDate) < now && t.status !== 'completato')
+    return sortedTasks.filter((t) => t.endDate && new Date(t.endDate) < now && t.status !== 'completato' && t.status !== 'annullato')
   }, [sortedTasks, filters.overdue])
 
   function toggleSort(key: SortKey) {
