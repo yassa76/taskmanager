@@ -60,7 +60,7 @@ export interface TeamMemberDTO {
   id: string
   email: string
   name: string | null
-  active: boolean
+  status: 'new' | 'invited' | 'active' | 'inactive'
   invitedAt: string
   matchedUser: {
     id: string
@@ -69,5 +69,4 @@ export interface TeamMemberDTO {
     image: string | null
     role: string
   } | null
-  hasLoggedIn: boolean
 }
