@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, useCallback } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import * as XLSX from 'xlsx'
 import clsx from 'clsx'
 import { STATUS_COLORS, STATUS_LABELS } from '@/lib/taskStatus'
@@ -14,20 +15,21 @@ import { EditIcon, DeleteIcon } from './icons'
 type SortKey = 'title' | 'clientName' | 'owner' | 'startDate' | 'endDate' | 'status'
 type SortDir = 'asc' | 'desc'
 
-const defaultFilters: FilterState = {
-  view: 'all',
-  clientId: '',
-  ownerId: '',
-  status: '',
-  search: ''
-}
-
 export default function TasksView() {
+  const searchParams = useSearchParams()
+
   const [tasks, setTasks] = useState<TaskDTO[]>([])
   const [team, setTeam] = useState<TeamMemberDTO[]>([])
   const [clients, setClients] = useState<ClientDTO[]>([])
   const [loading, setLoading] = useState(true)
-  const [filters, setFilters] = useState<FilterState>(defaultFilters)
+  const [filters, setFilters] = useState<FilterState>(() => ({
+    view: searchParams.get('view') === 'mine' ? 'mine' : 'all',
+    clientId: searchParams.get('clientId') || '',
+    ownerId: searchParams.get('ownerId') || '',
+    status: searchParams.get('status') || '',
+    search: '',
+    overdue: searchParams.get('overdue') === 'true'
+  }))
   const [sortKey, setSortKey] = useState<SortKey>('endDate')
   const [sortDir, setSortDir] = useState<SortDir>('asc')
   const [showForm, setShowForm] = useState(false)
@@ -107,6 +109,12 @@ export default function TasksView() {
     return arr
   }, [tasks, sortKey, sortDir])
 
+  const filteredTasks = useMemo(() => {
+    if (!filters.overdue) return sortedTasks
+    const now = new Date()
+    return sortedTasks.filter((t) => t.endDate && new Date(t.endDate) < now && t.status !== 'completato')
+  }, [sortedTasks, filters.overdue])
+
   function toggleSort(key: SortKey) {
     if (sortKey === key) {
       setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
@@ -117,8 +125,8 @@ export default function TasksView() {
     setPage(1)
   }
 
-  const totalPages = Math.max(1, Math.ceil(sortedTasks.length / PAGE_SIZE))
-  const pagedTasks = sortedTasks.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  const totalPages = Math.max(1, Math.ceil(filteredTasks.length / PAGE_SIZE))
+  const pagedTasks = filteredTasks.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   async function deleteTask(t: TaskDTO) {
     if (!confirm(`Eliminare il task "${t.title}" e tutti i suoi sub-task?`)) return
@@ -127,7 +135,7 @@ export default function TasksView() {
   }
 
   function exportXls() {
-    const rows = sortedTasks.map((t) => ({
+    const rows = filteredTasks.map((t) => ({
       Cliente: t.clientName || '',
       Task: t.title,
       Descrizione: t.description || '',
@@ -208,7 +216,7 @@ export default function TasksView() {
                 </td>
               </tr>
             )}
-            {!loading && sortedTasks.length === 0 && (
+            {!loading && filteredTasks.length === 0 && (
               <tr>
                 <td colSpan={8} className="text-center py-8 text-slate-400">
                   Nessun task trovato.
@@ -242,16 +250,16 @@ export default function TasksView() {
                 <td className="px-3 py-2">{t.owner.name || t.owner.email}</td>
                 <td className="px-3 py-2">{t.startDate ? t.startDate.slice(0, 10) : '—'}</td>
                 <td className="px-3 py-2">
-                <span
-                  className={clsx(
-                    t.endDate && new Date(t.endDate) < new Date() && t.status !== 'completato'
-                      ? 'text-red-600 font-semibold'
-                      : ''
-                  )}
-                >
-                  {t.endDate ? t.endDate.slice(0, 10) : '—'}
-                </span>
-              </td>
+                  <span
+                    className={clsx(
+                      t.endDate && new Date(t.endDate) < new Date() && t.status !== 'completato'
+                        ? 'text-red-600 font-semibold'
+                        : ''
+                    )}
+                  >
+                    {t.endDate ? t.endDate.slice(0, 10) : '—'}
+                  </span>
+                </td>
                 <td className="px-3 py-2">
                   <span className={clsx('px-2 py-1 rounded-full text-xs font-medium', STATUS_COLORS[t.status])}>
                     {STATUS_LABELS[t.status]}
@@ -288,10 +296,10 @@ export default function TasksView() {
         </table>
       </div>
 
-      {sortedTasks.length > 0 && (
+      {filteredTasks.length > 0 && (
         <div className="flex items-center justify-between mt-3 text-sm text-slate-500">
           <span>
-            {sortedTasks.length} task totali — pagina {page} di {totalPages}
+            {filteredTasks.length} task totali — pagina {page} di {totalPages}
           </span>
           <div className="flex gap-1">
             <button
