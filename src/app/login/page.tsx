@@ -5,7 +5,7 @@ import SignInButton from '@/components/SignInButton'
 
 export default async function LoginPage() {
   const session = await getServerSession(authOptions)
-  if (session) redirect('/tasks')
+  if (session) redirect('/home')
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-brand-50 to-white">
