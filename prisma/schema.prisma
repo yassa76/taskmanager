@@ -77,7 +77,6 @@ model User {
 model TeamMember {
   id        String   @id @default(cuid())
   email     String   @unique
-  name      String?
   status    String   @default("new") // "new" | "invited" | "active" | "inactive"
   invitedAt DateTime @default(now())
 
