@@ -46,7 +46,17 @@ export default function NavBar() {
             // eslint-disable-next-line @next/next/no-img-element
             <img src={session.user.image} alt="" className="w-8 h-8 rounded-full" />
           )}
-          <span className="text-sm text-slate-600 hidden sm:block">{session?.user?.email}</span>
+          <Link
+            href="/profile"
+            className="text-sm text-slate-600 hidden sm:block hover:text-brand-600 font-medium"
+          >
+            {(() => {
+              const firstName = (session?.user as any)?.firstName
+              const lastName = (session?.user as any)?.lastName
+              const fullName = [firstName, lastName].filter(Boolean).join(' ')
+              return fullName || session?.user?.name || session?.user?.email
+            })()}
+          </Link>
           <button
             onClick={() => signOut({ callbackUrl: '/login' })}
             className="text-sm text-slate-500 hover:text-red-600 font-medium"
