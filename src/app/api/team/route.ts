@@ -9,7 +9,7 @@ export async function GET() {
   if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
 
   const members = await prisma.teamMember.findMany({
-    include: { user: { include: { accounts: true } } },
+    include: { user: true },
     orderBy: { invitedAt: 'asc' }
   })
 
@@ -17,21 +17,21 @@ export async function GET() {
     id: m.id,
     email: m.email,
     name: m.name,
-    active: m.active,
+    status: m.status as TeamMemberDTO['status'],
     invitedAt: m.invitedAt.toISOString(),
     matchedUser: m.user
       ? { id: m.user.id, name: m.user.name, email: m.user.email, image: m.user.image, role: m.user.role }
-      : null,
-    hasLoggedIn: m.user ? m.user.accounts.length > 0 : false
+      : null
   }))
 
   return NextResponse.json(dtos)
 }
 
-// Aggiunge una nuova email alla lista team (invito) e crea subito un account
-// "segnaposto" collegato, cosi' la persona e' selezionabile come owner anche
-// prima di essersi mai loggata. Quando fara' il login reale con Google usando
-// questa email, l'account verra' automaticamente collegato (non duplicato).
+// Aggiunge una nuova email alla lista team (stato iniziale: "new") e crea
+// subito un account "segnaposto" collegato, cosi' la persona e' selezionabile
+// come owner da subito. Quando fara' il login reale con Google usando questa
+// email, l'account verra' automaticamente collegato (non duplicato) e lo
+// stato passera' ad "active".
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
