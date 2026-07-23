@@ -227,7 +227,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
             <p className="text-xs text-slate-400 uppercase">Data di scadenza</p>
             <p
               className={clsx(
-                task.endDate && new Date(task.endDate) < new Date() && task.status !== 'completato'
+                task.endDate && new Date(task.endDate) < new Date() && task.status !== 'completato' && task.status !== 'annullato'
                   ? 'text-red-600 font-semibold'
                   : 'text-slate-700'
               )}
