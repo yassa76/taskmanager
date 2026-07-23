@@ -9,6 +9,8 @@ export interface CalendarItem {
   type: 'task' | 'subtask'
   title: string
   date: string // YYYY-MM-DD
+  clientName?: string | null
+  ownerName?: string
 }
 
 const MONTH_NAMES = [
@@ -24,7 +26,7 @@ function toDateKey(y: number, m: number, d: number) {
 export default function DeadlineCalendar({ items }: { items: CalendarItem[] }) {
   const today = new Date()
   const [viewYear, setViewYear] = useState(today.getFullYear())
-  const [viewMonth, setViewMonth] = useState(today.getMonth()) // 0-11
+  const [viewMonth, setViewMonth] = useState(today.getMonth())
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
 
   const itemsByDate = useMemo(() => {
@@ -41,7 +43,6 @@ export default function DeadlineCalendar({ items }: { items: CalendarItem[] }) {
 
   const cells = useMemo(() => {
     const firstOfMonth = new Date(viewYear, viewMonth, 1)
-    // getDay(): 0=Sunday..6=Saturday. Convert so Monday=0..Sunday=6.
     const firstWeekday = (firstOfMonth.getDay() + 6) % 7
     const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate()
 
@@ -148,11 +149,18 @@ export default function DeadlineCalendar({ items }: { items: CalendarItem[] }) {
               <Link
                 key={`${item.type}-${item.id}`}
                 href={item.type === 'task' ? `/tasks/${item.id}` : `/subtasks/${item.id}`}
-                className="block px-3 py-2 rounded-lg bg-slate-50 hover:bg-slate-100 text-sm text-brand-600 font-medium truncate"
-                title={item.title}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-50 hover:bg-slate-100 text-sm"
               >
-                {item.type === 'subtask' ? '↳ ' : ''}
-                {item.title}
+                <span className="text-xs text-slate-400 shrink-0 max-w-[30%] truncate" title={item.clientName || ''}>
+                  {item.clientName || '—'}
+                </span>
+                <span className="flex-1 text-brand-600 font-medium truncate min-w-0" title={item.title}>
+                  {item.type === 'subtask' ? '↳ ' : ''}
+                  {item.title}
+                </span>
+                <span className="text-xs text-slate-400 shrink-0 max-w-[30%] truncate" title={item.ownerName || ''}>
+                  {item.ownerName || '—'}
+                </span>
               </Link>
             ))}
           </div>
