@@ -200,12 +200,19 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
             <p className="text-xs text-slate-400 uppercase">Data avvio</p>
             <p className="text-slate-700">{task.startDate ? task.startDate.slice(0, 10) : '—'}</p>
           </div>
-          <div>
+         <div>
             <p className="text-xs text-slate-400 uppercase">Data di scadenza</p>
-            <p className="text-slate-700">{task.endDate ? task.endDate.slice(0, 10) : '—'}</p>
+            <p
+              className={clsx(
+                task.endDate && new Date(task.endDate) < new Date() && task.status !== 'completato'
+                  ? 'text-red-600 font-semibold'
+                  : 'text-slate-700'
+              )}
+            >
+              {task.endDate ? task.endDate.slice(0, 10) : '—'}
+            </p>
           </div>
         </div>
-
         <div className="mt-4">
           <div className="w-full bg-slate-100 rounded-full h-2">
             <div className="bg-brand-500 h-2 rounded-full" style={{ width: `${task.progress}%` }} />
