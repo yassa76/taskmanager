@@ -59,12 +59,13 @@ export interface ClientDTO {
 export interface TeamMemberDTO {
   id: string
   email: string
-  name: string | null
   status: 'new' | 'invited' | 'active' | 'inactive'
   invitedAt: string
   matchedUser: {
     id: string
     name: string | null
+    firstName: string | null
+    lastName: string | null
     email: string
     image: string | null
     role: string
