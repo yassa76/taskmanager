@@ -11,6 +11,7 @@ interface UpcomingTask {
   id: string
   title: string
   clientName: string | null
+  ownerName?: string
   endDate: string | null
   status: 'da_avviare' | 'in_corso' | 'completato'
   overdue: boolean
@@ -22,6 +23,7 @@ interface UpcomingSubtask {
   taskId: string
   taskTitle: string
   clientName: string | null
+  ownerName?: string
   endDate: string | null
   status: 'da_avviare' | 'in_corso' | 'completato'
   overdue: boolean
@@ -95,6 +97,16 @@ export default function HomeView({ userName }: { userName: string }) {
   }, [scope])
 
   useEffect(() => {
+    const saved = typeof window !== 'undefined' ? localStorage.getItem('homeScope') : null
+    if (saved === 'team' || saved === 'mine') setScope(saved)
+  }, [])
+
+  function changeScope(v: 'mine' | 'team') {
+    setScope(v)
+    if (typeof window !== 'undefined') localStorage.setItem('homeScope', v)
+  }
+
+  useEffect(() => {
     load()
     setTaskPage(1)
     setSubtaskPage(1)
@@ -117,7 +129,7 @@ export default function HomeView({ userName }: { userName: string }) {
               {(['mine', 'team'] as const).map((v) => (
                 <button
                   key={v}
-                  onClick={() => setScope(v)}
+                  onClick={() => changeScope(v)}
                   className={clsx(
                     'px-3 py-1.5 rounded-md text-sm font-medium transition',
                     scope === v ? 'bg-white shadow text-brand-700' : 'text-slate-500'
@@ -184,6 +196,9 @@ export default function HomeView({ userName }: { userName: string }) {
                   <tr>
                     <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Task</th>
                     <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Cliente</th>
+                    {scope === 'team' && (
+                      <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Owner</th>
+                    )}
                     <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Scadenza</th>
                   </tr>
                 </thead>
@@ -200,6 +215,11 @@ export default function HomeView({ userName }: { userName: string }) {
                         </Link>
                       </td>
                       <td className="px-4 py-2 text-slate-500">{t.clientName || '—'}</td>
+                      {scope === 'team' && (
+                        <td className="px-4 py-2 text-slate-500 max-w-[120px] truncate" title={t.ownerName}>
+                          {t.ownerName || '—'}
+                        </td>
+                      )}
                       <td className="px-4 py-2">
                         <span className={clsx('text-xs font-medium', t.overdue ? 'text-red-600' : 'text-slate-600')}>
                           {daysLeftLabel(t.endDate, t.overdue)}
@@ -209,7 +229,7 @@ export default function HomeView({ userName }: { userName: string }) {
                   ))}
                   {data.upcomingTasks.length === 0 && (
                     <tr>
-                      <td colSpan={3} className="text-center py-6 text-slate-400">
+                      <td colSpan={scope === 'team' ? 4 : 3} className="text-center py-6 text-slate-400">
                         Nessun task in scadenza. 🎉
                       </td>
                     </tr>
@@ -254,6 +274,9 @@ export default function HomeView({ userName }: { userName: string }) {
                   <tr>
                     <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Sub-task</th>
                     <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Task</th>
+                    {scope === 'team' && (
+                      <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Owner</th>
+                    )}
                     <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Scadenza</th>
                   </tr>
                 </thead>
@@ -272,6 +295,11 @@ export default function HomeView({ userName }: { userName: string }) {
                       <td className="px-4 py-2 text-slate-500 max-w-[140px] truncate" title={s.taskTitle}>
                         {s.taskTitle}
                       </td>
+                      {scope === 'team' && (
+                        <td className="px-4 py-2 text-slate-500 max-w-[120px] truncate" title={s.ownerName}>
+                          {s.ownerName || '—'}
+                        </td>
+                      )}
                       <td className="px-4 py-2">
                         <span className={clsx('text-xs font-medium', s.overdue ? 'text-red-600' : 'text-slate-600')}>
                           {daysLeftLabel(s.endDate, s.overdue)}
@@ -281,7 +309,7 @@ export default function HomeView({ userName }: { userName: string }) {
                   ))}
                   {data.upcomingSubtasks.length === 0 && (
                     <tr>
-                      <td colSpan={3} className="text-center py-6 text-slate-400">
+                      <td colSpan={scope === 'team' ? 4 : 3} className="text-center py-6 text-slate-400">
                         Nessun sub-task in scadenza. 🎉
                       </td>
                     </tr>
