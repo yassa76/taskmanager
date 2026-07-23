@@ -276,12 +276,17 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
                     className="text-xs border border-slate-200 rounded-md px-2 py-1"
                   />
                 </td>
-                <td className="px-4 py-2">
+               <td className="px-4 py-2">
                   <input
                     type="date"
                     value={s.endDate ? s.endDate.slice(0, 10) : ''}
                     onChange={(e) => updateSubtaskDate(s.id, 'endDate', e.target.value)}
-                    className="text-xs border border-slate-200 rounded-md px-2 py-1"
+                    className={clsx(
+                      'text-xs border rounded-md px-2 py-1',
+                      s.endDate && new Date(s.endDate) < new Date() && s.status !== 'completato'
+                        ? 'border-red-300 text-red-600 font-semibold'
+                        : 'border-slate-200'
+                    )}
                   />
                 </td>
                 <td className="px-4 py-2">
