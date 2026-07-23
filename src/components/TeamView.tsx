@@ -32,13 +32,15 @@ export default function TeamView() {
   const isAdmin = (session?.user as any)?.role === 'admin'
 
   const [members, setMembers] = useState<TeamMemberDTO[]>([])
-  const [name, setName] = useState('')
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
   const [editingMember, setEditingMember] = useState<TeamMemberDTO | null>(null)
-  const [editName, setEditName] = useState('')
+  const [editFirstName, setEditFirstName] = useState('')
+  const [editLastName, setEditLastName] = useState('')
   const [editRole, setEditRole] = useState('normal')
   const [editStatus, setEditStatus] = useState('new')
   const [savingEdit, setSavingEdit] = useState(false)
@@ -55,14 +57,19 @@ export default function TeamView() {
   }, [])
 
   async function invite() {
-    if (!name.trim() || !email.trim()) return
+    if (!firstName.trim() || !email.trim()) return
     setSaving(true)
     await fetch('/api/team', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: name.trim(), email: email.trim() })
+      body: JSON.stringify({
+        firstName: firstName.trim(),
+        lastName: lastName.trim() || null,
+        email: email.trim()
+      })
     })
-    setName('')
+    setFirstName('')
+    setLastName('')
     setEmail('')
     setSaving(false)
     load()
@@ -70,7 +77,8 @@ export default function TeamView() {
 
   function openEdit(m: TeamMemberDTO) {
     setEditingMember(m)
-    setEditName(m.matchedUser?.name || m.name || '')
+    setEditFirstName(m.matchedUser?.firstName || '')
+    setEditLastName(m.matchedUser?.lastName || '')
     setEditRole(m.matchedUser?.role || 'normal')
     setEditStatus(m.status)
   }
@@ -81,7 +89,12 @@ export default function TeamView() {
     const res = await fetch(`/api/team/${editingMember.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: editName.trim(), role: editRole, status: editStatus })
+      body: JSON.stringify({
+        firstName: editFirstName.trim(),
+        lastName: editLastName.trim() || null,
+        role: editRole,
+        status: editStatus
+      })
     })
     if (!res.ok) {
       const body = await res.json().catch(() => ({}))
@@ -93,7 +106,7 @@ export default function TeamView() {
   }
 
   async function deleteMember(m: TeamMemberDTO) {
-    if (!confirm(`Rimuovere "${m.name || m.email}" dal team?`)) return
+    if (!confirm(`Rimuovere "${m.matchedUser?.name || m.email}" dal team?`)) return
     const res = await fetch(`/api/team/${m.id}`, { method: 'DELETE' })
     if (!res.ok) {
       const body = await res.json().catch(() => ({}))
@@ -116,16 +129,24 @@ export default function TeamView() {
       </div>
       <p className="text-slate-500 text-sm mb-6">
         Aggiungi qui le persone del team. Sono selezionabili come owner subito (tranne quelle
-        Inattive). Quando si registrano con Google diventano automaticamente &quot;Attivo&quot;;
-        puoi anche cambiare lo stato manualmente da qui (es. per segnare &quot;Invitato&quot;).
+        Inattive). Nome e cognome sono gli stessi campi che la persona potra&apos; poi modificare
+        dal proprio profilo.
       </p>
 
       <div className="bg-white border border-slate-200 rounded-xl p-4 mb-6 flex flex-wrap gap-2 items-end">
-        <div className="flex-1 min-w-[180px]">
+        <div className="flex-1 min-w-[140px]">
           <label className="text-xs font-medium text-slate-500">Nome *</label>
           <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1"
+          />
+        </div>
+        <div className="flex-1 min-w-[140px]">
+          <label className="text-xs font-medium text-slate-500">Cognome</label>
+          <input
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
             className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1"
           />
         </div>
@@ -140,7 +161,7 @@ export default function TeamView() {
         </div>
         <button
           onClick={invite}
-          disabled={saving || !name.trim() || !email.trim()}
+          disabled={saving || !firstName.trim() || !email.trim()}
           className="px-4 py-2 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700 disabled:opacity-50"
         >
           Aggiungi al team
@@ -151,7 +172,9 @@ export default function TeamView() {
         <table className="w-full text-sm">
           <thead className="bg-slate-50 border-b border-slate-200">
             <tr>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Nome</th>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">
+                Nome e cognome
+              </th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Email</th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Stato</th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Ruolo</th>
@@ -169,7 +192,14 @@ export default function TeamView() {
             {!loading &&
               members.map((m) => (
                 <tr key={m.id} className={clsx('border-b border-slate-100', m.status === 'inactive' && 'opacity-50')}>
-                  <td className="px-4 py-2">{m.matchedUser?.name || m.name || '—'}</td>
+                  <td className="px-4 py-2">
+                    <span
+                      className="px-2 py-1 rounded-full text-xs font-medium bg-brand-50 text-brand-700"
+                      title="Campo condiviso con il profilo personale dell'utente"
+                    >
+                      {m.matchedUser?.name || '—'}
+                    </span>
+                  </td>
                   <td className="px-4 py-2">{m.email}</td>
                   <td className="px-4 py-2">
                     <span className={clsx('px-2 py-1 rounded-full text-xs font-medium', STATUS_COLORS[m.status])}>
@@ -210,15 +240,28 @@ export default function TeamView() {
       {editingMember && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl">
-            <h2 className="text-lg font-bold text-slate-800 mb-4">Modifica membro del team</h2>
+            <h2 className="text-lg font-bold text-slate-800 mb-1">Modifica membro del team</h2>
+            <p className="text-xs text-slate-400 mb-4">
+              Nome e cognome sono gli stessi campi visibili nel profilo personale dell&apos;utente.
+            </p>
             <div className="space-y-3">
-              <div>
-                <label className="text-xs font-medium text-slate-500">Nome</label>
-                <input
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1"
-                />
+              <div className="bg-brand-50 border border-brand-100 rounded-lg p-3 grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-medium text-brand-700">Nome</label>
+                  <input
+                    value={editFirstName}
+                    onChange={(e) => setEditFirstName(e.target.value)}
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1 bg-white"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-brand-700">Cognome</label>
+                  <input
+                    value={editLastName}
+                    onChange={(e) => setEditLastName(e.target.value)}
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1 bg-white"
+                  />
+                </div>
               </div>
               <div>
                 <label className="text-xs font-medium text-slate-500">Email</label>
