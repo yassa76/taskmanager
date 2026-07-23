@@ -2,6 +2,63 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* Blu (default) */
+  --brand-50: 238 244 255;
+  --brand-100: 219 230 255;
+  --brand-500: 59 91 219;
+  --brand-600: 47 73 179;
+  --brand-700: 38 57 138;
+}
+
+[data-theme='orange'] {
+  --brand-50: 255 247 237;
+  --brand-100: 255 237 213;
+  --brand-500: 249 115 22;
+  --brand-600: 234 88 12;
+  --brand-700: 194 65 12;
+}
+
+[data-theme='green'] {
+  --brand-50: 240 253 244;
+  --brand-100: 220 252 231;
+  --brand-500: 34 197 94;
+  --brand-600: 22 163 74;
+  --brand-700: 21 128 61;
+}
+
+[data-theme='purple'] {
+  --brand-50: 245 243 255;
+  --brand-100: 237 233 254;
+  --brand-500: 139 92 246;
+  --brand-600: 124 58 237;
+  --brand-700: 109 40 217;
+}
+
+[data-theme='red'] {
+  --brand-50: 254 242 242;
+  --brand-100: 254 226 226;
+  --brand-500: 239 68 68;
+  --brand-600: 220 38 38;
+  --brand-700: 185 28 28;
+}
+
+[data-theme='teal'] {
+  --brand-50: 240 253 250;
+  --brand-100: 204 251 241;
+  --brand-500: 20 184 166;
+  --brand-600: 13 148 136;
+  --brand-700: 15 118 110;
+}
+
+[data-theme='pink'] {
+  --brand-50: 253 242 248;
+  --brand-100: 252 231 243;
+  --brand-500: 236 72 153;
+  --brand-600: 219 39 119;
+  --brand-700: 190 24 93;
+}
+
 html, body {
   height: 100%;
 }
