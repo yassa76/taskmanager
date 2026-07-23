@@ -184,7 +184,7 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
                 <td className="px-4 py-2">
                 <span
                   className={clsx(
-                    t.endDate && new Date(t.endDate) < new Date() && t.status !== 'completato'
+                    t.endDate && new Date(t.endDate) < new Date() && t.status !== 'completato' && t.status !== 'annullato'
                       ? 'text-red-600 font-semibold'
                       : ''
                   )}
