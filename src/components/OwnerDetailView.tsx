@@ -94,7 +94,7 @@ export default function OwnerDetailView({ ownerId }: { ownerId: string }) {
   const filteredTasks = useMemo(() => {
     if (!data) return []
     return data.tasks
-      .filter((t) => !statusFilter || t.status === statusFilter)
+      .filter((t) => (statusFilter ? t.status === statusFilter : t.status !== 'completato' && t.status !== 'annullato'))
       .filter((t) => !clientFilter || t.clientId === clientFilter)
       .filter((t) => !overdueOnly || t.overdue)
       .filter((t) => !search || t.title.toLowerCase().includes(search.toLowerCase()))
@@ -259,7 +259,8 @@ export default function OwnerDetailView({ ownerId }: { ownerId: string }) {
             {filteredTasks.length === 0 && (
               <tr>
                 <td colSpan={5} className="text-center py-6 text-slate-400">
-                  Nessun task trovato con questi filtri.
+                  Nessun task trovato con questi filtri. (I completati/annullati sono nascosti per
+                  default: selezionali dal filtro Stato per vederli.)
                 </td>
               </tr>
             )}
