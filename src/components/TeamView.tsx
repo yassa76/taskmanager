@@ -159,9 +159,7 @@ export default function TeamView() {
         </button>
       </div>
       <p className="text-slate-500 text-sm mb-6">
-        Aggiungi qui le persone del team. Sono selezionabili come owner subito (tranne quelle
-        Inattive). Nome e cognome sono gli stessi campi che la persona potra&apos; poi modificare
-        dal proprio profilo.
+        Aggiungi qui le persone del team (quelle inattive non sono selezionabili per i task).
       </p>
 
       <div className="bg-white border border-slate-200 rounded-xl p-4 mb-6 flex flex-wrap gap-2 items-end">
