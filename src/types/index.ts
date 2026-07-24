@@ -13,6 +13,7 @@ export interface SubtaskDTO {
   endDate: string | null
   closedAt: string | null
   owner: OwnerLite
+  createdBy: OwnerLite | null
   taskId: string
   createdAt: string
   updatedAt: string
