@@ -31,6 +31,7 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
 
   const [showTaskForm, setShowTaskForm] = useState(false)
   const [editingTask, setEditingTask] = useState<TaskDTO | null>(null)
+  const [showClosedTasks, setShowClosedTasks] = useState(false)
 
   async function load() {
     setLoading(true)
@@ -104,6 +105,10 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
   if (error) return <p className="text-red-500">{error}</p>
   if (!client) return <p className="text-slate-400">Cliente non trovato.</p>
 
+  const visibleTasks = tasks.filter(
+    (t) => showClosedTasks || (t.status !== 'completato' && t.status !== 'annullato')
+  )
+
   return (
     <div>
       <Breadcrumbs
@@ -153,17 +158,25 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
       </div>
 
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-        <div className="px-5 py-3 border-b border-slate-200 flex items-center justify-between">
+        <div className="px-5 py-3 border-b border-slate-200 flex items-center justify-between flex-wrap gap-2">
           <h2 className="font-semibold text-slate-800">Task associati</h2>
-          <button
-            onClick={() => {
-              setEditingTask(null)
-              setShowTaskForm(true)
-            }}
-            className="px-3 py-1.5 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700"
-          >
-            + Nuovo Task
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowClosedTasks((v) => !v)}
+              className="text-xs text-slate-500 font-medium hover:text-brand-600"
+            >
+              {showClosedTasks ? '☑' : '☐'} Mostra completati/annullati
+            </button>
+            <button
+              onClick={() => {
+                setEditingTask(null)
+                setShowTaskForm(true)
+              }}
+              className="px-3 py-1.5 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700"
+            >
+              + Nuovo Task
+            </button>
+          </div>
         </div>
         <table className="w-full text-sm">
           <thead className="bg-slate-50 border-b border-slate-200">
@@ -176,7 +189,7 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
             </tr>
           </thead>
           <tbody>
-            {tasks.map((t) => (
+            {visibleTasks.map((t) => (
               <tr key={t.id} className="border-b border-slate-100 hover:bg-slate-50">
                 <td className="px-4 py-2 max-w-xs">
                   <Link
@@ -229,10 +242,12 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
                 </td>
               </tr>
             ))}
-            {tasks.length === 0 && (
+            {visibleTasks.length === 0 && (
               <tr>
                 <td colSpan={5} className="text-center py-6 text-slate-400">
-                  Nessun task associato a questo cliente.
+                  {tasks.length === 0
+                    ? 'Nessun task associato a questo cliente.'
+                    : 'Nessun task attivo (sono tutti completati o annullati — attiva "Mostra completati/annullati" per vederli).'}
                 </td>
               </tr>
             )}
