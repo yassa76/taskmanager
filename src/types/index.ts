@@ -8,7 +8,7 @@ export interface SubtaskDTO {
   id: string
   title: string
   description: string | null
-  status: 'da_avviare' | 'in_corso' | 'completato'
+  status: 'da_avviare' | 'in_corso' | 'completato' | 'annullato'
   startDate: string
   endDate: string | null
   closedAt: string | null
