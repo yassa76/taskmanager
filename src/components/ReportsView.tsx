@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   BarChart,
   Bar,
@@ -28,7 +29,7 @@ interface ReportData {
     completedSubtasks: number
     subtaskCompletionRate: number
   }
-  byOwner: { name: string; total: number; completati: number }[]
+  byOwner: { id: string; name: string; total: number; completati: number }[]
   byClient: { name: string; total: number }[]
   statusDistribution: { name: string; value: number }[]
 }
@@ -45,6 +46,7 @@ function KpiCard({ label, value, accent }: { label: string; value: string | numb
 }
 
 export default function ReportsView() {
+  const router = useRouter()
   const [data, setData] = useState<ReportData | null>(null)
 
   const load = useCallback(() => {
@@ -109,15 +111,31 @@ export default function ReportsView() {
         </div>
 
         <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-          <h2 className="text-sm font-semibold text-slate-600 mb-4">Task per owner</h2>
+          <h2 className="text-sm font-semibold text-slate-600 mb-4">
+            Task per owner <span className="font-normal text-slate-400">(clicca una barra per il dettaglio)</span>
+          </h2>
           <ResponsiveContainer width="100%" height={260}>
             <BarChart data={data.byOwner}>
               <XAxis dataKey="name" tick={{ fontSize: 11 }} />
               <YAxis allowDecimals={false} />
               <Tooltip />
               <Legend />
-              <Bar dataKey="total" name="Totali" fill="#3b5bdb" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="completati" name="Completati" fill="#10b981" radius={[4, 4, 0, 0]} />
+              <Bar
+                dataKey="total"
+                name="Totali"
+                fill="#3b5bdb"
+                radius={[4, 4, 0, 0]}
+                cursor="pointer"
+                onClick={(d: any) => d?.id && router.push(`/owners/${d.id}`)}
+              />
+              <Bar
+                dataKey="completati"
+                name="Completati"
+                fill="#10b981"
+                radius={[4, 4, 0, 0]}
+                cursor="pointer"
+                onClick={(d: any) => d?.id && router.push(`/owners/${d.id}`)}
+              />
             </BarChart>
           </ResponsiveContainer>
         </div>
