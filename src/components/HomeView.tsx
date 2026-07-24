@@ -10,6 +10,7 @@ import DeadlineCalendar, { CalendarItem } from './DeadlineCalendar'
 interface UpcomingTask {
   id: string
   title: string
+  clientId?: string | null
   clientName: string | null
   ownerId?: string
   ownerName?: string
@@ -106,6 +107,8 @@ export default function HomeView({ userName }: { userName: string }) {
       .finally(() => setLoading(false))
   }, [scope])
 
+  // Ripristina la preferenza "i miei / tutto il team" salvata in precedenza,
+  // cosi' resta valida anche navigando su altre pagine e tornando qui.
   useEffect(() => {
     const saved = typeof window !== 'undefined' ? localStorage.getItem('homeScope') : null
     if (saved === 'team' || saved === 'mine') setScope(saved)
@@ -122,6 +125,8 @@ export default function HomeView({ userName }: { userName: string }) {
     setSubtaskPage(1)
   }, [load])
 
+  // Costruisce il link verso la vista Task con i filtri giusti a seconda
+  // di dove si e' cliccato e se si sta guardando "i miei" o "tutto il team".
   function tasksHref(extra: string) {
     const params = new URLSearchParams(extra)
     if (scope === 'mine') params.set('view', 'mine')
@@ -222,7 +227,15 @@ export default function HomeView({ userName }: { userName: string }) {
                             {t.title}
                           </Link>
                         </td>
-                        <td className="px-4 py-2 text-slate-500">{t.clientName || '—'}</td>
+                        <td className="px-4 py-2 text-slate-500">
+                          {t.clientId ? (
+                            <Link href={`/clients/${t.clientId}`} className="hover:underline">
+                              {t.clientName}
+                            </Link>
+                          ) : (
+                            t.clientName || '—'
+                          )}
+                        </td>
                         <td className="px-4 py-2 text-slate-500">
                           {t.ownerId ? (
                             <Link href={`/owners/${t.ownerId}`} className="hover:underline" title={t.ownerName}>
@@ -303,7 +316,9 @@ export default function HomeView({ userName }: { userName: string }) {
                           </Link>
                         </td>
                         <td className="px-4 py-2 text-slate-500 max-w-[140px] truncate" title={s.taskTitle}>
-                          {s.taskTitle}
+                          <Link href={`/tasks/${s.taskId}`} className="hover:underline">
+                            {s.taskTitle}
+                          </Link>
                         </td>
                         <td className="px-4 py-2 text-slate-500">
                           {s.ownerId ? (
