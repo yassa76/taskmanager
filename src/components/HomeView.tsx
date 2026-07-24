@@ -74,10 +74,8 @@ function KpiCard({
 function daysLeftLabel(endDate: string | null, overdue: boolean) {
   if (!endDate) return '—'
   const diff = Math.ceil((new Date(endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
-  if (overdue) return `In ritardo di ${Math.abs(diff)} gg`
-  if (diff === 0) return 'Scade oggi'
-  if (diff === 1) return 'Scade domani'
-  return `Tra ${diff} gg`
+  if (overdue) return `-${Math.abs(diff)}gg`
+  return `+${diff}gg`
 }
 
 function getInitials(name?: string) {
