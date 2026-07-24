@@ -37,6 +37,8 @@ export default function ClientsView() {
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState<ClientFormState>(emptyForm)
+  const [page, setPage] = useState(1)
+  const PAGE_SIZE = 10
 
   async function load() {
     setLoading(true)
@@ -88,7 +90,11 @@ export default function ClientsView() {
       setSortKey(key)
       setSortDir('asc')
     }
+    setPage(1)
   }
+
+  const totalPages = Math.max(1, Math.ceil(sortedClients.length / PAGE_SIZE))
+  const pagedClients = sortedClients.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   function openNewForm() {
     setEditingId(null)
@@ -196,7 +202,7 @@ export default function ClientsView() {
               </tr>
             )}
             {!loading &&
-              sortedClients.map((c) => (
+              pagedClients.map((c) => (
                 <tr key={c.id} className="border-b border-slate-100 hover:bg-slate-50">
                   <td className="px-4 py-2">
                     <Link href={`/clients/${c.id}`} className="text-brand-600 font-semibold hover:underline">
@@ -253,6 +259,30 @@ export default function ClientsView() {
           </tbody>
         </table>
       </div>
+
+      {sortedClients.length > PAGE_SIZE && (
+        <div className="flex items-center justify-between mt-3 text-sm text-slate-500">
+          <span>
+            {sortedClients.length} clienti totali — pagina {page} di {totalPages}
+          </span>
+          <div className="flex gap-1">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="px-3 py-1.5 rounded-lg border border-slate-300 disabled:opacity-40 hover:bg-slate-100"
+            >
+              ← Precedente
+            </button>
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages}
+              className="px-3 py-1.5 rounded-lg border border-slate-300 disabled:opacity-40 hover:bg-slate-100"
+            >
+              Successiva →
+            </button>
+          </div>
+        </div>
+      )}
 
       {showForm && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
