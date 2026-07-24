@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import clsx from 'clsx'
 import type { TeamMemberDTO } from '@/types'
@@ -11,6 +12,12 @@ const ROLE_LABELS: Record<string, string> = {
   admin: 'Admin',
   normal: 'Normale',
   read_only: 'Sola lettura'
+}
+
+const ROLE_COLORS: Record<string, string> = {
+  admin: 'bg-purple-100 text-purple-800',
+  normal: 'bg-blue-100 text-blue-800',
+  read_only: 'bg-slate-200 text-slate-600'
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -193,12 +200,22 @@ export default function TeamView() {
               members.map((m) => (
                 <tr key={m.id} className={clsx('border-b border-slate-100', m.status === 'inactive' && 'opacity-50')}>
                   <td className="px-4 py-2">
-                    <span
-                      className="px-2 py-1 rounded-full text-xs font-medium bg-brand-50 text-brand-700"
-                      title="Campo condiviso con il profilo personale dell'utente"
-                    >
-                      {m.matchedUser?.name || '—'}
-                    </span>
+                    {m.matchedUser ? (
+                      <Link
+                        href={`/owners/${m.matchedUser.id}`}
+                        className="px-2 py-1 rounded-full text-xs font-medium bg-brand-50 text-brand-700 hover:bg-brand-100 transition"
+                        title="Campo condiviso con il profilo personale dell'utente — clicca per vedere i suoi task"
+                      >
+                        {m.matchedUser.name || '—'}
+                      </Link>
+                    ) : (
+                      <span
+                        className="px-2 py-1 rounded-full text-xs font-medium bg-brand-50 text-brand-700"
+                        title="Campo condiviso con il profilo personale dell'utente"
+                      >
+                        —
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-2">{m.email}</td>
                   <td className="px-4 py-2">
@@ -207,7 +224,9 @@ export default function TeamView() {
                     </span>
                   </td>
                   <td className="px-4 py-2">
-                    <span className="text-slate-600 text-xs">{ROLE_LABELS[m.matchedUser?.role || 'normal']}</span>
+                    <span className={clsx('px-2 py-1 rounded-full text-xs font-medium', ROLE_COLORS[m.matchedUser?.role || 'normal'])}>
+                      {ROLE_LABELS[m.matchedUser?.role || 'normal']}
+                    </span>
                   </td>
                   <td className="px-4 py-2 text-right whitespace-nowrap">
                     {isAdmin ? (
