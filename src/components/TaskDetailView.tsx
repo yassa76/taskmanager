@@ -217,7 +217,11 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
           </div>
           <div>
             <p className="text-xs text-slate-400 uppercase">Owner</p>
-            <p className="text-slate-700">{task.owner.name || task.owner.email}</p>
+            <p className="text-slate-700">
+              <Link href={`/owners/${task.owner.id}`} className="text-brand-600 hover:underline">
+                {task.owner.name || task.owner.email}
+              </Link>
+            </p>
           </div>
           <div>
             <p className="text-xs text-slate-400 uppercase">Data avvio</p>
@@ -281,7 +285,11 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
                       {s.title}
                     </Link>
                   </td>
-                  <td className="px-4 py-2 text-slate-700">{s.owner.name || s.owner.email}</td>
+                  <td className="px-4 py-2 text-slate-700">
+                    <Link href={`/owners/${s.owner.id}`} className="text-brand-600 hover:underline">
+                      {s.owner.name || s.owner.email}
+                    </Link>
+                  </td>
                   <td className="px-4 py-2 text-slate-700">{s.startDate ? s.startDate.slice(0, 10) : '—'}</td>
                   <td className="px-4 py-2">
                     <span className={clsx(overdue ? 'text-red-600 font-semibold' : 'text-slate-700')}>
