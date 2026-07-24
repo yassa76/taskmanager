@@ -60,7 +60,11 @@ export default function OwnerDetailView({ ownerId }: { ownerId: string }) {
   const [clientFilter, setClientFilter] = useState('')
   const [overdueOnly, setOverdueOnly] = useState(false)
   const [search, setSearch] = useState('')
-  const [showClosedSubtasks, setShowClosedSubtasks] = useState(false)
+
+  const [subStatusFilter, setSubStatusFilter] = useState('')
+  const [subClientFilter, setSubClientFilter] = useState('')
+  const [subOverdueOnly, setSubOverdueOnly] = useState(false)
+  const [subSearch, setSubSearch] = useState('')
 
   async function load() {
     setLoading(true)
@@ -106,16 +110,28 @@ export default function OwnerDetailView({ ownerId }: { ownerId: string }) {
       })
   }, [data, statusFilter, clientFilter, overdueOnly, search])
 
+  const subtaskClientOptions = useMemo(() => {
+    if (!data) return []
+    const map = new Map<string, string>()
+    data.subtasks.forEach((s) => s.clientId && s.clientName && map.set(s.clientId, s.clientName))
+    return Array.from(map.entries()).map(([id, name]) => ({ id, name }))
+  }, [data])
+
   const visibleSubtasks = useMemo(() => {
     if (!data) return []
     return data.subtasks
-      .filter((s) => showClosedSubtasks || (s.status !== 'completato' && s.status !== 'annullato'))
+      .filter((s) =>
+        subStatusFilter ? s.status === subStatusFilter : s.status !== 'completato' && s.status !== 'annullato'
+      )
+      .filter((s) => !subClientFilter || s.clientId === subClientFilter)
+      .filter((s) => !subOverdueOnly || s.overdue)
+      .filter((s) => !subSearch || s.title.toLowerCase().includes(subSearch.toLowerCase()))
       .sort((a, b) => {
         if (!a.endDate) return 1
         if (!b.endDate) return -1
         return a.endDate < b.endDate ? -1 : a.endDate > b.endDate ? 1 : 0
       })
-  }, [data, showClosedSubtasks])
+  }, [data, subStatusFilter, subClientFilter, subOverdueOnly, subSearch])
 
   if (loading) return <p className="text-slate-400">Caricamento...</p>
   if (error) return <p className="text-red-500">{error}</p>
@@ -270,14 +286,51 @@ export default function OwnerDetailView({ ownerId }: { ownerId: string }) {
       </div>
 
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-        <div className="px-5 py-3 border-b border-slate-200 flex items-center justify-between">
+        <div className="px-5 py-3 border-b border-slate-200">
           <h2 className="font-semibold text-slate-800">Sub-task</h2>
-          <button
-            onClick={() => setShowClosedSubtasks((v) => !v)}
-            className="text-xs text-slate-500 font-medium hover:text-brand-600"
+        </div>
+
+        <div className="p-3 border-b border-slate-100 flex flex-wrap gap-2 items-center">
+          <select
+            value={subStatusFilter}
+            onChange={(e) => setSubStatusFilter(e.target.value)}
+            className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm"
           >
-            {showClosedSubtasks ? '☑' : '☐'} Mostra completati/annullati
+            <option value="">Tutti gli stati</option>
+            <option value="da_avviare">Da avviare</option>
+            <option value="in_corso">In corso</option>
+            <option value="completato">Completato</option>
+            <option value="annullato">Annullato</option>
+          </select>
+          <select
+            value={subClientFilter}
+            onChange={(e) => setSubClientFilter(e.target.value)}
+            className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm"
+          >
+            <option value="">Tutti i clienti</option>
+            {subtaskClientOptions.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+          <button
+            onClick={() => setSubOverdueOnly((v) => !v)}
+            className={clsx(
+              'px-3 py-1.5 rounded-lg text-sm font-medium border transition',
+              subOverdueOnly
+                ? 'bg-red-50 border-red-200 text-red-700'
+                : 'border-slate-200 text-slate-500 hover:bg-slate-50'
+            )}
+          >
+            ⚠ In ritardo
           </button>
+          <input
+            value={subSearch}
+            onChange={(e) => setSubSearch(e.target.value)}
+            placeholder="Cerca per titolo..."
+            className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm flex-1 min-w-[160px]"
+          />
         </div>
         <table className="w-full text-sm">
           <thead className="bg-slate-50 border-b border-slate-200">
@@ -330,8 +383,8 @@ export default function OwnerDetailView({ ownerId }: { ownerId: string }) {
             {visibleSubtasks.length === 0 && (
               <tr>
                 <td colSpan={5} className="text-center py-6 text-slate-400">
-                  Nessun sub-task trovato. (I completati/annullati sono nascosti per default:
-                  usa &quot;Mostra completati/annullati&quot; qui sopra per vederli.)
+                  Nessun sub-task trovato con questi filtri. (I completati/annullati sono
+                  nascosti per default: selezionali dal filtro Stato per vederli.)
                 </td>
               </tr>
             )}
