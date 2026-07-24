@@ -106,8 +106,6 @@ export default function HomeView({ userName }: { userName: string }) {
       .finally(() => setLoading(false))
   }, [scope])
 
-  // Ripristina la preferenza "i miei / tutto il team" salvata in precedenza,
-  // cosi' resta valida anche navigando su altre pagine e tornando qui.
   useEffect(() => {
     const saved = typeof window !== 'undefined' ? localStorage.getItem('homeScope') : null
     if (saved === 'team' || saved === 'mine') setScope(saved)
@@ -124,8 +122,6 @@ export default function HomeView({ userName }: { userName: string }) {
     setSubtaskPage(1)
   }, [load])
 
-  // Costruisce il link verso la vista Task con i filtri giusti a seconda
-  // di dove si e' cliccato e se si sta guardando "i miei" o "tutto il team".
   function tasksHref(extra: string) {
     const params = new URLSearchParams(extra)
     if (scope === 'mine') params.set('view', 'mine')
