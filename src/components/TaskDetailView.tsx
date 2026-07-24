@@ -157,6 +157,17 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
     load()
   }
 
+  // Scorciatoia rapida: forza lo stato a "in_corso" senza aprire il form completo.
+  async function startTask() {
+    if (!task) return
+    await fetch(`/api/tasks/${task.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'in_corso' })
+    })
+    load()
+  }
+
   if (loading) return <p className="text-slate-400">Caricamento...</p>
   if (error) return <p className="text-red-500">{error}</p>
   if (!task) return <p className="text-slate-400">Task non trovato.</p>
@@ -205,6 +216,14 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
             {task.description && <p className="text-slate-500 text-sm mt-2">{task.description}</p>}
           </div>
           <div className="flex gap-2 shrink-0">
+            {task.status === 'da_avviare' && (
+              <button
+                onClick={startTask}
+                className="px-3 py-1.5 rounded-lg bg-amber-500 text-white text-sm font-medium hover:bg-amber-600"
+              >
+                ▶ Avvia
+              </button>
+            )}
             <button
               onClick={load}
               className="px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-medium text-slate-600 hover:bg-slate-100"
