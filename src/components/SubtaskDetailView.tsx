@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import clsx from 'clsx'
 import { STATUS_COLORS, STATUS_LABELS } from '@/lib/taskStatus'
+import { getInitials } from '@/lib/initials'
 import type { SubtaskDetailDTO, TeamMemberDTO } from '@/types'
 import Breadcrumbs from './Breadcrumbs'
 import { EditIcon, DeleteIcon } from './icons'
@@ -159,9 +160,23 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
                 {STATUS_LABELS[subtask.status]}
               </span>
             </div>
-            <p className="text-xs text-slate-400 mt-1">
-              Creato {subtask.createdBy ? `da ${subtask.createdBy.name || subtask.createdBy.email} ` : ''}il{' '}
-              {subtask.createdAt.slice(0, 10)}
+           <p className="text-xs text-slate-400 mt-1">
+              Creato
+              {subtask.createdBy ? (
+                <>
+                  {' da '}
+                  <Link
+                    href={`/owners/${subtask.createdBy.id}`}
+                    className="font-medium text-slate-500 hover:text-brand-600 hover:underline"
+                    title={subtask.createdBy.name || subtask.createdBy.email}
+                  >
+                    {getInitials(subtask.createdBy.name)}
+                  </Link>
+                </>
+              ) : (
+                ''
+              )}{' '}
+              il {subtask.createdAt.slice(0, 10)}
             </p>
           </div>
           <div className="flex gap-2 shrink-0">
@@ -190,7 +205,10 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
           </div>
         </div>
 
-        {subtask.description && <p className="text-slate-500 text-sm mb-4">{subtask.description}</p>}
+        <div className="mb-4">
+          <p className="text-xs text-slate-400 uppercase">Descrizione</p>
+          <p className="text-slate-700 text-sm mt-0.5">{subtask.description || '—'}</p>
+        </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-slate-100 text-sm">
           <div>
