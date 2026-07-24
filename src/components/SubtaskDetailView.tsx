@@ -119,7 +119,7 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
   if (!subtask) return <p className="text-slate-400">Sub-task non trovato.</p>
 
   const isOverdue =
-    subtask.endDate && new Date(subtask.endDate) < new Date() && subtask.status !== 'completato'
+    subtask.endDate && new Date(subtask.endDate) < new Date() && subtask.status !== 'completato' && subtask.status !== 'annullato'
 
   return (
     <div>
@@ -183,7 +183,7 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
           </div>
         </div>
 
-        {subtask.status !== 'completato' && (
+        {subtask.status !== 'completato' && subtask.status !== 'annullato' && (
           <div className="mt-6 pt-4 border-t border-slate-100">
             <button onClick={closeNow} className="text-sm text-emerald-700 font-medium hover:underline">
               ✓ Chiudi oggi
@@ -240,6 +240,7 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
                     <option value="da_avviare">Da avviare</option>
                     <option value="in_corso">In corso</option>
                     <option value="completato">Completato</option>
+                    <option value="annullato">Annullato</option>
                   </select>
                 </div>
               </div>
@@ -261,7 +262,7 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
                     onChange={(e) => setEndDate(e.target.value)}
                     className={clsx(
                       'w-full border rounded-lg px-3 py-2 mt-1',
-                      endDate && new Date(endDate) < new Date() && status !== 'completato'
+                      endDate && new Date(endDate) < new Date() && status !== 'completato' && status !== 'annullato'
                         ? 'border-red-300 text-red-600 font-semibold'
                         : 'border-slate-200'
                     )}
