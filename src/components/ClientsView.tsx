@@ -211,7 +211,15 @@ export default function ClientsView() {
                     )}
                     {!c.industry && <span className="text-slate-300">—</span>}
                   </td>
-                  <td className="px-4 py-2">{c.owner ? c.owner.name || c.owner.email : '—'}</td>
+                  <td className="px-4 py-2">
+                    {c.owner ? (
+                      <Link href={`/owners/${c.owner.id}`} className="text-brand-600 hover:underline">
+                        {c.owner.name || c.owner.email}
+                      </Link>
+                    ) : (
+                      '—'
+                    )}
+                  </td>
                   <td className="px-4 py-2">
                     <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
                       {c.activeTasksCount}
