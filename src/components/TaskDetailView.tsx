@@ -417,6 +417,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
                     <option value="da_avviare">Da avviare</option>
                     <option value="in_corso">In corso</option>
                     <option value="completato">Completato</option>
+                    <option value="annullato">Annullato</option>
                   </select>
                 </div>
               </div>
