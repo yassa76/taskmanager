@@ -141,7 +141,14 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
         </div>
         {client.description && <p className="text-slate-500 text-sm mt-2">{client.description}</p>}
         <p className="text-xs text-slate-400 mt-2">
-          Owner: {client.owner ? client.owner.name || client.owner.email : '—'}
+          Owner:{' '}
+          {client.owner ? (
+            <Link href={`/owners/${client.owner.id}`} className="text-brand-600 hover:underline">
+              {client.owner.name || client.owner.email}
+            </Link>
+          ) : (
+            '—'
+          )}
         </p>
       </div>
 
@@ -180,18 +187,22 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
                     {t.title}
                   </Link>
                 </td>
-                <td className="px-4 py-2">{t.owner.name || t.owner.email}</td>
                 <td className="px-4 py-2">
-                <span
-                  className={clsx(
-                    t.endDate && new Date(t.endDate) < new Date() && t.status !== 'completato' && t.status !== 'annullato'
-                      ? 'text-red-600 font-semibold'
-                      : ''
-                  )}
-                >
-                  {t.endDate ? t.endDate.slice(0, 10) : '—'}
-                </span>
-              </td>
+                  <Link href={`/owners/${t.owner.id}`} className="text-brand-600 hover:underline">
+                    {t.owner.name || t.owner.email}
+                  </Link>
+                </td>
+                <td className="px-4 py-2">
+                  <span
+                    className={clsx(
+                      t.endDate && new Date(t.endDate) < new Date() && t.status !== 'completato' && t.status !== 'annullato'
+                        ? 'text-red-600 font-semibold'
+                        : ''
+                    )}
+                  >
+                    {t.endDate ? t.endDate.slice(0, 10) : '—'}
+                  </span>
+                </td>
                 <td className="px-4 py-2">
                   <span className={clsx('px-2 py-1 rounded-full text-xs font-medium', STATUS_COLORS[t.status])}>
                     {STATUS_LABELS[t.status]}
