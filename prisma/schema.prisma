@@ -95,6 +95,8 @@ model Client {
   owner       User?     @relation("ClientOwner", fields: [ownerId], references: [id])
   projects    Project[]
   tasks       Task[]    @relation("ClientTasks")
+  createdById String?
+  createdBy   User?     @relation("ClientCreatedBy", fields: [createdById], references: [id])
   createdAt   DateTime  @default(now())
 }
 
