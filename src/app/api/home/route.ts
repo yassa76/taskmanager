@@ -56,7 +56,7 @@ export async function GET(req: NextRequest) {
     .sort((a, b) => (a.endDate! < b.endDate! ? -1 : a.endDate! > b.endDate! ? 1 : 0))
 
   const upcomingSubtasks = subtasks
-    .filter((s) => s.status !== 'completato')
+    .filter((s) => s.status !== 'completato' && s.status !== 'annullato')
     .map((s) => ({
       id: s.id,
       title: s.title,
