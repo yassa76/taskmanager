@@ -145,23 +145,52 @@ export default function TasksView() {
     loadAll()
   }
 
-  function exportXls() {
-    const rows = filteredTasks.map((t) => ({
-      Cliente: t.clientName || '',
-      Task: t.title,
-      Descrizione: t.description || '',
-      Owner: t.owner.name || t.owner.email,
-      'Data avvio': t.startDate ? t.startDate.slice(0, 10) : '',
-      'Data scadenza': t.endDate ? t.endDate.slice(0, 10) : '',
-      Stato: STATUS_LABELS[t.status],
-      'Avanzamento %': t.progress,
-      'Sub-task': t.subtasks.length,
-      'Sub-task completati': t.subtasks.filter((s) => s.status === 'completato').length
-    }))
-    const ws = XLSX.utils.json_to_sheet(rows)
-    const wb = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(wb, ws, 'Task')
-    XLSX.writeFile(wb, `task-export-${new Date().toISOString().slice(0, 10)}.xlsx`)
+  const [exporting, setExporting] = useState(false)
+
+  // Esporta SEMPRE tutti i task/sub-task, a prescindere dai filtri attivi in
+  // quel momento sullo schermo (view, cliente, owner, stato, ricerca, in
+  // ritardo, mostra completati/annullati): fa una chiamata dedicata senza
+  // alcun parametro di filtro.
+  async function exportXls() {
+    setExporting(true)
+    try {
+      const res = await fetch('/api/tasks')
+      const allTasks: TaskDTO[] = await res.json()
+
+      const taskRows = allTasks.map((t) => ({
+        Cliente: t.clientName || '',
+        Task: t.title,
+        Descrizione: t.description || '',
+        Owner: t.owner.name || t.owner.email,
+        'Data avvio': t.startDate ? t.startDate.slice(0, 10) : '',
+        'Data scadenza': t.endDate ? t.endDate.slice(0, 10) : '',
+        Stato: STATUS_LABELS[t.status],
+        'Avanzamento %': t.progress,
+        'Sub-task totali': t.subtasks.length,
+        'Sub-task completati': t.subtasks.filter((s) => s.status === 'completato').length
+      }))
+
+      const subtaskRows = allTasks.flatMap((t) =>
+        t.subtasks.map((s) => ({
+          Cliente: t.clientName || '',
+          Task: t.title,
+          'Sub-task': s.title,
+          Descrizione: s.description || '',
+          Owner: s.owner.name || s.owner.email,
+          'Data inizio': s.startDate ? s.startDate.slice(0, 10) : '',
+          'Data scadenza': s.endDate ? s.endDate.slice(0, 10) : '',
+          'Data chiusura': s.closedAt ? s.closedAt.slice(0, 10) : '',
+          Stato: STATUS_LABELS[s.status as keyof typeof STATUS_LABELS] || s.status
+        }))
+      )
+
+      const wb = XLSX.utils.book_new()
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(taskRows), 'Task')
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(subtaskRows), 'Sub-task')
+      XLSX.writeFile(wb, `task-export-${new Date().toISOString().slice(0, 10)}.xlsx`)
+    } finally {
+      setExporting(false)
+    }
   }
 
   const SortHeader = ({ label, k }: { label: string; k: SortKey }) => (
@@ -187,9 +216,10 @@ export default function TasksView() {
           </button>
           <button
             onClick={exportXls}
-            className="px-4 py-2 rounded-lg border border-slate-300 text-sm font-medium text-slate-700 hover:bg-slate-100"
+            disabled={exporting}
+            className="px-4 py-2 rounded-lg border border-slate-300 text-sm font-medium text-slate-700 hover:bg-slate-100 disabled:opacity-50"
           >
-            Esporta XLS
+            {exporting ? 'Esportazione...' : 'Esporta XLS'}
           </button>
           <button
             onClick={() => {
