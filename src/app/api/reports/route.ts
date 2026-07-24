@@ -37,10 +37,10 @@ export async function GET() {
     0
   )
 
-  const byOwnerMap = new Map<string, { name: string; total: number; completati: number }>()
+  const byOwnerMap = new Map<string, { id: string; name: string; total: number; completati: number }>()
   for (const t of enriched) {
     const key = t.owner.id
-    const cur = byOwnerMap.get(key) || { name: t.owner.name || t.owner.email, total: 0, completati: 0 }
+    const cur = byOwnerMap.get(key) || { id: t.owner.id, name: t.owner.name || t.owner.email, total: 0, completati: 0 }
     cur.total += 1
     if (t.derived.status === 'completato') cur.completati += 1
     byOwnerMap.set(key, cur)
