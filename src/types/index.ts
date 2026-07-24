@@ -56,6 +56,8 @@ export interface ClientDTO {
   description: string | null
   industry: string | null
   owner: OwnerLite | null
+  createdBy: OwnerLite | null
+  createdAt: string
   projects: { id: string; name: string }[]
   activeTasksCount: number
 }
