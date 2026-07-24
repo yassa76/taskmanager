@@ -146,7 +146,8 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
                   {client.industry}
                 </span>
               )}
-           <p className="text-xs text-slate-400">
+            </div>
+            <p className="text-xs text-slate-400">
               Creato
               {client.createdBy ? (
                 <>
@@ -163,7 +164,6 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
                 ''
               )}{' '}
               il {client.createdAt.slice(0, 10)}
-            </p>
             </p>
           </div>
           <div className="flex gap-2 shrink-0">
