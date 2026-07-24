@@ -52,7 +52,7 @@ export default function TeamView() {
   const [editStatus, setEditStatus] = useState('new')
   const [savingEdit, setSavingEdit] = useState(false)
   const [page, setPage] = useState(1)
-  const PAGE_SIZE = 10
+  const PAGE_SIZE = 20
 
   async function load() {
     setLoading(true)
