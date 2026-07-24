@@ -60,11 +60,13 @@ export default function OwnerDetailView({ ownerId }: { ownerId: string }) {
   const [clientFilter, setClientFilter] = useState('')
   const [overdueOnly, setOverdueOnly] = useState(false)
   const [search, setSearch] = useState('')
+  const [includeClosed, setIncludeClosed] = useState(false)
 
   const [subStatusFilter, setSubStatusFilter] = useState('')
   const [subClientFilter, setSubClientFilter] = useState('')
   const [subOverdueOnly, setSubOverdueOnly] = useState(false)
   const [subSearch, setSubSearch] = useState('')
+  const [subIncludeClosed, setSubIncludeClosed] = useState(false)
 
   async function load() {
     setLoading(true)
@@ -99,7 +101,11 @@ export default function OwnerDetailView({ ownerId }: { ownerId: string }) {
   const filteredTasks = useMemo(() => {
     if (!data) return []
     return data.tasks
-      .filter((t) => (statusFilter ? t.status === statusFilter : t.status !== 'completato' && t.status !== 'annullato'))
+      .filter((t) =>
+        statusFilter
+          ? t.status === statusFilter
+          : includeClosed || (t.status !== 'completato' && t.status !== 'annullato')
+      )
       .filter((t) => !clientFilter || t.clientId === clientFilter)
       .filter((t) => !overdueOnly || t.overdue)
       .filter((t) => !search || t.title.toLowerCase().includes(search.toLowerCase()))
@@ -108,7 +114,7 @@ export default function OwnerDetailView({ ownerId }: { ownerId: string }) {
         if (!b.endDate) return -1
         return a.endDate < b.endDate ? -1 : a.endDate > b.endDate ? 1 : 0
       })
-  }, [data, statusFilter, clientFilter, overdueOnly, search])
+  }, [data, statusFilter, clientFilter, overdueOnly, search, includeClosed])
 
   const subtaskClientOptions = useMemo(() => {
     if (!data) return []
@@ -121,7 +127,9 @@ export default function OwnerDetailView({ ownerId }: { ownerId: string }) {
     if (!data) return []
     return data.subtasks
       .filter((s) =>
-        subStatusFilter ? s.status === subStatusFilter : s.status !== 'completato' && s.status !== 'annullato'
+        subStatusFilter
+          ? s.status === subStatusFilter
+          : subIncludeClosed || (s.status !== 'completato' && s.status !== 'annullato')
       )
       .filter((s) => !subClientFilter || s.clientId === subClientFilter)
       .filter((s) => !subOverdueOnly || s.overdue)
@@ -131,7 +139,7 @@ export default function OwnerDetailView({ ownerId }: { ownerId: string }) {
         if (!b.endDate) return -1
         return a.endDate < b.endDate ? -1 : a.endDate > b.endDate ? 1 : 0
       })
-  }, [data, subStatusFilter, subClientFilter, subOverdueOnly, subSearch])
+  }, [data, subStatusFilter, subClientFilter, subOverdueOnly, subSearch, subIncludeClosed])
 
   if (loading) return <p className="text-slate-400">Caricamento...</p>
   if (error) return <p className="text-red-500">{error}</p>
@@ -215,6 +223,17 @@ export default function OwnerDetailView({ ownerId }: { ownerId: string }) {
             )}
           >
             ⚠ In ritardo
+          </button>
+          <button
+            onClick={() => setIncludeClosed((v) => !v)}
+            className={clsx(
+              'px-3 py-1.5 rounded-lg text-sm font-medium border transition',
+              includeClosed
+                ? 'bg-slate-100 border-slate-300 text-slate-700'
+                : 'border-slate-200 text-slate-500 hover:bg-slate-50'
+            )}
+          >
+            {includeClosed ? '☑' : '☐'} Mostra completati/annullati
           </button>
           <input
             value={search}
@@ -324,6 +343,17 @@ export default function OwnerDetailView({ ownerId }: { ownerId: string }) {
             )}
           >
             ⚠ In ritardo
+          </button>
+          <button
+            onClick={() => setSubIncludeClosed((v) => !v)}
+            className={clsx(
+              'px-3 py-1.5 rounded-lg text-sm font-medium border transition',
+              subIncludeClosed
+                ? 'bg-slate-100 border-slate-300 text-slate-700'
+                : 'border-slate-200 text-slate-500 hover:bg-slate-50'
+            )}
+          >
+            {subIncludeClosed ? '☑' : '☐'} Mostra completati/annullati
           </button>
           <input
             value={subSearch}
