@@ -37,7 +37,7 @@ export default function TasksView() {
   const [showForm, setShowForm] = useState(false)
   const [editingTask, setEditingTask] = useState<TaskDTO | null>(null)
   const [page, setPage] = useState(1)
-  const PAGE_SIZE = 20
+  const PAGE_SIZE = 10
 
   const loadAll = useCallback(async () => {
     setLoading(true)
