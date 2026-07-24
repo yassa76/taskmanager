@@ -23,6 +23,14 @@ function toDateKey(y: number, m: number, d: number) {
   return `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
 }
 
+function getInitials(name?: string | null) {
+  if (!name) return '—'
+  const parts = name.trim().split(/\s+/).filter(Boolean)
+  if (parts.length === 0) return '—'
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+}
+
 export default function DeadlineCalendar({ items }: { items: CalendarItem[] }) {
   const today = new Date()
   const [viewYear, setViewYear] = useState(today.getFullYear())
@@ -154,12 +162,15 @@ export default function DeadlineCalendar({ items }: { items: CalendarItem[] }) {
                 <span className="text-xs text-slate-400 shrink-0 max-w-[30%] truncate" title={item.clientName || ''}>
                   {item.clientName || '—'}
                 </span>
-                <span className="flex-1 text-brand-600 font-medium truncate min-w-0" title={item.title}>
+                <span
+                  className="flex-1 text-brand-600 font-medium truncate min-w-0"
+                  title={item.title}
+                >
                   {item.type === 'subtask' ? '↳ ' : ''}
                   {item.title}
                 </span>
-                <span className="text-xs text-slate-400 shrink-0 max-w-[30%] truncate" title={item.ownerName || ''}>
-                  {item.ownerName || '—'}
+                <span className="text-xs text-slate-400 shrink-0 font-medium" title={item.ownerName || ''}>
+                  {getInitials(item.ownerName)}
                 </span>
               </Link>
             ))}
