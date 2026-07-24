@@ -77,7 +77,7 @@ export async function GET(req: NextRequest) {
     notStarted: enrichedTasks.filter((t) => t.status === 'da_avviare').length,
     completed: enrichedTasks.filter((t) => t.status === 'completato').length,
     overdueTasks: enrichedTasks.filter((t) => t.overdue).length,
-    overdueSubtasks: subtasks.filter((s) => s.status !== 'completato' && s.endDate && s.endDate < now).length
+    overdueSubtasks: subtasks.filter((s) => s.status !== 'completato' && s.status !== 'annullato' && s.endDate && s.endDate < now).length
   }
 
   const calendarItems = [
