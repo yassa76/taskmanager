@@ -269,7 +269,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
           </thead>
           <tbody>
             {task.subtasks.map((s) => {
-              const overdue = s.endDate && new Date(s.endDate) < new Date() && s.status !== 'completato'
+              const overdue = s.endDate && new Date(s.endDate) < new Date() && s.status !== 'completato' && s.status !== 'annullato'
               return (
                 <tr key={s.id} className="border-b border-slate-100 hover:bg-slate-50">
                   <td className="px-4 py-2 max-w-xs">
