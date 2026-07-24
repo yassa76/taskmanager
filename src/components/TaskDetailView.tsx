@@ -213,6 +213,10 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
                 </span>
               )}
             </div>
+            <p className="text-xs text-slate-400 mt-1">
+              Creato {task.createdBy ? `da ${task.createdBy.name || task.createdBy.email} ` : ''}il{' '}
+              {task.createdAt.slice(0, 10)}
+            </p>
             {task.description && <p className="text-slate-500 text-sm mt-2">{task.description}</p>}
           </div>
           <div className="flex gap-2 shrink-0">
