@@ -20,7 +20,7 @@ export async function GET() {
 
   const enriched = tasks.map((t) => {
     const derived = deriveTaskStatus(t.subtasks.map((s) => s.status), t.closedManually, t.statusOverride)
-    const overdue = !!t.endDate && t.endDate < now && derived.status !== 'completato'
+    const overdue = !!t.endDate && t.endDate < now && derived.status !== 'completato' && derived.status !== 'annullato'
     return { ...t, derived, overdue }
   })
 
@@ -28,6 +28,7 @@ export async function GET() {
   const completed = enriched.filter((t) => t.derived.status === 'completato').length
   const inProgress = enriched.filter((t) => t.derived.status === 'in_corso').length
   const notStarted = enriched.filter((t) => t.derived.status === 'da_avviare').length
+  const cancelled = enriched.filter((t) => t.derived.status === 'annullato').length
   const overdue = enriched.filter((t) => t.overdue).length
 
   const totalSubtasks = tasks.reduce((acc, t) => acc + t.subtasks.length, 0)
@@ -36,7 +37,6 @@ export async function GET() {
     0
   )
 
-  // Task per owner
   const byOwnerMap = new Map<string, { name: string; total: number; completati: number }>()
   for (const t of enriched) {
     const key = t.owner.id
@@ -47,7 +47,6 @@ export async function GET() {
   }
   const byOwner = Array.from(byOwnerMap.values())
 
-  // Task per cliente
   const byClientMap = new Map<string, { name: string; total: number }>()
   for (const t of enriched) {
     const key = t.client?.name || 'Senza cliente'
@@ -57,11 +56,11 @@ export async function GET() {
   }
   const byClient = Array.from(byClientMap.values())
 
-  // Distribuzione stati (per grafico a torta)
   const statusDistribution = [
     { name: 'Da avviare', value: notStarted },
     { name: 'In corso', value: inProgress },
-    { name: 'Completato', value: completed }
+    { name: 'Completato', value: completed },
+    { name: 'Annullato', value: cancelled }
   ]
 
   return NextResponse.json({
@@ -70,6 +69,7 @@ export async function GET() {
       completed,
       inProgress,
       notStarted,
+      cancelled,
       overdue,
       completionRate: totalTasks > 0 ? Math.round((completed / totalTasks) * 100) : 0,
       totalSubtasks,
