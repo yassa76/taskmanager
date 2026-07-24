@@ -31,7 +31,12 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
 
   const [showTaskForm, setShowTaskForm] = useState(false)
   const [editingTask, setEditingTask] = useState<TaskDTO | null>(null)
-  const [showClosedTasks, setShowClosedTasks] = useState(false)
+  const [statusFilter, setStatusFilter] = useState('')
+  const [overdueOnly, setOverdueOnly] = useState(false)
+  const [search, setSearch] = useState('')
+  const [includeClosed, setIncludeClosed] = useState(false)
+  const [page, setPage] = useState(1)
+  const PAGE_SIZE = 10
 
   async function load() {
     setLoading(true)
@@ -77,6 +82,10 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clientId])
 
+  useEffect(() => {
+    setPage(1)
+  }, [statusFilter, overdueOnly, search, includeClosed])
+
   async function saveClient() {
     if (!form.name.trim()) return
     setSaving(true)
@@ -105,9 +114,17 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
   if (error) return <p className="text-red-500">{error}</p>
   if (!client) return <p className="text-slate-400">Cliente non trovato.</p>
 
-  const visibleTasks = tasks.filter(
-    (t) => showClosedTasks || (t.status !== 'completato' && t.status !== 'annullato')
-  )
+  const visibleTasks = tasks
+    .filter((t) =>
+      statusFilter ? t.status === statusFilter : includeClosed || (t.status !== 'completato' && t.status !== 'annullato')
+    )
+    .filter(
+      (t) => !overdueOnly || (t.endDate && new Date(t.endDate) < new Date() && t.status !== 'completato' && t.status !== 'annullato')
+    )
+    .filter((t) => !search || t.title.toLowerCase().includes(search.toLowerCase()))
+
+  const totalPages = Math.max(1, Math.ceil(visibleTasks.length / PAGE_SIZE))
+  const pagedTasks = visibleTasks.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   return (
     <div>
@@ -160,24 +177,57 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
         <div className="px-5 py-3 border-b border-slate-200 flex items-center justify-between flex-wrap gap-2">
           <h2 className="font-semibold text-slate-800">Task associati</h2>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setShowClosedTasks((v) => !v)}
-              className="text-xs text-slate-500 font-medium hover:text-brand-600"
-            >
-              {showClosedTasks ? '☑' : '☐'} Mostra completati/annullati
-            </button>
-            <button
-              onClick={() => {
-                setEditingTask(null)
-                setShowTaskForm(true)
-              }}
-              className="px-3 py-1.5 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700"
-            >
-              + Nuovo Task
-            </button>
-          </div>
+          <button
+            onClick={() => {
+              setEditingTask(null)
+              setShowTaskForm(true)
+            }}
+            className="px-3 py-1.5 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700"
+          >
+            + Nuovo Task
+          </button>
         </div>
+
+        <div className="p-3 border-b border-slate-100 flex flex-wrap gap-2 items-center">
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm"
+          >
+            <option value="">Tutti gli stati</option>
+            <option value="da_avviare">Da avviare</option>
+            <option value="in_corso">In corso</option>
+            <option value="completato">Completato</option>
+            <option value="annullato">Annullato</option>
+          </select>
+          <button
+            onClick={() => setOverdueOnly((v) => !v)}
+            className={clsx(
+              'px-3 py-1.5 rounded-lg text-sm font-medium border transition',
+              overdueOnly ? 'bg-red-50 border-red-200 text-red-700' : 'border-slate-200 text-slate-500 hover:bg-slate-50'
+            )}
+          >
+            ⚠ In ritardo
+          </button>
+          <button
+            onClick={() => setIncludeClosed((v) => !v)}
+            className={clsx(
+              'px-3 py-1.5 rounded-lg text-sm font-medium border transition',
+              includeClosed
+                ? 'bg-slate-100 border-slate-300 text-slate-700'
+                : 'border-slate-200 text-slate-500 hover:bg-slate-50'
+            )}
+          >
+            {includeClosed ? '☑' : '☐'} Mostra completati/annullati
+          </button>
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Cerca per titolo..."
+            className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm flex-1 min-w-[160px]"
+          />
+        </div>
+
         <table className="w-full text-sm">
           <thead className="bg-slate-50 border-b border-slate-200">
             <tr>
@@ -189,7 +239,7 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
             </tr>
           </thead>
           <tbody>
-            {visibleTasks.map((t) => (
+            {pagedTasks.map((t) => (
               <tr key={t.id} className="border-b border-slate-100 hover:bg-slate-50">
                 <td className="px-4 py-2 max-w-xs">
                   <Link
@@ -247,12 +297,36 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
                 <td colSpan={5} className="text-center py-6 text-slate-400">
                   {tasks.length === 0
                     ? 'Nessun task associato a questo cliente.'
-                    : 'Nessun task attivo (sono tutti completati o annullati — attiva "Mostra completati/annullati" per vederli).'}
+                    : 'Nessun task trovato con questi filtri.'}
                 </td>
               </tr>
             )}
           </tbody>
         </table>
+
+        {visibleTasks.length > PAGE_SIZE && (
+          <div className="flex items-center justify-between px-4 py-2 border-t border-slate-100 text-xs text-slate-500">
+            <span>
+              {visibleTasks.length} task — pagina {page} di {totalPages}
+            </span>
+            <div className="flex gap-1">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="px-2 py-1 rounded border border-slate-200 disabled:opacity-40 hover:bg-slate-100"
+              >
+                ←
+              </button>
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="px-2 py-1 rounded border border-slate-200 disabled:opacity-40 hover:bg-slate-100"
+              >
+                →
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {showEditForm && (
