@@ -22,6 +22,7 @@ export default function TasksView() {
   const [team, setTeam] = useState<TeamMemberDTO[]>([])
   const [clients, setClients] = useState<ClientDTO[]>([])
   const [loading, setLoading] = useState(true)
+  // Filtri iniziali: possono arrivare dall'URL (es. click su un KPI in Home).
   const [filters, setFilters] = useState<FilterState>(() => ({
     view: searchParams.get('view') === 'mine' ? 'mine' : 'all',
     clientId: searchParams.get('clientId') || '',
@@ -109,6 +110,7 @@ export default function TasksView() {
     return arr
   }, [tasks, sortKey, sortDir])
 
+  // Il filtro "in ritardo" e' derivato (non e' una colonna sul DB), quindi si applica lato client.
   const filteredTasks = useMemo(() => {
     if (!filters.overdue) return sortedTasks
     const now = new Date()
@@ -247,7 +249,11 @@ export default function TasksView() {
                     <span className="text-slate-400">—</span>
                   )}
                 </td>
-                <td className="px-3 py-2">{t.owner.name || t.owner.email}</td>
+                <td className="px-3 py-2">
+                  <Link href={`/owners/${t.owner.id}`} className="text-brand-600 hover:underline">
+                    {t.owner.name || t.owner.email}
+                  </Link>
+                </td>
                 <td className="px-3 py-2">{t.startDate ? t.startDate.slice(0, 10) : '—'}</td>
                 <td className="px-3 py-2">
                   <span
