@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import clsx from 'clsx'
 import { STATUS_COLORS, STATUS_LABELS } from '@/lib/taskStatus'
@@ -95,6 +96,9 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
     load()
   }
 
+  // "Chiudi oggi" imposta SOLO la data di chiusura effettiva (closedAt) e lo
+  // stato: non tocca la data di scadenza (endDate), che resta il termine
+  // originariamente previsto.
   async function closeNow() {
     const today = new Date().toISOString().slice(0, 10)
     setSaving(true)
@@ -165,7 +169,11 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-slate-100 text-sm">
           <div>
             <p className="text-xs text-slate-400 uppercase">Owner</p>
-            <p className="text-slate-700">{subtask.owner.name || subtask.owner.email}</p>
+            <p className="text-slate-700">
+              <Link href={`/owners/${subtask.owner.id}`} className="text-brand-600 hover:underline">
+                {subtask.owner.name || subtask.owner.email}
+              </Link>
+            </p>
           </div>
           <div>
             <p className="text-xs text-slate-400 uppercase">Data inizio</p>
