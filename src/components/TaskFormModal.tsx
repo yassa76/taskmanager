@@ -267,12 +267,12 @@ export default function TaskFormModal({
               </div>
               <div className="space-y-2">
                 {subtasks.map((s, i) => (
-                  <div key={i} className="flex gap-2">
+                  <div key={i} className="flex flex-wrap gap-2">
                     <input
                       value={s.title}
                       onChange={(e) => updateSubtask(i, 'title', e.target.value)}
                       placeholder="Descrizione attività"
-                      className="flex-1 border border-slate-200 rounded-lg px-3 py-1.5 text-sm"
+                      className="flex-1 min-w-[160px] border border-slate-200 rounded-lg px-3 py-1.5 text-sm"
                     />
                     <select
                       value={s.ownerId}
