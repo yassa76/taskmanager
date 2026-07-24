@@ -29,7 +29,8 @@ export default function TasksView() {
     ownerId: searchParams.get('ownerId') || '',
     status: searchParams.get('status') || '',
     search: '',
-    overdue: searchParams.get('overdue') === 'true'
+    overdue: searchParams.get('overdue') === 'true',
+    includeClosed: false
   }))
   const [sortKey, setSortKey] = useState<SortKey>('endDate')
   const [sortDir, setSortDir] = useState<SortDir>('asc')
@@ -111,11 +112,19 @@ export default function TasksView() {
   }, [tasks, sortKey, sortDir])
 
   // Il filtro "in ritardo" e' derivato (non e' una colonna sul DB), quindi si applica lato client.
+  // Per default nascondiamo i task completati/annullati, a meno che l'utente non abbia scelto
+  // esplicitamente quello stato dal filtro, o non abbia attivato "Mostra completati/annullati".
   const filteredTasks = useMemo(() => {
-    if (!filters.overdue) return sortedTasks
-    const now = new Date()
-    return sortedTasks.filter((t) => t.endDate && new Date(t.endDate) < now && t.status !== 'completato' && t.status !== 'annullato')
-  }, [sortedTasks, filters.overdue])
+    let arr = sortedTasks
+    if (!filters.status && !filters.includeClosed) {
+      arr = arr.filter((t) => t.status !== 'completato' && t.status !== 'annullato')
+    }
+    if (filters.overdue) {
+      const now = new Date()
+      arr = arr.filter((t) => t.endDate && new Date(t.endDate) < now && t.status !== 'completato' && t.status !== 'annullato')
+    }
+    return arr
+  }, [sortedTasks, filters.overdue, filters.status, filters.includeClosed])
 
   function toggleSort(key: SortKey) {
     if (sortKey === key) {
@@ -221,7 +230,8 @@ export default function TasksView() {
             {!loading && filteredTasks.length === 0 && (
               <tr>
                 <td colSpan={8} className="text-center py-8 text-slate-400">
-                  Nessun task trovato.
+                  Nessun task trovato. (I completati/annullati sono nascosti per default: usa
+                  &quot;Mostra completati/annullati&quot; o il filtro Stato per vederli.)
                 </td>
               </tr>
             )}
