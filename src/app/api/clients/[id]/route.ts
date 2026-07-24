@@ -24,6 +24,10 @@ function toClientDTO(client: any): ClientDTO {
     owner: client.owner
       ? { id: client.owner.id, name: client.owner.name, email: client.owner.email }
       : null,
+    createdBy: client.createdBy
+      ? { id: client.createdBy.id, name: client.createdBy.name, email: client.createdBy.email }
+      : null,
+    createdAt: client.createdAt.toISOString(),
     projects: client.projects.map((p: any) => ({ id: p.id, name: p.name })),
     activeTasksCount
   }
@@ -32,6 +36,7 @@ function toClientDTO(client: any): ClientDTO {
 const clientInclude = {
   projects: { select: { id: true, name: true } },
   owner: true,
+  createdBy: true,
   tasks: { select: { closedManually: true, statusOverride: true, subtasks: { select: { status: true } } } }
 } as const
 
@@ -75,6 +80,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   return NextResponse.json(toClientDTO(client))
 }
 
+// Elimina il cliente. I progetti collegati vengono eliminati a cascata; i task
+// che facevano riferimento a quei progetti restano ma perdono il collegamento
+// (projectId diventa null) invece di essere cancellati.
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
