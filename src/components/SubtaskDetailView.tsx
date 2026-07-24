@@ -111,6 +111,18 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
     load()
   }
 
+  // Scorciatoia rapida: passa da "Da avviare" a "In corso" senza aprire il modale.
+  async function startNow() {
+    setSaving(true)
+    await fetch(`/api/subtasks/${subtaskId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'in_corso' })
+    })
+    setSaving(false)
+    load()
+  }
+
   async function deleteSubtask() {
     if (!subtask) return
     if (!confirm(`Eliminare il sub-task "${subtask.title}"?`)) return
@@ -147,6 +159,14 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
             </span>
           </div>
           <div className="flex gap-2 shrink-0">
+            {subtask.status === 'da_avviare' && (
+              <button
+                onClick={startNow}
+                className="px-3 py-1.5 rounded-lg bg-amber-500 text-white text-sm font-medium hover:bg-amber-600"
+              >
+                ▶ Avvia
+              </button>
+            )}
             <button
               onClick={openEdit}
               className="inline-flex items-center px-3 py-1.5 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-100"
