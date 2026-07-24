@@ -39,6 +39,9 @@ export default function ClientsView() {
   const [form, setForm] = useState<ClientFormState>(emptyForm)
   const [page, setPage] = useState(1)
   const PAGE_SIZE = 10
+  const [search, setSearch] = useState('')
+  const [industryFilter, setIndustryFilter] = useState('')
+  const [ownerFilter, setOwnerFilter] = useState('')
 
   async function load() {
     setLoading(true)
@@ -57,8 +60,15 @@ export default function ClientsView() {
     load()
   }, [])
 
+  const filteredClients = useMemo(() => {
+    return clients
+      .filter((c) => !search || c.name.toLowerCase().includes(search.toLowerCase()))
+      .filter((c) => !industryFilter || c.industry === industryFilter)
+      .filter((c) => !ownerFilter || c.owner?.id === ownerFilter)
+  }, [clients, search, industryFilter, ownerFilter])
+
   const sortedClients = useMemo(() => {
-    const arr = [...clients]
+    const arr = [...filteredClients]
     arr.sort((a, b) => {
       let av = ''
       let bv = ''
@@ -81,7 +91,11 @@ export default function ClientsView() {
       return 0
     })
     return arr
-  }, [clients, sortKey, sortDir])
+  }, [filteredClients, sortKey, sortDir])
+
+  useEffect(() => {
+    setPage(1)
+  }, [search, industryFilter, ownerFilter])
 
   function toggleSort(key: SortKey) {
     if (sortKey === key) {
@@ -182,6 +196,39 @@ export default function ClientsView() {
         </div>
       </div>
 
+      <div className="bg-white border border-slate-200 rounded-xl p-3 flex flex-wrap items-center gap-2 mb-4">
+        <select
+          value={industryFilter}
+          onChange={(e) => setIndustryFilter(e.target.value)}
+          className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm"
+        >
+          <option value="">Tutte le industry</option>
+          {INDUSTRIES.map((i) => (
+            <option key={i} value={i}>
+              {i}
+            </option>
+          ))}
+        </select>
+        <select
+          value={ownerFilter}
+          onChange={(e) => setOwnerFilter(e.target.value)}
+          className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm"
+        >
+          <option value="">Tutti gli owner</option>
+          {owners.map((o) => (
+            <option key={o.id} value={o.id}>
+              {o.name}
+            </option>
+          ))}
+        </select>
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Cerca per nome cliente..."
+          className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm flex-1 min-w-[180px]"
+        />
+      </div>
+
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 border-b border-slate-200">
@@ -252,7 +299,9 @@ export default function ClientsView() {
             {!loading && sortedClients.length === 0 && (
               <tr>
                 <td colSpan={5} className="text-center py-8 text-slate-400">
-                  Nessun cliente ancora. Aggiungine uno con il pulsante sopra.
+                  {clients.length === 0
+                    ? 'Nessun cliente ancora. Aggiungine uno con il pulsante sopra.'
+                    : 'Nessun cliente trovato con questi filtri.'}
                 </td>
               </tr>
             )}
