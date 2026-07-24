@@ -215,8 +215,22 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
               )}
             </div>
             <p className="text-xs text-slate-400 mt-1">
-              Creato {task.createdBy ? `da ${task.createdBy.name || task.createdBy.email} ` : ''}il{' '}
-              {task.createdAt.slice(0, 10)}
+              Creato
+              {task.createdBy ? (
+                <>
+                  {' da '}
+                  <Link
+                    href={`/owners/${task.createdBy.id}`}
+                    className="font-medium text-slate-500 hover:text-brand-600 hover:underline"
+                    title={task.createdBy.name || task.createdBy.email}
+                  >
+                    {getInitials(task.createdBy.name)}
+                  </Link>
+                </>
+              ) : (
+                ''
+              )}{' '}
+              il {task.createdAt.slice(0, 10)}
             </p>
             {task.description && <p className="text-slate-500 text-sm mt-2">{task.description}</p>}
           </div>
