@@ -11,6 +11,8 @@ export async function GET(req: NextRequest) {
 
   const userId = (session.user as any).id
   const { searchParams } = new URL(req.url)
+  // Solo un admin puo' chiedere la vista "tutto il team": verificato lato server,
+  // non ci si fida del solo parametro in arrivo dal client.
   const teamScope = searchParams.get('scope') === 'team' && isAdmin(session)
 
   const [tasks, subtasks] = await Promise.all([
@@ -44,6 +46,7 @@ export async function GET(req: NextRequest) {
       id: t.id,
       title: t.title,
       clientName: t.client?.name ?? null,
+      ownerId: t.owner.id,
       ownerName: t.owner.name || t.owner.email,
       endDate: t.endDate ? t.endDate.toISOString() : null,
       status: derived.status,
@@ -63,6 +66,7 @@ export async function GET(req: NextRequest) {
       taskId: s.taskId,
       taskTitle: s.task.title,
       clientName: s.task.client?.name ?? null,
+      ownerId: s.owner.id,
       ownerName: s.owner.name || s.owner.email,
       endDate: s.endDate ? s.endDate.toISOString() : null,
       status: s.status,
@@ -80,6 +84,7 @@ export async function GET(req: NextRequest) {
     overdueSubtasks: subtasks.filter((s) => s.status !== 'completato' && s.status !== 'annullato' && s.endDate && s.endDate < now).length
   }
 
+  // Tutte le scadenze (task + sub-task) per il calendario, senza limite di 8.
   const calendarItems = [
     ...tasks
       .filter((t) => t.endDate)
@@ -89,6 +94,7 @@ export async function GET(req: NextRequest) {
         title: t.title,
         date: t.endDate!.toISOString().slice(0, 10),
         clientName: t.client?.name ?? null,
+        ownerId: t.owner.id,
         ownerName: t.owner.name || t.owner.email
       })),
     ...subtasks
@@ -99,6 +105,7 @@ export async function GET(req: NextRequest) {
         title: s.title,
         date: s.endDate!.toISOString().slice(0, 10),
         clientName: s.task.client?.name ?? null,
+        ownerId: s.owner.id,
         ownerName: s.owner.name || s.owner.email
       }))
   ]
