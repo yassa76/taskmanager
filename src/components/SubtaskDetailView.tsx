@@ -152,11 +152,17 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
 
       <div className="bg-white border border-slate-200 rounded-xl p-5 max-w-2xl">
         <div className="flex items-start justify-between gap-3 flex-wrap mb-4">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="text-xl font-bold text-slate-800">{subtask.title}</h1>
-            <span className={clsx('px-2 py-1 rounded-full text-xs font-medium', STATUS_COLORS[subtask.status])}>
-              {STATUS_LABELS[subtask.status]}
-            </span>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-xl font-bold text-slate-800">{subtask.title}</h1>
+              <span className={clsx('px-2 py-1 rounded-full text-xs font-medium', STATUS_COLORS[subtask.status])}>
+                {STATUS_LABELS[subtask.status]}
+              </span>
+            </div>
+            <p className="text-xs text-slate-400 mt-1">
+              Creato {subtask.createdBy ? `da ${subtask.createdBy.name || subtask.createdBy.email} ` : ''}il{' '}
+              {subtask.createdAt.slice(0, 10)}
+            </p>
           </div>
           <div className="flex gap-2 shrink-0">
             {subtask.status === 'da_avviare' && (
