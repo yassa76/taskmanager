@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import clsx from 'clsx'
@@ -51,6 +51,8 @@ export default function TeamView() {
   const [editRole, setEditRole] = useState('normal')
   const [editStatus, setEditStatus] = useState('new')
   const [savingEdit, setSavingEdit] = useState(false)
+  const [page, setPage] = useState(1)
+  const PAGE_SIZE = 10
 
   async function load() {
     setLoading(true)
@@ -62,6 +64,28 @@ export default function TeamView() {
   useEffect(() => {
     load()
   }, [])
+
+  // Ordina per cognome (poi nome, poi email come fallback finale).
+  const sortedMembers = useMemo(() => {
+    const arr = [...members]
+    arr.sort((a, b) => {
+      const lastA = (a.matchedUser?.lastName || '').toLowerCase()
+      const lastB = (b.matchedUser?.lastName || '').toLowerCase()
+      if (lastA !== lastB) return lastA < lastB ? -1 : 1
+      const firstA = (a.matchedUser?.firstName || '').toLowerCase()
+      const firstB = (b.matchedUser?.firstName || '').toLowerCase()
+      if (firstA !== firstB) return firstA < firstB ? -1 : 1
+      return a.email.toLowerCase() < b.email.toLowerCase() ? -1 : 1
+    })
+    return arr
+  }, [members])
+
+  const totalPages = Math.max(1, Math.ceil(sortedMembers.length / PAGE_SIZE))
+  const pagedMembers = sortedMembers.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages)
+  }, [totalPages, page])
 
   async function invite() {
     if (!firstName.trim() || !email.trim()) return
@@ -197,7 +221,7 @@ export default function TeamView() {
               </tr>
             )}
             {!loading &&
-              members.map((m) => (
+              pagedMembers.map((m) => (
                 <tr key={m.id} className={clsx('border-b border-slate-100', m.status === 'inactive' && 'opacity-50')}>
                   <td className="px-4 py-2">
                     {m.matchedUser ? (
@@ -255,6 +279,30 @@ export default function TeamView() {
           </tbody>
         </table>
       </div>
+
+      {sortedMembers.length > PAGE_SIZE && (
+        <div className="flex items-center justify-between mt-3 text-sm text-slate-500">
+          <span>
+            {sortedMembers.length} persone totali — pagina {page} di {totalPages}
+          </span>
+          <div className="flex gap-1">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="px-3 py-1.5 rounded-lg border border-slate-300 disabled:opacity-40 hover:bg-slate-100"
+            >
+              ← Precedente
+            </button>
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages}
+              className="px-3 py-1.5 rounded-lg border border-slate-300 disabled:opacity-40 hover:bg-slate-100"
+            >
+              Successiva →
+            </button>
+          </div>
+        </div>
+      )}
 
       {editingMember && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
