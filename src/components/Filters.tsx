@@ -10,6 +10,7 @@ export interface FilterState {
   status: string
   search: string
   overdue: boolean
+  includeClosed: boolean
 }
 
 export default function Filters({
@@ -88,6 +89,19 @@ export default function Filters({
         )}
       >
         ⚠ In ritardo
+      </button>
+
+      <button
+        onClick={() => onChange({ ...filters, includeClosed: !filters.includeClosed })}
+        title="Per default i task completati e annullati sono nascosti"
+        className={clsx(
+          'px-3 py-1.5 rounded-lg text-sm font-medium border transition',
+          filters.includeClosed
+            ? 'bg-slate-100 border-slate-300 text-slate-700'
+            : 'border-slate-200 text-slate-500 hover:bg-slate-50'
+        )}
+      >
+        {filters.includeClosed ? '☑' : '☐'} Mostra completati/annullati
       </button>
 
       <input
