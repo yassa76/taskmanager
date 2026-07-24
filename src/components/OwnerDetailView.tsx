@@ -60,6 +60,7 @@ export default function OwnerDetailView({ ownerId }: { ownerId: string }) {
   const [clientFilter, setClientFilter] = useState('')
   const [overdueOnly, setOverdueOnly] = useState(false)
   const [search, setSearch] = useState('')
+  const [showClosedSubtasks, setShowClosedSubtasks] = useState(false)
 
   async function load() {
     setLoading(true)
@@ -105,16 +106,16 @@ export default function OwnerDetailView({ ownerId }: { ownerId: string }) {
       })
   }, [data, statusFilter, clientFilter, overdueOnly, search])
 
-  const activeSubtasks = useMemo(() => {
+  const visibleSubtasks = useMemo(() => {
     if (!data) return []
     return data.subtasks
-      .filter((s) => s.status !== 'completato' && s.status !== 'annullato')
+      .filter((s) => showClosedSubtasks || (s.status !== 'completato' && s.status !== 'annullato'))
       .sort((a, b) => {
         if (!a.endDate) return 1
         if (!b.endDate) return -1
         return a.endDate < b.endDate ? -1 : a.endDate > b.endDate ? 1 : 0
       })
-  }, [data])
+  }, [data, showClosedSubtasks])
 
   if (loading) return <p className="text-slate-400">Caricamento...</p>
   if (error) return <p className="text-red-500">{error}</p>
@@ -269,8 +270,14 @@ export default function OwnerDetailView({ ownerId }: { ownerId: string }) {
       </div>
 
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-        <div className="px-5 py-3 border-b border-slate-200">
-          <h2 className="font-semibold text-slate-800">Sub-task attivi</h2>
+        <div className="px-5 py-3 border-b border-slate-200 flex items-center justify-between">
+          <h2 className="font-semibold text-slate-800">Sub-task</h2>
+          <button
+            onClick={() => setShowClosedSubtasks((v) => !v)}
+            className="text-xs text-slate-500 font-medium hover:text-brand-600"
+          >
+            {showClosedSubtasks ? '☑' : '☐'} Mostra completati/annullati
+          </button>
         </div>
         <table className="w-full text-sm">
           <thead className="bg-slate-50 border-b border-slate-200">
@@ -283,7 +290,7 @@ export default function OwnerDetailView({ ownerId }: { ownerId: string }) {
             </tr>
           </thead>
           <tbody>
-            {activeSubtasks.map((s) => (
+            {visibleSubtasks.map((s) => (
               <tr key={s.id} className="border-b border-slate-100 hover:bg-slate-50">
                 <td className="px-4 py-2 max-w-xs">
                   <Link
@@ -320,10 +327,11 @@ export default function OwnerDetailView({ ownerId }: { ownerId: string }) {
                 </td>
               </tr>
             ))}
-            {activeSubtasks.length === 0 && (
+            {visibleSubtasks.length === 0 && (
               <tr>
                 <td colSpan={5} className="text-center py-6 text-slate-400">
-                  Nessun sub-task attivo assegnato.
+                  Nessun sub-task trovato. (I completati/annullati sono nascosti per default:
+                  usa &quot;Mostra completati/annullati&quot; qui sopra per vederli.)
                 </td>
               </tr>
             )}
