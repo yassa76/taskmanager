@@ -19,6 +19,7 @@ function toTaskDTO(task: any): TaskDTO {
     startDate: task.startDate ? task.startDate.toISOString() : null,
     endDate: task.endDate ? task.endDate.toISOString() : null,
     owner: { id: task.owner.id, name: task.owner.name, email: task.owner.email },
+    createdBy: task.createdBy ? { id: task.createdBy.id, name: task.createdBy.name, email: task.createdBy.email } : null,
     clientId: task.clientId,
     clientName: task.client?.name ?? null,
     projectName: task.project?.name ?? null,
@@ -37,6 +38,7 @@ function toTaskDTO(task: any): TaskDTO {
       endDate: s.endDate ? s.endDate.toISOString() : null,
       closedAt: s.closedAt ? s.closedAt.toISOString() : null,
       owner: { id: s.owner.id, name: s.owner.name, email: s.owner.email },
+      createdBy: s.createdBy ? { id: s.createdBy.id, name: s.createdBy.name, email: s.createdBy.email } : null,
       taskId: s.taskId,
       createdAt: s.createdAt.toISOString(),
       updatedAt: s.updatedAt.toISOString()
@@ -54,9 +56,10 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
     where: { id: params.id },
     include: {
       owner: true,
+      createdBy: true,
       client: true,
       project: true,
-      subtasks: { include: { owner: true }, orderBy: { createdAt: 'asc' } }
+      subtasks: { include: { owner: true, createdBy: true }, orderBy: { createdAt: 'asc' } }
     }
   })
   if (!task) return NextResponse.json({ error: 'Task non trovato' }, { status: 404 })
@@ -87,13 +90,16 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       ...(ownerId !== undefined ? { ownerId } : {}),
       ...(clientId !== undefined ? { clientId: clientId || null } : {}),
       ...(projectId !== undefined ? { projectId: projectId || null } : {}),
+      // status: 'auto' (o vuoto) rimuove il forzaggio manuale e torna alla
+      // derivazione automatica in base ai sotto-task.
       ...(status !== undefined ? { statusOverride: status && status !== 'auto' ? status : null } : {})
     },
     include: {
       owner: true,
+      createdBy: true,
       client: true,
       project: true,
-      subtasks: { include: { owner: true }, orderBy: { createdAt: 'asc' } }
+      subtasks: { include: { owner: true, createdBy: true }, orderBy: { createdAt: 'asc' } }
     }
   })
 
