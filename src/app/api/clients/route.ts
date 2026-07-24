@@ -24,6 +24,10 @@ function toClientDTO(client: any): ClientDTO {
     owner: client.owner
       ? { id: client.owner.id, name: client.owner.name, email: client.owner.email }
       : null,
+    createdBy: client.createdBy
+      ? { id: client.createdBy.id, name: client.createdBy.name, email: client.createdBy.email }
+      : null,
+    createdAt: client.createdAt.toISOString(),
     projects: client.projects.map((p: any) => ({ id: p.id, name: p.name })),
     activeTasksCount
   }
@@ -37,6 +41,7 @@ export async function GET() {
     include: {
       projects: { select: { id: true, name: true } },
       owner: true,
+      createdBy: true,
       tasks: { select: { closedManually: true, statusOverride: true, subtasks: { select: { status: true } } } }
     },
     orderBy: { name: 'asc' }
@@ -59,11 +64,13 @@ export async function POST(req: NextRequest) {
       name,
       description: description || null,
       industry: industry || null,
-      ownerId: ownerId || null
+      ownerId: ownerId || null,
+      createdById: (session.user as any).id
     },
     include: {
       projects: { select: { id: true, name: true } },
       owner: true,
+      createdBy: true,
       tasks: { select: { closedManually: true, statusOverride: true, subtasks: { select: { status: true } } } }
     }
   })
