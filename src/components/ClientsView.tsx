@@ -183,13 +183,14 @@ export default function ClientsView() {
               <SortHeader label="Nome" k="name" />
               <SortHeader label="Industry" k="industry" />
               <SortHeader label="Owner" k="owner" />
+              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Task attivi</th>
               <th className="px-4 py-2 text-right text-xs font-semibold text-slate-500 uppercase">Azioni</th>
             </tr>
           </thead>
           <tbody>
             {loading && (
               <tr>
-                <td colSpan={4} className="text-center py-8 text-slate-400">
+                <td colSpan={5} className="text-center py-8 text-slate-400">
                   Caricamento...
                 </td>
               </tr>
@@ -211,6 +212,11 @@ export default function ClientsView() {
                     {!c.industry && <span className="text-slate-300">—</span>}
                   </td>
                   <td className="px-4 py-2">{c.owner ? c.owner.name || c.owner.email : '—'}</td>
+                  <td className="px-4 py-2">
+                    <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
+                      {c.activeTasksCount}
+                    </span>
+                  </td>
                   <td className="px-4 py-2 text-right whitespace-nowrap">
                     <button
                       onClick={() => openEditForm(c)}
@@ -231,7 +237,7 @@ export default function ClientsView() {
               ))}
             {!loading && sortedClients.length === 0 && (
               <tr>
-                <td colSpan={4} className="text-center py-8 text-slate-400">
+                <td colSpan={5} className="text-center py-8 text-slate-400">
                   Nessun cliente ancora. Aggiungine uno con il pulsante sopra.
                 </td>
               </tr>
