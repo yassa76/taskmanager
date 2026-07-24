@@ -19,6 +19,7 @@ function toTaskDTO(task: any): TaskDTO {
     startDate: task.startDate ? task.startDate.toISOString() : null,
     endDate: task.endDate ? task.endDate.toISOString() : null,
     owner: { id: task.owner.id, name: task.owner.name, email: task.owner.email },
+    createdBy: task.createdBy ? { id: task.createdBy.id, name: task.createdBy.name, email: task.createdBy.email } : null,
     clientId: task.clientId,
     clientName: task.client?.name ?? null,
     projectName: task.project?.name ?? null,
@@ -37,6 +38,7 @@ function toTaskDTO(task: any): TaskDTO {
       endDate: s.endDate ? s.endDate.toISOString() : null,
       closedAt: s.closedAt ? s.closedAt.toISOString() : null,
       owner: { id: s.owner.id, name: s.owner.name, email: s.owner.email },
+      createdBy: s.createdBy ? { id: s.createdBy.id, name: s.createdBy.name, email: s.createdBy.email } : null,
       taskId: s.taskId,
       createdAt: s.createdAt.toISOString(),
       updatedAt: s.updatedAt.toISOString()
@@ -55,7 +57,7 @@ export async function GET(req: NextRequest) {
   const ownerId = searchParams.get('ownerId')
   const clientId = searchParams.get('clientId')
   const projectId = searchParams.get('projectId')
-  const status = searchParams.get('status')
+  const status = searchParams.get('status') // filtro applicato dopo il calcolo (derivato)
   const search = searchParams.get('search')
 
   const tasks = await prisma.task.findMany({
@@ -75,9 +77,10 @@ export async function GET(req: NextRequest) {
     },
     include: {
       owner: true,
+      createdBy: true,
       client: true,
       project: true,
-      subtasks: { include: { owner: true } }
+      subtasks: { include: { owner: true, createdBy: true } }
     },
     orderBy: { updatedAt: 'desc' }
   })
@@ -115,20 +118,23 @@ export async function POST(req: NextRequest) {
       ownerId,
       clientId: clientId || null,
       projectId: projectId || null,
+      createdById: (session.user as any).id,
       subtasks: {
         create: (subtasks || []).map((s: any) => ({
           title: s.title,
           ownerId: s.ownerId || ownerId,
           status: s.status || 'da_avviare',
-          endDate: s.endDate ? new Date(s.endDate) : null
+          endDate: s.endDate ? new Date(s.endDate) : null,
+          createdById: (session.user as any).id
         }))
       }
     },
     include: {
       owner: true,
+      createdBy: true,
       client: true,
       project: true,
-      subtasks: { include: { owner: true } }
+      subtasks: { include: { owner: true, createdBy: true } }
     }
   })
 
