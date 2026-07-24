@@ -35,7 +35,12 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
   const [subEndDate, setSubEndDate] = useState('')
   const [subClosedAt, setSubClosedAt] = useState('')
   const [savingSubtaskEdit, setSavingSubtaskEdit] = useState(false)
-  const [showClosedSubtasks, setShowClosedSubtasks] = useState(false)
+  const [subStatusFilter, setSubStatusFilter] = useState('')
+  const [subOverdueOnly, setSubOverdueOnly] = useState(false)
+  const [subSearch, setSubSearch] = useState('')
+  const [subIncludeClosed, setSubIncludeClosed] = useState(false)
+  const [subPage, setSubPage] = useState(1)
+  const SUB_PAGE_SIZE = 10
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -67,6 +72,10 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
   useEffect(() => {
     load()
   }, [load])
+
+  useEffect(() => {
+    setSubPage(1)
+  }, [subStatusFilter, subOverdueOnly, subSearch, subIncludeClosed])
 
   const owners = team
     .filter((t) => t.status !== 'inactive' && t.matchedUser)
@@ -152,9 +161,19 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
   if (error) return <p className="text-red-500">{error}</p>
   if (!task) return <p className="text-slate-400">Task non trovato.</p>
 
-  const visibleSubtasks = task.subtasks.filter(
-    (s) => showClosedSubtasks || (s.status !== 'completato' && s.status !== 'annullato')
-  )
+  const visibleSubtasks = task.subtasks
+    .filter((s) =>
+      subStatusFilter
+        ? s.status === subStatusFilter
+        : subIncludeClosed || (s.status !== 'completato' && s.status !== 'annullato')
+    )
+    .filter(
+      (s) => !subOverdueOnly || (s.endDate && new Date(s.endDate) < new Date() && s.status !== 'completato' && s.status !== 'annullato')
+    )
+    .filter((s) => !subSearch || s.title.toLowerCase().includes(subSearch.toLowerCase()))
+
+  const subTotalPages = Math.max(1, Math.ceil(visibleSubtasks.length / SUB_PAGE_SIZE))
+  const pagedSubtasks = visibleSubtasks.slice((subPage - 1) * SUB_PAGE_SIZE, subPage * SUB_PAGE_SIZE)
 
   return (
     <div>
@@ -257,20 +276,54 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
         <div className="px-5 py-3 border-b border-slate-200 flex items-center justify-between">
           <h2 className="font-semibold text-slate-800">Sub-task</h2>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setShowClosedSubtasks((v) => !v)}
-              className="text-xs text-slate-500 font-medium hover:text-brand-600"
-            >
-              {showClosedSubtasks ? '☑' : '☐'} Mostra completati/annullati
-            </button>
-            <button
-              onClick={load}
-              className="text-xs text-slate-500 font-medium hover:text-brand-600"
-            >
-              ↻ Aggiorna
-            </button>
-          </div>
+          <button
+            onClick={load}
+            className="text-xs text-slate-500 font-medium hover:text-brand-600"
+          >
+            ↻ Aggiorna
+          </button>
+        </div>
+
+        <div className="p-3 border-b border-slate-100 flex flex-wrap gap-2 items-center">
+          <select
+            value={subStatusFilter}
+            onChange={(e) => setSubStatusFilter(e.target.value)}
+            className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm"
+          >
+            <option value="">Tutti gli stati</option>
+            <option value="da_avviare">Da avviare</option>
+            <option value="in_corso">In corso</option>
+            <option value="completato">Completato</option>
+            <option value="annullato">Annullato</option>
+          </select>
+          <button
+            onClick={() => setSubOverdueOnly((v) => !v)}
+            className={clsx(
+              'px-3 py-1.5 rounded-lg text-sm font-medium border transition',
+              subOverdueOnly
+                ? 'bg-red-50 border-red-200 text-red-700'
+                : 'border-slate-200 text-slate-500 hover:bg-slate-50'
+            )}
+          >
+            ⚠ In ritardo
+          </button>
+          <button
+            onClick={() => setSubIncludeClosed((v) => !v)}
+            className={clsx(
+              'px-3 py-1.5 rounded-lg text-sm font-medium border transition',
+              subIncludeClosed
+                ? 'bg-slate-100 border-slate-300 text-slate-700'
+                : 'border-slate-200 text-slate-500 hover:bg-slate-50'
+            )}
+          >
+            {subIncludeClosed ? '☑' : '☐'} Mostra completati/annullati
+          </button>
+          <input
+            value={subSearch}
+            onChange={(e) => setSubSearch(e.target.value)}
+            placeholder="Cerca per titolo..."
+            className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm flex-1 min-w-[160px]"
+          />
         </div>
 
         <table className="w-full text-sm">
@@ -285,7 +338,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
             </tr>
           </thead>
           <tbody>
-            {visibleSubtasks.map((s) => {
+            {pagedSubtasks.map((s) => {
               const overdue = s.endDate && new Date(s.endDate) < new Date() && s.status !== 'completato' && s.status !== 'annullato'
               return (
                 <tr key={s.id} className="border-b border-slate-100 hover:bg-slate-50">
@@ -338,12 +391,36 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
                 <td colSpan={6} className="text-center py-6 text-slate-400">
                   {task.subtasks.length === 0
                     ? 'Nessun sub-task ancora.'
-                    : 'Nessun sub-task attivo (sono tutti completati o annullati — attiva "Mostra completati/annullati" per vederli).'}
+                    : 'Nessun sub-task trovato con questi filtri.'}
                 </td>
               </tr>
             )}
           </tbody>
         </table>
+
+        {visibleSubtasks.length > SUB_PAGE_SIZE && (
+          <div className="flex items-center justify-between px-4 py-2 border-t border-slate-100 text-xs text-slate-500">
+            <span>
+              {visibleSubtasks.length} sub-task — pagina {subPage} di {subTotalPages}
+            </span>
+            <div className="flex gap-1">
+              <button
+                onClick={() => setSubPage((p) => Math.max(1, p - 1))}
+                disabled={subPage === 1}
+                className="px-2 py-1 rounded border border-slate-200 disabled:opacity-40 hover:bg-slate-100"
+              >
+                ←
+              </button>
+              <button
+                onClick={() => setSubPage((p) => Math.min(subTotalPages, p + 1))}
+                disabled={subPage === subTotalPages}
+                className="px-2 py-1 rounded border border-slate-200 disabled:opacity-40 hover:bg-slate-100"
+              >
+                →
+              </button>
+            </div>
+          </div>
+        )}
 
         <div className="flex gap-2 p-4 border-t border-slate-100 flex-wrap">
           <input
