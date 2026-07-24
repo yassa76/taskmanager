@@ -146,10 +146,24 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
                   {client.industry}
                 </span>
               )}
-            </div>
-            <p className="text-xs text-slate-400">
-              Creato {client.createdBy ? `da ${client.createdBy.name || client.createdBy.email} ` : ''}il{' '}
-              {client.createdAt.slice(0, 10)}
+           <p className="text-xs text-slate-400">
+              Creato
+              {client.createdBy ? (
+                <>
+                  {' da '}
+                  <Link
+                    href={`/owners/${client.createdBy.id}`}
+                    className="font-medium text-slate-500 hover:text-brand-600 hover:underline"
+                    title={client.createdBy.name || client.createdBy.email}
+                  >
+                    {getInitials(client.createdBy.name)}
+                  </Link>
+                </>
+              ) : (
+                ''
+              )}{' '}
+              il {client.createdAt.slice(0, 10)}
+            </p>
             </p>
           </div>
           <div className="flex gap-2 shrink-0">
