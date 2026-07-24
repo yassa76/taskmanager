@@ -35,6 +35,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
   const [subEndDate, setSubEndDate] = useState('')
   const [subClosedAt, setSubClosedAt] = useState('')
   const [savingSubtaskEdit, setSavingSubtaskEdit] = useState(false)
+  const [showClosedSubtasks, setShowClosedSubtasks] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -151,6 +152,10 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
   if (error) return <p className="text-red-500">{error}</p>
   if (!task) return <p className="text-slate-400">Task non trovato.</p>
 
+  const visibleSubtasks = task.subtasks.filter(
+    (s) => showClosedSubtasks || (s.status !== 'completato' && s.status !== 'annullato')
+  )
+
   return (
     <div>
       <Breadcrumbs
@@ -252,12 +257,20 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
         <div className="px-5 py-3 border-b border-slate-200 flex items-center justify-between">
           <h2 className="font-semibold text-slate-800">Sub-task</h2>
-          <button
-            onClick={load}
-            className="text-xs text-slate-500 font-medium hover:text-brand-600"
-          >
-            ↻ Aggiorna
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowClosedSubtasks((v) => !v)}
+              className="text-xs text-slate-500 font-medium hover:text-brand-600"
+            >
+              {showClosedSubtasks ? '☑' : '☐'} Mostra completati/annullati
+            </button>
+            <button
+              onClick={load}
+              className="text-xs text-slate-500 font-medium hover:text-brand-600"
+            >
+              ↻ Aggiorna
+            </button>
+          </div>
         </div>
 
         <table className="w-full text-sm">
@@ -272,7 +285,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
             </tr>
           </thead>
           <tbody>
-            {task.subtasks.map((s) => {
+            {visibleSubtasks.map((s) => {
               const overdue = s.endDate && new Date(s.endDate) < new Date() && s.status !== 'completato' && s.status !== 'annullato'
               return (
                 <tr key={s.id} className="border-b border-slate-100 hover:bg-slate-50">
@@ -320,10 +333,12 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
                 </tr>
               )
             })}
-            {task.subtasks.length === 0 && (
+            {visibleSubtasks.length === 0 && (
               <tr>
                 <td colSpan={6} className="text-center py-6 text-slate-400">
-                  Nessun sub-task ancora.
+                  {task.subtasks.length === 0
+                    ? 'Nessun sub-task ancora.'
+                    : 'Nessun sub-task attivo (sono tutti completati o annullati — attiva "Mostra completati/annullati" per vederli).'}
                 </td>
               </tr>
             )}
