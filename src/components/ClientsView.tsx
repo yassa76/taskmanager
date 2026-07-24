@@ -38,7 +38,7 @@ export default function ClientsView() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState<ClientFormState>(emptyForm)
   const [page, setPage] = useState(1)
-  const PAGE_SIZE = 10
+  const PAGE_SIZE = 20
   const [search, setSearch] = useState('')
   const [industryFilter, setIndustryFilter] = useState('')
   const [ownerFilter, setOwnerFilter] = useState('')
