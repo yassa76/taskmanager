@@ -137,13 +137,19 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
 
       <div className="bg-white border border-slate-200 rounded-xl p-5 mb-6">
         <div className="flex items-start justify-between gap-3 flex-wrap">
-          <div className="flex items-center gap-2 flex-wrap mb-1">
-            <h1 className="text-xl font-bold text-slate-800">{client.name}</h1>
-            {client.industry && (
-              <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-brand-50 text-brand-700">
-                {client.industry}
-              </span>
-            )}
+          <div>
+            <div className="flex items-center gap-2 flex-wrap mb-1">
+              <h1 className="text-xl font-bold text-slate-800">{client.name}</h1>
+              {client.industry && (
+                <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-brand-50 text-brand-700">
+                  {client.industry}
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-slate-400">
+              Creato {client.createdBy ? `da ${client.createdBy.name || client.createdBy.email} ` : ''}il{' '}
+              {client.createdAt.slice(0, 10)}
+            </p>
           </div>
           <div className="flex gap-2 shrink-0">
             <button
