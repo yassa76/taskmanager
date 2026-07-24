@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
       t.closedManually,
       t.statusOverride
     )
-    const overdue = !!t.endDate && t.endDate < now && derived.status !== 'completato'
+    const overdue = !!t.endDate && t.endDate < now && derived.status !== 'completato' && derived.status !== 'annullato'
     return {
       id: t.id,
       title: t.title,
@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
   })
 
   const upcomingTasks = enrichedTasks
-    .filter((t) => t.status !== 'completato' && t.endDate)
+    .filter((t) => t.status !== 'completato' && t.status !== 'annullato' && t.endDate)
     .sort((a, b) => (a.endDate! < b.endDate! ? -1 : a.endDate! > b.endDate! ? 1 : 0))
 
   const upcomingSubtasks = subtasks
