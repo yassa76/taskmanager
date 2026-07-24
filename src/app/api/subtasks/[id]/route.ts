@@ -16,6 +16,9 @@ function toSubtaskDetailDTO(subtask: any): SubtaskDetailDTO {
     endDate: subtask.endDate ? subtask.endDate.toISOString() : null,
     closedAt: subtask.closedAt ? subtask.closedAt.toISOString() : null,
     owner: { id: subtask.owner.id, name: subtask.owner.name, email: subtask.owner.email },
+    createdBy: subtask.createdBy
+      ? { id: subtask.createdBy.id, name: subtask.createdBy.name, email: subtask.createdBy.email }
+      : null,
     taskId: subtask.taskId,
     createdAt: subtask.createdAt.toISOString(),
     updatedAt: subtask.updatedAt.toISOString(),
@@ -34,7 +37,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
 
   const subtask = await prisma.subtask.findUnique({
     where: { id: params.id },
-    include: { owner: true, task: { include: { client: true } } }
+    include: { owner: true, createdBy: true, task: { include: { client: true } } }
   })
   if (!subtask) return NextResponse.json({ error: 'Sub-task non trovato' }, { status: 404 })
 
@@ -65,7 +68,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       ...(endDate !== undefined ? { endDate: endDate ? new Date(endDate) : null } : {}),
       ...(closedAt !== undefined ? { closedAt: closedAt ? new Date(closedAt) : null } : {})
     },
-    include: { owner: true, task: { include: { subtasks: true, client: true } } }
+    include: { owner: true, createdBy: true, task: { include: { subtasks: true, client: true } } }
   })
 
   // Se cambiando questo sotto-task NON tutti i fratelli sono piu' completati,
