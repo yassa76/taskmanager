@@ -45,6 +45,7 @@ export async function GET(req: NextRequest) {
     return {
       id: t.id,
       title: t.title,
+      clientId: t.clientId,
       clientName: t.client?.name ?? null,
       ownerId: t.owner.id,
       ownerName: t.owner.name || t.owner.email,
