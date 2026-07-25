@@ -2,6 +2,8 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
+import clsx from 'clsx'
 import {
   BarChart,
   Bar,
@@ -30,6 +32,14 @@ interface ReportData {
     subtaskCompletionRate: number
   }
   byOwner: { id: string; name: string; total: number; completati: number }[]
+  byOwnerStatus: {
+    id: string
+    name: string
+    da_avviare: number
+    in_corso: number
+    completato: number
+    annullato: number
+  }[]
   byClient: { name: string; total: number }[]
   statusDistribution: { name: string; value: number }[]
 }
@@ -47,13 +57,17 @@ function KpiCard({ label, value, accent }: { label: string; value: string | numb
 
 export default function ReportsView() {
   const router = useRouter()
+  const { data: session } = useSession()
+  const isAdmin = (session?.user as any)?.role === 'admin'
+
   const [data, setData] = useState<ReportData | null>(null)
+  const [scope, setScope] = useState<'mine' | 'team'>('mine')
 
   const load = useCallback(() => {
-    fetch('/api/reports')
+    fetch(`/api/reports?scope=${scope}`)
       .then((r) => r.json())
       .then(setData)
-  }, [])
+  }, [scope])
 
   useEffect(() => {
     load()
@@ -64,14 +78,32 @@ export default function ReportsView() {
   return (
     <div>
       <Breadcrumbs items={[{ label: 'Report & KPI' }]} />
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <h1 className="text-xl font-bold text-slate-800">Report & KPI</h1>
-        <button
-          onClick={load}
-          className="px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-medium text-slate-700 hover:bg-slate-100"
-        >
-          ↻ Aggiorna
-        </button>
+        <div className="flex items-center gap-2">
+          {isAdmin && (
+            <div className="flex bg-slate-100 rounded-lg p-1">
+              {(['mine', 'team'] as const).map((v) => (
+                <button
+                  key={v}
+                  onClick={() => setScope(v)}
+                  className={clsx(
+                    'px-3 py-1.5 rounded-md text-sm font-medium transition',
+                    scope === v ? 'bg-white shadow text-brand-700' : 'text-slate-500'
+                  )}
+                >
+                  {v === 'mine' ? 'I miei dati' : 'Tutto il team'}
+                </button>
+              ))}
+            </div>
+          )}
+          <button
+            onClick={load}
+            className="px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-medium text-slate-700 hover:bg-slate-100"
+          >
+            ↻ Aggiorna
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
@@ -132,6 +164,56 @@ export default function ReportsView() {
                 dataKey="completati"
                 name="Completati"
                 fill="#10b981"
+                radius={[4, 4, 0, 0]}
+                cursor="pointer"
+                onClick={(d: any) => d?.id && router.push(`/owners/${d.id}`)}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm md:col-span-2">
+          <h2 className="text-sm font-semibold text-slate-600 mb-4">
+            Carico di lavoro per persona{' '}
+            <span className="font-normal text-slate-400">
+              (task + sub-task per stato — clicca una barra per il dettaglio)
+            </span>
+          </h2>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={data.byOwnerStatus}>
+              <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+              <YAxis allowDecimals={false} />
+              <Tooltip />
+              <Legend />
+              <Bar
+                dataKey="da_avviare"
+                name="Da avviare"
+                stackId="workload"
+                fill="#94a3b8"
+                cursor="pointer"
+                onClick={(d: any) => d?.id && router.push(`/owners/${d.id}`)}
+              />
+              <Bar
+                dataKey="in_corso"
+                name="In corso"
+                stackId="workload"
+                fill="#f59e0b"
+                cursor="pointer"
+                onClick={(d: any) => d?.id && router.push(`/owners/${d.id}`)}
+              />
+              <Bar
+                dataKey="completato"
+                name="Completato"
+                stackId="workload"
+                fill="#10b981"
+                cursor="pointer"
+                onClick={(d: any) => d?.id && router.push(`/owners/${d.id}`)}
+              />
+              <Bar
+                dataKey="annullato"
+                name="Annullato"
+                stackId="workload"
+                fill="#64748b"
                 radius={[4, 4, 0, 0]}
                 cursor="pointer"
                 onClick={(d: any) => d?.id && router.push(`/owners/${d.id}`)}
