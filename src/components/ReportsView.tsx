@@ -74,6 +74,33 @@ export default function ReportsView() {
   const [period, setPeriod] = useState('all')
   const [includeClosed, setIncludeClosed] = useState(false)
 
+  // Ripristina i filtri salvati in precedenza, cosi' restano validi anche
+  // navigando su altre pagine e tornando qui (stesso meccanismo della Home).
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const savedScope = localStorage.getItem('reportsScope')
+    if (savedScope === 'team' || savedScope === 'mine') setScope(savedScope)
+    const savedPeriod = localStorage.getItem('reportsPeriod')
+    if (savedPeriod && PERIOD_OPTIONS.some((p) => p.value === savedPeriod)) setPeriod(savedPeriod)
+    const savedIncludeClosed = localStorage.getItem('reportsIncludeClosed')
+    if (savedIncludeClosed === 'true') setIncludeClosed(true)
+  }, [])
+
+  function changeScope(v: 'mine' | 'team') {
+    setScope(v)
+    if (typeof window !== 'undefined') localStorage.setItem('reportsScope', v)
+  }
+
+  function changePeriod(v: string) {
+    setPeriod(v)
+    if (typeof window !== 'undefined') localStorage.setItem('reportsPeriod', v)
+  }
+
+  function changeIncludeClosed(v: boolean) {
+    setIncludeClosed(v)
+    if (typeof window !== 'undefined') localStorage.setItem('reportsIncludeClosed', String(v))
+  }
+
   const load = useCallback(() => {
     const params = new URLSearchParams()
     params.set('scope', scope)
@@ -106,7 +133,7 @@ export default function ReportsView() {
               {(['mine', 'team'] as const).map((v) => (
                 <button
                   key={v}
-                  onClick={() => setScope(v)}
+                  onClick={() => changeScope(v)}
                   className={clsx(
                     'px-3 py-1.5 rounded-md text-sm font-medium transition',
                     scope === v ? 'bg-white shadow text-brand-700' : 'text-slate-500'
@@ -129,7 +156,7 @@ export default function ReportsView() {
       <div className="bg-white border border-slate-200 rounded-xl p-3 flex flex-wrap items-center gap-2 mb-6">
         <select
           value={period}
-          onChange={(e) => setPeriod(e.target.value)}
+          onChange={(e) => changePeriod(e.target.value)}
           className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm"
         >
           {PERIOD_OPTIONS.map((p) => (
@@ -140,7 +167,7 @@ export default function ReportsView() {
         </select>
         <span className="text-xs text-slate-400">(filtra in base alla data di creazione)</span>
         <button
-          onClick={() => setIncludeClosed((v) => !v)}
+          onClick={() => changeIncludeClosed(!includeClosed)}
           className={clsx(
             'px-3 py-1.5 rounded-lg text-sm font-medium border transition ml-auto',
             includeClosed
