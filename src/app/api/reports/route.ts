@@ -1,20 +1,36 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { deriveTaskStatus } from '@/lib/taskStatus'
+import { isAdmin } from '@/lib/permissions'
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
 
-  const tasks = await prisma.task.findMany({
-    include: {
-      owner: true,
-      client: true,
-      subtasks: true
-    }
-  })
+  const userId = (session.user as any).id
+  const { searchParams } = new URL(req.url)
+  // "Tutto il team" e' selezionabile solo dagli admin: verificato lato server,
+  // un utente normale vede sempre e solo i propri dati anche se forzasse il parametro.
+  const teamScope = searchParams.get('scope') === 'team' && isAdmin(session)
+  const taskWhere = teamScope ? {} : { ownerId: userId }
+  const subtaskWhere = teamScope ? {} : { ownerId: userId }
+
+  const [tasks, subtasks] = await Promise.all([
+    prisma.task.findMany({
+      where: taskWhere,
+      include: {
+        owner: true,
+        client: true,
+        subtasks: true
+      }
+    }),
+    prisma.subtask.findMany({
+      where: subtaskWhere,
+      include: { owner: true }
+    })
+  ])
 
   const now = new Date()
 
@@ -37,6 +53,7 @@ export async function GET() {
     0
   )
 
+  // Task per owner
   const byOwnerMap = new Map<string, { id: string; name: string; total: number; completati: number }>()
   for (const t of enriched) {
     const key = t.owner.id
@@ -47,6 +64,30 @@ export async function GET() {
   }
   const byOwner = Array.from(byOwnerMap.values())
 
+  // Carico di lavoro per persona: task + sub-task sommati, suddivisi per stato.
+  // Utile per capire quanto "produce" ciascuno, non solo quanti task possiede.
+  const byOwnerStatusMap = new Map<
+    string,
+    { id: string; name: string; da_avviare: number; in_corso: number; completato: number; annullato: number }
+  >()
+  function bumpOwnerStatus(ownerId: string, ownerLabel: string, status: string) {
+    const cur =
+      byOwnerStatusMap.get(ownerId) ||
+      { id: ownerId, name: ownerLabel, da_avviare: 0, in_corso: 0, completato: 0, annullato: 0 }
+    if (status === 'da_avviare' || status === 'in_corso' || status === 'completato' || status === 'annullato') {
+      cur[status] += 1
+    }
+    byOwnerStatusMap.set(ownerId, cur)
+  }
+  for (const t of enriched) {
+    bumpOwnerStatus(t.owner.id, t.owner.name || t.owner.email, t.derived.status)
+  }
+  for (const s of subtasks) {
+    bumpOwnerStatus(s.owner.id, s.owner.name || s.owner.email, s.status)
+  }
+  const byOwnerStatus = Array.from(byOwnerStatusMap.values())
+
+  // Task per cliente
   const byClientMap = new Map<string, { name: string; total: number }>()
   for (const t of enriched) {
     const key = t.client?.name || 'Senza cliente'
@@ -56,6 +97,7 @@ export async function GET() {
   }
   const byClient = Array.from(byClientMap.values())
 
+  // Distribuzione stati (per grafico a torta)
   const statusDistribution = [
     { name: 'Da avviare', value: notStarted },
     { name: 'In corso', value: inProgress },
@@ -78,7 +120,9 @@ export async function GET() {
         totalSubtasks > 0 ? Math.round((completedSubtasks / totalSubtasks) * 100) : 0
     },
     byOwner,
+    byOwnerStatus,
     byClient,
-    statusDistribution
+    statusDistribution,
+    teamScope
   })
 }
