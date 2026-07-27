@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { deriveTaskStatus } from '@/lib/taskStatus'
 import { canEditRecord } from '@/lib/permissions'
+import { logActivity } from '@/lib/activityLog'
 import type { TaskDTO } from '@/types'
 
 function toTaskDTO(task: any): TaskDTO {
@@ -71,7 +72,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
 
-  const existing = await prisma.task.findUnique({ where: { id: params.id } })
+  const existing = await prisma.task.findUnique({ where: { id: params.id }, include: { owner: true } })
   if (!existing) return NextResponse.json({ error: 'Task non trovato' }, { status: 404 })
   if (!canEditRecord(session, existing.ownerId)) {
     return NextResponse.json({ error: 'Non hai i permessi per modificare questo task' }, { status: 403 })
@@ -103,6 +104,30 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     }
   })
 
+  const actorId = (session.user as any).id
+
+  if (status !== undefined && status !== existing.statusOverride) {
+    await logActivity({
+      entityType: 'task',
+      entityId: task.id,
+      action: 'stato',
+      entityLabel: task.title,
+      detail: `${existing.statusOverride || 'Automatico'} → ${status || 'Automatico'}`,
+      userId: actorId
+    })
+  }
+
+  if (ownerId !== undefined && ownerId !== existing.ownerId) {
+    await logActivity({
+      entityType: 'task',
+      entityId: task.id,
+      action: 'owner',
+      entityLabel: task.title,
+      detail: `${existing.owner.name || existing.owner.email} → ${task.owner.name || task.owner.email}`,
+      userId: actorId
+    })
+  }
+
   return NextResponse.json(toTaskDTO(task))
 }
 
@@ -115,6 +140,14 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
   if (!canEditRecord(session, existing.ownerId)) {
     return NextResponse.json({ error: 'Non hai i permessi per eliminare questo task' }, { status: 403 })
   }
+
+  await logActivity({
+    entityType: 'task',
+    entityId: existing.id,
+    action: 'eliminato',
+    entityLabel: existing.title,
+    userId: (session.user as any).id
+  })
 
   await prisma.task.delete({ where: { id: params.id } })
   return NextResponse.json({ ok: true })
