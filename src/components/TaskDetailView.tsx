@@ -29,7 +29,6 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
   const [newSubtaskEndDate, setNewSubtaskEndDate] = useState('')
   const [savingSubtask, setSavingSubtask] = useState(false)
 
-  // Modale di modifica del sub-task selezionato (niente più campi editabili in riga).
   const [editingSubtask, setEditingSubtask] = useState<SubtaskDTO | null>(null)
   const [subTitle, setSubTitle] = useState('')
   const [subDescription, setSubDescription] = useState('')
@@ -84,7 +83,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
   const owners = team
     .filter((t) => t.status !== 'inactive' && t.matchedUser)
     .map((t) => ({ id: t.matchedUser!.id, name: t.matchedUser!.name || t.email, email: t.email }))
-            .sort((a, b) => a.name.localeCompare(b.name))
+    .sort((a, b) => a.name.localeCompare(b.name))
 
   function openEditSubtask(s: SubtaskDTO) {
     setEditingSubtask(s)
@@ -146,8 +145,13 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
 
   async function deleteTask() {
     if (!task) return
-    if (!confirm(`Eliminare il task "${task.title}" e tutti i suoi sub-task?`)) return
-    await fetch(`/api/tasks/${task.id}`, { method: 'DELETE' })
+    if (!confirm(`Eliminare il task "${task.title}"?`)) return
+    const res = await fetch(`/api/tasks/${task.id}`, { method: 'DELETE' })
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}))
+      alert(body.error || `Errore nell'eliminazione (status ${res.status})`)
+      return
+    }
     router.push('/tasks')
   }
 
@@ -162,7 +166,6 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
     load()
   }
 
-  // Scorciatoia rapida: forza lo stato a "in_corso" senza aprire il form completo.
   async function startTask() {
     if (!task) return
     await fetch(`/api/tasks/${task.id}`, {
@@ -380,8 +383,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
             </tr>
           </thead>
           <tbody>
-            {pagedSubtasks
-              .map((s) => {
+            {pagedSubtasks.map((s) => {
               const overdue = s.endDate && new Date(s.endDate) < new Date() && s.status !== 'completato' && s.status !== 'annullato'
               return (
                 <tr key={s.id} className="border-b border-slate-100 hover:bg-slate-50">
