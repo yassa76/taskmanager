@@ -8,6 +8,7 @@ import { STATUS_COLORS, STATUS_LABELS } from '@/lib/taskStatus'
 import { getInitials } from '@/lib/initials'
 import type { SubtaskDetailDTO, TeamMemberDTO } from '@/types'
 import Breadcrumbs from './Breadcrumbs'
+import Combobox from './Combobox'
 import { EditIcon, DeleteIcon } from './icons'
 
 export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) {
@@ -64,7 +65,7 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
   const owners = team
     .filter((t) => t.status !== 'inactive' && t.matchedUser)
     .map((t) => ({ id: t.matchedUser!.id, name: t.matchedUser!.name || t.email, email: t.email }))
-    .sort((a, b) => a.name.localeCompare(b.name))
+            .sort((a, b) => a.name.localeCompare(b.name))
 
   function openEdit() {
     if (!subtask) return
@@ -161,7 +162,7 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
                 {STATUS_LABELS[subtask.status]}
               </span>
             </div>
-           <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-slate-400 mt-1">
               Creato
               {subtask.createdBy ? (
                 <>
@@ -271,17 +272,13 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-medium text-slate-500">Owner</label>
-                  <select
+                  <Combobox
                     value={ownerId}
-                    onChange={(e) => setOwnerId(e.target.value)}
-                    className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1"
-                  >
-                    {owners.map((o) => (
-                      <option key={o.id} value={o.id}>
-                        {o.name}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={setOwnerId}
+                    options={owners.map((o) => ({ id: o.id, label: o.name }))}
+                    placeholder="Cerca owner..."
+                    className="mt-1"
+                  />
                 </div>
                 <div>
                   <label className="text-xs font-medium text-slate-500">Stato</label>
