@@ -8,6 +8,7 @@ import { STATUS_COLORS, STATUS_LABELS } from '@/lib/taskStatus'
 import { getInitials } from '@/lib/initials'
 import type { SubtaskDetailDTO, TeamMemberDTO } from '@/types'
 import Breadcrumbs from './Breadcrumbs'
+import ActivityLogPanel from './ActivityLogPanel'
 import Combobox from './Combobox'
 import { EditIcon, DeleteIcon } from './icons'
 
