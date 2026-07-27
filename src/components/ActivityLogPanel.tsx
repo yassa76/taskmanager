@@ -44,7 +44,7 @@ export default function ActivityLogPanel({
         className="w-full px-5 py-3 flex items-center justify-between text-left hover:bg-slate-50"
       >
         <h2 className="font-semibold text-slate-800">
-          Attività {logs && logs.length > 0 && <span className="text-slate-400 font-normal">({logs.length})</span>}
+          Cronologia modifiche {logs && logs.length > 0 && <span className="text-slate-400 font-normal">({logs.length})</span>}
         </h2>
         <span className="text-slate-400 text-xs">{open ? '▲ Nascondi' : '▼ Mostra'}</span>
       </button>
