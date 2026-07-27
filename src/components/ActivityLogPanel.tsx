@@ -53,7 +53,7 @@ export default function ActivityLogPanel({
         <div className="border-t border-slate-100 divide-y divide-slate-50 max-h-80 overflow-y-auto">
           {!logs && <p className="px-5 py-4 text-sm text-slate-400">Caricamento...</p>}
           {logs && logs.length === 0 && (
-            <p className="px-5 py-4 text-sm text-slate-400">Nessuna attività registrata.</p>
+            <p className="px-5 py-4 text-sm text-slate-400">Nessuna modifica registrata.</p>
           )}
           {logs &&
             logs.map((l) => (
