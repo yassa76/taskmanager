@@ -346,8 +346,10 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
               </button>
             </div>
           </div>
-        </div>
+   </div>
       )}
+
+      <ActivityLogPanel entityType="subtask" entityId={subtaskId} />
     </div>
   )
 }
