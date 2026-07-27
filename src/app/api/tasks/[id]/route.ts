@@ -135,10 +135,19 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
   const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
 
-  const existing = await prisma.task.findUnique({ where: { id: params.id } })
+  const existing = await prisma.task.findUnique({ where: { id: params.id }, include: { _count: { select: { subtasks: true } } } })
   if (!existing) return NextResponse.json({ error: 'Task non trovato' }, { status: 404 })
   if (!canEditRecord(session, existing.ownerId)) {
     return NextResponse.json({ error: 'Non hai i permessi per eliminare questo task' }, { status: 403 })
+  }
+
+  if (existing._count.subtasks > 0) {
+    return NextResponse.json(
+      {
+        error: `Non puoi eliminare questo task: ha ${existing._count.subtasks} sotto-task (anche completati o annullati). Imposta lo stato del task su "Annullato" invece, per non perdere lo storico.`
+      },
+      { status: 409 }
+    )
   }
 
   await logActivity({
