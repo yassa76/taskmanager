@@ -152,3 +152,17 @@ model Subtask {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 }
+
+model ActivityLog {
+  id         String   @id @default(cuid())
+  entityType String   // "task" | "subtask" | "client"
+  entityId   String
+  action     String   // "creato" | "stato" | "owner" | "eliminato"
+  detail     String?  // es. "Da avviare -> In corso", "Mario Rossi -> Luca Bianchi"
+  entityLabel String? // titolo/nome del record al momento dell'azione (utile dopo un'eliminazione)
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id])
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+}
