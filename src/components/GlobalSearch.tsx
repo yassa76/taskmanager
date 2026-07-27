@@ -17,6 +17,7 @@ interface SearchGroup {
 }
 
 const MIN_CHARS = 3
+const DEBOUNCE_MS = 150
 
 export default function GlobalSearch() {
   const router = useRouter()
@@ -25,6 +26,8 @@ export default function GlobalSearch() {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
+  const abortRef = useRef<AbortController | null>(null)
+  const latestQueryRef = useRef('')
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -37,21 +40,40 @@ export default function GlobalSearch() {
   }, [])
 
   useEffect(() => {
-    if (query.trim().length < MIN_CHARS) {
+    const trimmed = query.trim()
+    if (trimmed.length < MIN_CHARS) {
+      abortRef.current?.abort()
       setGroups([])
       setOpen(false)
+      setLoading(false)
       return
     }
+
     setLoading(true)
     const handle = setTimeout(() => {
-      fetch(`/api/search?q=${encodeURIComponent(query.trim())}`)
+      // Annulla una eventuale richiesta precedente ancora in volo: cosi' se
+      // digiti in fretta, una risposta "vecchia" e lenta non sovrascrive mai
+      // per sbaglio i risultati piu' recenti, ed evitiamo lavoro sprecato.
+      abortRef.current?.abort()
+      const controller = new AbortController()
+      abortRef.current = controller
+      latestQueryRef.current = trimmed
+
+      fetch(`/api/search?q=${encodeURIComponent(trimmed)}`, { signal: controller.signal })
         .then((r) => r.json())
         .then((data) => {
+          if (latestQueryRef.current !== trimmed) return // risposta ormai superata
           setGroups(data.groups || [])
           setOpen(true)
         })
-        .finally(() => setLoading(false))
-    }, 300)
+        .catch((e) => {
+          if (e?.name !== 'AbortError') console.error(e)
+        })
+        .finally(() => {
+          if (latestQueryRef.current === trimmed) setLoading(false)
+        })
+    }, DEBOUNCE_MS)
+
     return () => clearTimeout(handle)
   }, [query])
 
