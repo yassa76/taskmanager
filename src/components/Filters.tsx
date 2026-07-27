@@ -2,6 +2,7 @@
 
 import clsx from 'clsx'
 import type { ClientDTO } from '@/types'
+import Combobox from './Combobox'
 
 export interface FilterState {
   view: 'all' | 'mine'
@@ -41,31 +42,23 @@ export default function Filters({
         ))}
       </div>
 
-      <select
+      <Combobox
         value={filters.clientId}
-        onChange={(e) => onChange({ ...filters, clientId: e.target.value })}
-        className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm"
-      >
-        <option value="">Tutti i clienti</option>
-        {clients.map((c) => (
-          <option key={c.id} value={c.id}>
-            {c.name}
-          </option>
-        ))}
-      </select>
+        onChange={(id) => onChange({ ...filters, clientId: id })}
+        options={clients.map((c) => ({ id: c.id, label: c.name }))}
+        emptyLabel="Tutti i clienti"
+        placeholder="Cerca cliente..."
+        className="w-48"
+      />
 
-      <select
+      <Combobox
         value={filters.ownerId}
-        onChange={(e) => onChange({ ...filters, ownerId: e.target.value })}
-        className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm"
-      >
-        <option value="">Tutti gli owner</option>
-        {owners.map((o) => (
-          <option key={o.id} value={o.id}>
-            {o.name}
-          </option>
-        ))}
-      </select>
+        onChange={(id) => onChange({ ...filters, ownerId: id })}
+        options={owners.map((o) => ({ id: o.id, label: o.name }))}
+        emptyLabel="Tutti gli owner"
+        placeholder="Cerca owner..."
+        className="w-48"
+      />
 
       <select
         value={filters.status}
