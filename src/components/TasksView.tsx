@@ -22,7 +22,6 @@ export default function TasksView() {
   const [team, setTeam] = useState<TeamMemberDTO[]>([])
   const [clients, setClients] = useState<ClientDTO[]>([])
   const [loading, setLoading] = useState(true)
-  // Filtri iniziali: possono arrivare dall'URL (es. click su un KPI in Home).
   const [filters, setFilters] = useState<FilterState>(() => ({
     view: searchParams.get('view') === 'mine' ? 'mine' : 'all',
     clientId: searchParams.get('clientId') || '',
@@ -112,9 +111,6 @@ export default function TasksView() {
     return arr
   }, [tasks, sortKey, sortDir])
 
-  // Il filtro "in ritardo" e' derivato (non e' una colonna sul DB), quindi si applica lato client.
-  // Per default nascondiamo i task completati/annullati, a meno che l'utente non abbia scelto
-  // esplicitamente quello stato dal filtro, o non abbia attivato "Mostra completati/annullati".
   const filteredTasks = useMemo(() => {
     let arr = sortedTasks
     if (!filters.status && !filters.includeClosed) {
@@ -141,17 +137,17 @@ export default function TasksView() {
   const pagedTasks = filteredTasks.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   async function deleteTask(t: TaskDTO) {
-    if (!confirm(`Eliminare il task "${t.title}" e tutti i suoi sub-task?`)) return
-    await fetch(`/api/tasks/${t.id}`, { method: 'DELETE' })
+    if (!confirm(`Eliminare il task "${t.title}"?`)) return
+    const res = await fetch(`/api/tasks/${t.id}`, { method: 'DELETE' })
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}))
+      alert(body.error || `Errore nell'eliminazione (status ${res.status})`)
+    }
     loadAll()
   }
 
   const [exporting, setExporting] = useState(false)
 
-  // Esporta SEMPRE tutti i task/sub-task, a prescindere dai filtri attivi in
-  // quel momento sullo schermo (view, cliente, owner, stato, ricerca, in
-  // ritardo, mostra completati/annullati): fa una chiamata dedicata senza
-  // alcun parametro di filtro.
   async function exportXls() {
     setExporting(true)
     try {
