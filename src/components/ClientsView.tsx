@@ -55,7 +55,7 @@ export default function ClientsView() {
       team
         .filter((t) => t.status !== 'inactive' && t.matchedUser)
         .map((t) => ({ id: t.matchedUser!.id, name: t.matchedUser!.name || t.email, email: t.email }))
-            .sort((a, b) => a.name.localeCompare(b.name))
+        .sort((a, b) => a.name.localeCompare(b.name))
     )
     setLoading(false)
   }
