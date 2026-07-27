@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut, useSession } from 'next-auth/react'
 import clsx from 'clsx'
+import GlobalSearch from './GlobalSearch'
 
 const links = [
   { href: '/home', label: 'Home' },
@@ -40,6 +41,9 @@ export default function NavBar() {
               </Link>
             ))}
           </nav>
+        </div>
+        <div className="hidden md:block">
+          <GlobalSearch />
         </div>
         <div className="flex items-center gap-3">
           {session?.user?.image && (
