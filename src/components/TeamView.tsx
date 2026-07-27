@@ -53,6 +53,9 @@ export default function TeamView() {
   const [savingEdit, setSavingEdit] = useState(false)
   const [page, setPage] = useState(1)
   const PAGE_SIZE = 20
+  const [search, setSearch] = useState('')
+  const [sortKey, setSortKey] = useState<'name' | 'email' | 'status' | 'role'>('name')
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
 
   async function load() {
     setLoading(true)
@@ -65,20 +68,62 @@ export default function TeamView() {
     load()
   }, [])
 
-  // Ordina per cognome (poi nome, poi email come fallback finale).
+  // Filtra per nome/email, poi ordina secondo la colonna scelta (default:
+  // cognome, poi nome, poi email come fallback finale).
+  const filteredMembers = useMemo(() => {
+    if (!search.trim()) return members
+    const q = search.trim().toLowerCase()
+    return members.filter(
+      (m) => (m.matchedUser?.name || '').toLowerCase().includes(q) || m.email.toLowerCase().includes(q)
+    )
+  }, [members, search])
+
   const sortedMembers = useMemo(() => {
-    const arr = [...members]
+    const arr = [...filteredMembers]
     arr.sort((a, b) => {
-      const lastA = (a.matchedUser?.lastName || '').toLowerCase()
-      const lastB = (b.matchedUser?.lastName || '').toLowerCase()
-      if (lastA !== lastB) return lastA < lastB ? -1 : 1
-      const firstA = (a.matchedUser?.firstName || '').toLowerCase()
-      const firstB = (b.matchedUser?.firstName || '').toLowerCase()
-      if (firstA !== firstB) return firstA < firstB ? -1 : 1
-      return a.email.toLowerCase() < b.email.toLowerCase() ? -1 : 1
+      let av = ''
+      let bv = ''
+      switch (sortKey) {
+        case 'name': {
+          const lastA = (a.matchedUser?.lastName || '').toLowerCase()
+          const lastB = (b.matchedUser?.lastName || '').toLowerCase()
+          if (lastA !== lastB) return sortDir === 'asc' ? (lastA < lastB ? -1 : 1) : lastA < lastB ? 1 : -1
+          const firstA = (a.matchedUser?.firstName || '').toLowerCase()
+          const firstB = (b.matchedUser?.firstName || '').toLowerCase()
+          if (firstA !== firstB) return sortDir === 'asc' ? (firstA < firstB ? -1 : 1) : firstA < firstB ? 1 : -1
+          av = a.email.toLowerCase()
+          bv = b.email.toLowerCase()
+          break
+        }
+        case 'email':
+          av = a.email.toLowerCase()
+          bv = b.email.toLowerCase()
+          break
+        case 'status':
+          av = a.status
+          bv = b.status
+          break
+        case 'role':
+          av = a.matchedUser?.role || 'normal'
+          bv = b.matchedUser?.role || 'normal'
+          break
+      }
+      if (av < bv) return sortDir === 'asc' ? -1 : 1
+      if (av > bv) return sortDir === 'asc' ? 1 : -1
+      return 0
     })
     return arr
-  }, [members])
+  }, [filteredMembers, sortKey, sortDir])
+
+  function toggleSort(key: typeof sortKey) {
+    if (sortKey === key) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
+    } else {
+      setSortKey(key)
+      setSortDir('asc')
+    }
+    setPage(1)
+  }
 
   const totalPages = Math.max(1, Math.ceil(sortedMembers.length / PAGE_SIZE))
   const pagedMembers = sortedMembers.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
@@ -86,6 +131,10 @@ export default function TeamView() {
   useEffect(() => {
     if (page > totalPages) setPage(totalPages)
   }, [totalPages, page])
+
+  useEffect(() => {
+    setPage(1)
+  }, [search])
 
   async function invite() {
     if (!firstName.trim() || !email.trim()) return
@@ -197,16 +246,43 @@ export default function TeamView() {
         </button>
       </div>
 
+      <div className="bg-white border border-slate-200 rounded-xl p-3 flex flex-wrap items-center gap-2 mb-4">
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Cerca per nome o email..."
+          className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm flex-1 min-w-[200px]"
+        />
+      </div>
+
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 border-b border-slate-200">
             <tr>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">
-                Nome e cognome
+              <th
+                onClick={() => toggleSort('name')}
+                className="cursor-pointer px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase hover:text-brand-600"
+              >
+                Nome e cognome {sortKey === 'name' ? (sortDir === 'asc' ? '▲' : '▼') : ''}
               </th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Email</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Stato</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Ruolo</th>
+              <th
+                onClick={() => toggleSort('email')}
+                className="cursor-pointer px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase hover:text-brand-600"
+              >
+                Email {sortKey === 'email' ? (sortDir === 'asc' ? '▲' : '▼') : ''}
+              </th>
+              <th
+                onClick={() => toggleSort('status')}
+                className="cursor-pointer px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase hover:text-brand-600"
+              >
+                Stato {sortKey === 'status' ? (sortDir === 'asc' ? '▲' : '▼') : ''}
+              </th>
+              <th
+                onClick={() => toggleSort('role')}
+                className="cursor-pointer px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase hover:text-brand-600"
+              >
+                Ruolo {sortKey === 'role' ? (sortDir === 'asc' ? '▲' : '▼') : ''}
+              </th>
               <th className="px-4 py-2 text-right text-xs font-semibold text-slate-500 uppercase">Azioni</th>
             </tr>
           </thead>
@@ -274,6 +350,13 @@ export default function TeamView() {
                   </td>
                 </tr>
               ))}
+            {!loading && sortedMembers.length === 0 && (
+              <tr>
+                <td colSpan={5} className="text-center py-6 text-slate-400">
+                  {members.length === 0 ? 'Nessuna persona nel team ancora.' : 'Nessuna persona trovata con questa ricerca.'}
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
