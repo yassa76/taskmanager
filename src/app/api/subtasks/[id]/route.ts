@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { deriveTaskStatus } from '@/lib/taskStatus'
 import { canEditRecord } from '@/lib/permissions'
+import { logActivity } from '@/lib/activityLog'
 import type { SubtaskDetailDTO } from '@/types'
 
 function toSubtaskDetailDTO(subtask: any): SubtaskDetailDTO {
@@ -48,7 +49,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
 
-  const existing = await prisma.subtask.findUnique({ where: { id: params.id } })
+  const existing = await prisma.subtask.findUnique({ where: { id: params.id }, include: { owner: true } })
   if (!existing) return NextResponse.json({ error: 'Sub-task non trovato' }, { status: 404 })
   if (!canEditRecord(session, existing.ownerId)) {
     return NextResponse.json({ error: 'Non hai i permessi per modificare questo sub-task' }, { status: 403 })
@@ -70,6 +71,30 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     },
     include: { owner: true, createdBy: true, task: { include: { subtasks: true, client: true } } }
   })
+
+  const actorId = (session.user as any).id
+
+  if (status !== undefined && status !== existing.status) {
+    await logActivity({
+      entityType: 'subtask',
+      entityId: subtask.id,
+      action: 'stato',
+      entityLabel: subtask.title,
+      detail: `${existing.status} → ${status}`,
+      userId: actorId
+    })
+  }
+
+  if (ownerId !== undefined && ownerId !== existing.ownerId) {
+    await logActivity({
+      entityType: 'subtask',
+      entityId: subtask.id,
+      action: 'owner',
+      entityLabel: subtask.title,
+      detail: `${existing.owner.name || existing.owner.email} → ${subtask.owner.name || subtask.owner.email}`,
+      userId: actorId
+    })
+  }
 
   // Se cambiando questo sotto-task NON tutti i fratelli sono piu' completati,
   // annulliamo un'eventuale chiusura manuale precedente del padre.
@@ -101,6 +126,14 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
   if (!canEditRecord(session, existing.ownerId)) {
     return NextResponse.json({ error: 'Non hai i permessi per eliminare questo sub-task' }, { status: 403 })
   }
+
+  await logActivity({
+    entityType: 'subtask',
+    entityId: existing.id,
+    action: 'eliminato',
+    entityLabel: existing.title,
+    userId: (session.user as any).id
+  })
 
   await prisma.subtask.delete({ where: { id: params.id } })
   return NextResponse.json({ ok: true })
