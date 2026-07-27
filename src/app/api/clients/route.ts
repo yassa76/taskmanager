@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { canCreate } from '@/lib/permissions'
 import { deriveTaskStatus } from '@/lib/taskStatus'
+import { logActivity } from '@/lib/activityLog'
 import type { ClientDTO } from '@/types'
 
 function toClientDTO(client: any): ClientDTO {
@@ -57,6 +58,8 @@ export async function POST(req: NextRequest) {
   const { name, description, industry, ownerId } = await req.json()
   if (!name) return NextResponse.json({ error: 'Nome obbligatorio' }, { status: 400 })
 
+  const alreadyExisted = !!(await prisma.client.findUnique({ where: { name } }))
+
   const client = await prisma.client.upsert({
     where: { name },
     update: {},
@@ -74,5 +77,16 @@ export async function POST(req: NextRequest) {
       tasks: { select: { closedManually: true, statusOverride: true, subtasks: { select: { status: true } } } }
     }
   })
+
+  if (!alreadyExisted) {
+    await logActivity({
+      entityType: 'client',
+      entityId: client.id,
+      action: 'creato',
+      entityLabel: client.name,
+      userId: (session.user as any).id
+    })
+  }
+
   return NextResponse.json(toClientDTO(client), { status: 201 })
 }
