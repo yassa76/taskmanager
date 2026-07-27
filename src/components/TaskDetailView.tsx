@@ -81,6 +81,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
   const owners = team
     .filter((t) => t.status !== 'inactive' && t.matchedUser)
     .map((t) => ({ id: t.matchedUser!.id, name: t.matchedUser!.name || t.email, email: t.email }))
+    .sort((a, b) => a.name.localeCompare(b.name))
 
   function openEditSubtask(s: SubtaskDTO) {
     setEditingSubtask(s)
