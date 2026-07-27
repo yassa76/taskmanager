@@ -5,6 +5,7 @@ import Link from 'next/link'
 import type { ClientDTO, TeamMemberDTO } from '@/types'
 import Breadcrumbs from './Breadcrumbs'
 import { EditIcon, DeleteIcon } from './icons'
+import Combobox from './Combobox'
 
 const INDUSTRIES = ['GPS', 'TMT', 'ER&I', 'FSI', 'CONS']
 
@@ -210,18 +211,14 @@ export default function ClientsView() {
             </option>
           ))}
         </select>
-        <select
+        <Combobox
           value={ownerFilter}
-          onChange={(e) => setOwnerFilter(e.target.value)}
-          className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm"
-        >
-          <option value="">Tutti gli owner</option>
-          {owners.map((o) => (
-            <option key={o.id} value={o.id}>
-              {o.name}
-            </option>
-          ))}
-        </select>
+          onChange={setOwnerFilter}
+          options={owners.map((o) => ({ id: o.id, label: o.name }))}
+          emptyLabel="Tutti gli owner"
+          placeholder="Cerca owner..."
+          className="w-48"
+        />
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -376,18 +373,14 @@ export default function ClientsView() {
                 </div>
                 <div>
                   <label className="text-xs font-medium text-slate-500">Owner</label>
-                  <select
+                  <Combobox
                     value={form.ownerId}
-                    onChange={(e) => setForm((f) => ({ ...f, ownerId: e.target.value }))}
-                    className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1"
-                  >
-                    <option value="">—</option>
-                    {owners.map((o) => (
-                      <option key={o.id} value={o.id}>
-                        {o.name}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(id) => setForm((f) => ({ ...f, ownerId: id }))}
+                    options={owners.map((o) => ({ id: o.id, label: o.name }))}
+                    emptyLabel="—"
+                    placeholder="Cerca owner..."
+                    className="mt-1"
+                  />
                 </div>
               </div>
             </div>
