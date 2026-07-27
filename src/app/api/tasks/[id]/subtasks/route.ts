@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { canEditRecord } from '@/lib/permissions'
+import { logActivity } from '@/lib/activityLog'
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
@@ -39,6 +40,14 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   if (task.closedManually) {
     await prisma.task.update({ where: { id: task.id }, data: { closedManually: false } })
   }
+
+  await logActivity({
+    entityType: 'subtask',
+    entityId: subtask.id,
+    action: 'creato',
+    entityLabel: subtask.title,
+    userId: (session.user as any).id
+  })
 
   return NextResponse.json(subtask, { status: 201 })
 }
