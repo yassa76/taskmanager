@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { deriveTaskStatus } from '@/lib/taskStatus'
 import { canCreate } from '@/lib/permissions'
+import { logActivity } from '@/lib/activityLog'
 import type { TaskDTO } from '@/types'
 
 function toTaskDTO(task: any): TaskDTO {
@@ -137,6 +138,23 @@ export async function POST(req: NextRequest) {
       subtasks: { include: { owner: true, createdBy: true } }
     }
   })
+
+  await logActivity({
+    entityType: 'task',
+    entityId: task.id,
+    action: 'creato',
+    entityLabel: task.title,
+    userId: (session.user as any).id
+  })
+  for (const s of task.subtasks) {
+    await logActivity({
+      entityType: 'subtask',
+      entityId: s.id,
+      action: 'creato',
+      entityLabel: s.title,
+      userId: (session.user as any).id
+    })
+  }
 
   return NextResponse.json(toTaskDTO(task), { status: 201 })
 }
