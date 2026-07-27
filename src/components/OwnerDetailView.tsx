@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import clsx from 'clsx'
+import Combobox from './Combobox'
 import { STATUS_COLORS, STATUS_LABELS } from '@/lib/taskStatus'
 import Breadcrumbs from './Breadcrumbs'
 
@@ -95,7 +96,9 @@ export default function OwnerDetailView({ ownerId }: { ownerId: string }) {
     if (!data) return []
     const map = new Map<string, string>()
     data.tasks.forEach((t) => t.clientId && t.clientName && map.set(t.clientId, t.clientName))
-    return Array.from(map.entries()).map(([id, name]) => ({ id, name }))
+    return Array.from(map.entries())
+      .map(([id, name]) => ({ id, name }))
+      .sort((a, b) => a.name.localeCompare(b.name))
   }, [data])
 
   const filteredTasks = useMemo(() => {
@@ -120,7 +123,9 @@ export default function OwnerDetailView({ ownerId }: { ownerId: string }) {
     if (!data) return []
     const map = new Map<string, string>()
     data.subtasks.forEach((s) => s.clientId && s.clientName && map.set(s.clientId, s.clientName))
-    return Array.from(map.entries()).map(([id, name]) => ({ id, name }))
+    return Array.from(map.entries())
+      .map(([id, name]) => ({ id, name }))
+      .sort((a, b) => a.name.localeCompare(b.name))
   }, [data])
 
   const visibleSubtasks = useMemo(() => {
@@ -203,18 +208,14 @@ export default function OwnerDetailView({ ownerId }: { ownerId: string }) {
             <option value="completato">Completato</option>
             <option value="annullato">Annullato</option>
           </select>
-          <select
+          <Combobox
             value={clientFilter}
-            onChange={(e) => setClientFilter(e.target.value)}
-            className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm"
-          >
-            <option value="">Tutti i clienti</option>
-            {clientOptions.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+            onChange={setClientFilter}
+            options={clientOptions.map((c) => ({ id: c.id, label: c.name }))}
+            emptyLabel="Tutti i clienti"
+            placeholder="Cerca cliente..."
+            className="w-48"
+          />
           <button
             onClick={() => setOverdueOnly((v) => !v)}
             className={clsx(
@@ -321,18 +322,14 @@ export default function OwnerDetailView({ ownerId }: { ownerId: string }) {
             <option value="completato">Completato</option>
             <option value="annullato">Annullato</option>
           </select>
-          <select
+          <Combobox
             value={subClientFilter}
-            onChange={(e) => setSubClientFilter(e.target.value)}
-            className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm"
-          >
-            <option value="">Tutti i clienti</option>
-            {subtaskClientOptions.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+            onChange={setSubClientFilter}
+            options={subtaskClientOptions.map((c) => ({ id: c.id, label: c.name }))}
+            emptyLabel="Tutti i clienti"
+            placeholder="Cerca cliente..."
+            className="w-48"
+          />
           <button
             onClick={() => setSubOverdueOnly((v) => !v)}
             className={clsx(
