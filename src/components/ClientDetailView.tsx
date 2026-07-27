@@ -438,8 +438,10 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
             setEditingTask(null)
             load()
           }}
-        />
+    />
       )}
+
+      <ActivityLogPanel entityType="client" entityId={client.id} />
     </div>
   )
 }
