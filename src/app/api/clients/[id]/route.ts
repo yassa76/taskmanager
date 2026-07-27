@@ -22,6 +22,7 @@ function toClientDTO(client: any): ClientDTO {
     name: client.name,
     description: client.description,
     industry: client.industry,
+    status: client.status,
     owner: client.owner
       ? { id: client.owner.id, name: client.owner.name, email: client.owner.email }
       : null,
@@ -65,7 +66,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   }
 
   const body = await req.json()
-  const { name, description, industry, ownerId } = body
+  const { name, description, industry, ownerId, status } = body
 
   const client = await prisma.client.update({
     where: { id: params.id },
@@ -73,10 +74,22 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       ...(name !== undefined ? { name } : {}),
       ...(description !== undefined ? { description: description || null } : {}),
       ...(industry !== undefined ? { industry: industry || null } : {}),
+      ...(status !== undefined ? { status } : {}),
       ...(ownerId !== undefined ? { ownerId: ownerId || null } : {})
     },
     include: clientInclude
   })
+
+  if (status !== undefined && status !== existing.status) {
+    await logActivity({
+      entityType: 'client',
+      entityId: client.id,
+      action: 'stato',
+      entityLabel: client.name,
+      detail: `${existing.status} → ${status}`,
+      userId: (session.user as any).id
+    })
+  }
 
   if (ownerId !== undefined && (ownerId || null) !== existing.ownerId) {
     await logActivity({
@@ -103,6 +116,16 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
   if (!existing) return NextResponse.json({ error: 'Cliente non trovato' }, { status: 404 })
   if (!canEditRecord(session, existing.ownerId)) {
     return NextResponse.json({ error: 'Non hai i permessi per eliminare questo cliente' }, { status: 403 })
+  }
+
+  const taskCount = await prisma.task.count({ where: { clientId: params.id } })
+  if (taskCount > 0) {
+    return NextResponse.json(
+      {
+        error: `Non puoi eliminare questo cliente: ha ${taskCount} task associati (anche completati o annullati). Imposta lo stato su "Inattivo" invece, per non perdere lo storico.`
+      },
+      { status: 409 }
+    )
   }
 
   await logActivity({
