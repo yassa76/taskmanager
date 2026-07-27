@@ -11,6 +11,7 @@ import TaskFormModal from './TaskFormModal'
 import Combobox from './Combobox'
 import CloseParentModal from './CloseParentModal'
 import Breadcrumbs from './Breadcrumbs'
+import ActivityLogPanel from './ActivityLogPanel'
 import { EditIcon, DeleteIcon } from './icons'
 
 export default function TaskDetailView({ taskId }: { taskId: string }) {
