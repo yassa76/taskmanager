@@ -93,6 +93,7 @@ model Client {
   name        String    @unique
   description String?
   industry    String?   // "GPS" | "TMT" | "ER&I" | "FSI" | "CONS"
+  status      String    @default("attivo") // "attivo" | "inattivo": se inattivo, non selezionabile per nuovi task
   ownerId     String?
   owner       User?     @relation("ClientOwner", fields: [ownerId], references: [id])
   projects    Project[]
