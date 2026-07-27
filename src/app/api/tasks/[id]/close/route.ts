@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { logActivity } from '@/lib/activityLog'
 
 // Chiamato quando l'utente conferma "Sì, chiudi anche il task padre"
 // dopo che tutti i sotto-task sono stati completati.
@@ -30,6 +31,17 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     where: { id: params.id },
     data: { closedManually: confirm }
   })
+
+  if (confirm) {
+    await logActivity({
+      entityType: 'task',
+      entityId: task.id,
+      action: 'stato',
+      entityLabel: task.title,
+      detail: 'Chiuso manualmente (tutti i sotto-task completati)',
+      userId: (session.user as any).id
+    })
+  }
 
   return NextResponse.json(updated)
 }
