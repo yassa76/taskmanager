@@ -68,6 +68,7 @@ export default function TaskFormModal({
       name: created.name,
       description: created.description ?? null,
       industry: created.industry ?? null,
+      status: created.status ?? 'attivo',
       owner: created.owner ?? null,
       projects: [],
       activeTasksCount: 0,
@@ -222,7 +223,12 @@ export default function TaskFormModal({
               <Combobox
                 value={clientId}
                 onChange={setClientId}
-                options={clients.map((c) => ({ id: c.id, label: c.name }))}
+                options={clients
+                  .filter((c) => c.status !== 'inattivo' || c.id === clientId)
+                  .map((c) => ({
+                    id: c.id,
+                    label: c.status === 'inattivo' ? `${c.name} (inattivo)` : c.name
+                  }))}
                 emptyLabel="— Nessun cliente —"
                 placeholder="Cerca cliente..."
                 className="mt-1"
