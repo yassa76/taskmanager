@@ -612,6 +612,8 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
           onDismiss={() => setPendingClose(false)}
         />
       )}
+
+      <ActivityLogPanel entityType="task" entityId={task.id} />
     </div>
   )
 }
