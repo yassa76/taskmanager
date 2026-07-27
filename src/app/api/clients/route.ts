@@ -22,6 +22,7 @@ function toClientDTO(client: any): ClientDTO {
     name: client.name,
     description: client.description,
     industry: client.industry,
+    status: client.status,
     owner: client.owner
       ? { id: client.owner.id, name: client.owner.name, email: client.owner.email }
       : null,
@@ -55,7 +56,7 @@ export async function POST(req: NextRequest) {
   if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
   if (!canCreate(session)) return NextResponse.json({ error: 'Utente in sola lettura' }, { status: 403 })
 
-  const { name, description, industry, ownerId } = await req.json()
+  const { name, description, industry, ownerId, status } = await req.json()
   if (!name) return NextResponse.json({ error: 'Nome obbligatorio' }, { status: 400 })
 
   const alreadyExisted = !!(await prisma.client.findUnique({ where: { name } }))
@@ -67,6 +68,7 @@ export async function POST(req: NextRequest) {
       name,
       description: description || null,
       industry: industry || null,
+      status: status === 'inattivo' ? 'inattivo' : 'attivo',
       ownerId: ownerId || null,
       createdById: (session.user as any).id
     },
