@@ -72,6 +72,8 @@ model User {
   createdTasks    Task[]    @relation("TaskCreatedBy")
   createdSubtasks Subtask[] @relation("SubtaskCreatedBy")
   createdClients  Client[]  @relation("ClientCreatedBy")
+
+  activityLogs ActivityLog[]
 }
 
 // Elenco email del team, gestito dagli admin. Quando un utente si registra
