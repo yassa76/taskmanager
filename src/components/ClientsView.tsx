@@ -22,10 +22,11 @@ interface ClientFormState {
   name: string
   description: string
   industry: string
+  status: 'attivo' | 'inattivo'
   ownerId: string
 }
 
-const emptyForm: ClientFormState = { name: '', description: '', industry: '', ownerId: '' }
+const emptyForm: ClientFormState = { name: '', description: '', industry: '', status: 'attivo', ownerId: '' }
 
 export default function ClientsView() {
   const [clients, setClients] = useState<ClientDTO[]>([])
@@ -43,6 +44,7 @@ export default function ClientsView() {
   const [search, setSearch] = useState('')
   const [industryFilter, setIndustryFilter] = useState('')
   const [ownerFilter, setOwnerFilter] = useState('')
+  const [statusFilter, setStatusFilter] = useState('')
 
   async function load() {
     setLoading(true)
@@ -53,7 +55,7 @@ export default function ClientsView() {
       team
         .filter((t) => t.status !== 'inactive' && t.matchedUser)
         .map((t) => ({ id: t.matchedUser!.id, name: t.matchedUser!.name || t.email, email: t.email }))
-        .sort((a, b) => a.name.localeCompare(b.name))
+            .sort((a, b) => a.name.localeCompare(b.name))
     )
     setLoading(false)
   }
@@ -67,7 +69,8 @@ export default function ClientsView() {
       .filter((c) => !search || c.name.toLowerCase().includes(search.toLowerCase()))
       .filter((c) => !industryFilter || c.industry === industryFilter)
       .filter((c) => !ownerFilter || c.owner?.id === ownerFilter)
-  }, [clients, search, industryFilter, ownerFilter])
+      .filter((c) => !statusFilter || c.status === statusFilter)
+  }, [clients, search, industryFilter, ownerFilter, statusFilter])
 
   const sortedClients = useMemo(() => {
     const arr = [...filteredClients]
@@ -97,7 +100,7 @@ export default function ClientsView() {
 
   useEffect(() => {
     setPage(1)
-  }, [search, industryFilter, ownerFilter])
+  }, [search, industryFilter, ownerFilter, statusFilter])
 
   function toggleSort(key: SortKey) {
     if (sortKey === key) {
@@ -124,6 +127,7 @@ export default function ClientsView() {
       name: c.name,
       description: c.description || '',
       industry: c.industry || '',
+      status: c.status,
       ownerId: c.owner?.id || ''
     })
     setShowForm(true)
@@ -136,6 +140,7 @@ export default function ClientsView() {
       name: form.name.trim(),
       description: form.description.trim() || null,
       industry: form.industry || null,
+      status: form.status,
       ownerId: form.ownerId || null
     }
     if (editingId) {
@@ -161,10 +166,14 @@ export default function ClientsView() {
   async function deleteClient(c: ClientDTO) {
     const confirmMsg =
       c.projects.length > 0
-        ? `Eliminare "${c.name}"? Verranno eliminati anche i suoi ${c.projects.length} progetti collegati. I task esistenti non verranno cancellati ma perderanno il riferimento a questo cliente.`
+        ? `Eliminare "${c.name}"? Verranno eliminati anche i suoi ${c.projects.length} progetti collegati.`
         : `Eliminare il cliente "${c.name}"?`
     if (!confirm(confirmMsg)) return
-    await fetch(`/api/clients/${c.id}`, { method: 'DELETE' })
+    const res = await fetch(`/api/clients/${c.id}`, { method: 'DELETE' })
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}))
+      alert(body.error || `Errore nell'eliminazione (status ${res.status})`)
+    }
     load()
   }
 
@@ -211,6 +220,15 @@ export default function ClientsView() {
             </option>
           ))}
         </select>
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm"
+        >
+          <option value="">Tutti gli stati</option>
+          <option value="attivo">Attivo</option>
+          <option value="inattivo">Inattivo</option>
+        </select>
         <Combobox
           value={ownerFilter}
           onChange={setOwnerFilter}
@@ -233,6 +251,7 @@ export default function ClientsView() {
             <tr>
               <SortHeader label="Nome" k="name" />
               <SortHeader label="Industry" k="industry" />
+              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Stato</th>
               <SortHeader label="Owner" k="owner" />
               <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Task attivi</th>
               <th className="px-4 py-2 text-right text-xs font-semibold text-slate-500 uppercase">Azioni</th>
@@ -241,7 +260,7 @@ export default function ClientsView() {
           <tbody>
             {loading && (
               <tr>
-                <td colSpan={5} className="text-center py-8 text-slate-400">
+                <td colSpan={6} className="text-center py-8 text-slate-400">
                   Caricamento...
                 </td>
               </tr>
@@ -261,6 +280,17 @@ export default function ClientsView() {
                       </span>
                     )}
                     {!c.industry && <span className="text-slate-300">—</span>}
+                  </td>
+                  <td className="px-4 py-2">
+                    <span
+                      className={
+                        c.status === 'inattivo'
+                          ? 'px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700'
+                          : 'px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700'
+                      }
+                    >
+                      {c.status === 'inattivo' ? 'Inattivo' : 'Attivo'}
+                    </span>
                   </td>
                   <td className="px-4 py-2">
                     {c.owner ? (
@@ -296,7 +326,7 @@ export default function ClientsView() {
               ))}
             {!loading && sortedClients.length === 0 && (
               <tr>
-                <td colSpan={5} className="text-center py-8 text-slate-400">
+                <td colSpan={6} className="text-center py-8 text-slate-400">
                   {clients.length === 0
                     ? 'Nessun cliente ancora. Aggiungine uno con il pulsante sopra.'
                     : 'Nessun cliente trovato con questi filtri.'}
@@ -381,6 +411,20 @@ export default function ClientsView() {
                     placeholder="Cerca owner..."
                     className="mt-1"
                   />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-slate-500">Stato</label>
+                  <select
+                    value={form.status}
+                    onChange={(e) => setForm((f) => ({ ...f, status: e.target.value as 'attivo' | 'inattivo' }))}
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1"
+                  >
+                    <option value="attivo">Attivo</option>
+                    <option value="inattivo">Inattivo</option>
+                  </select>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Se inattivo, non sarà selezionabile per nuovi task.
+                  </p>
                 </div>
               </div>
             </div>
