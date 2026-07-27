@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import type { ClientDTO, TaskDTO } from '@/types'
+import Combobox from './Combobox'
 
 interface OwnerLite {
   id: string
@@ -178,17 +179,13 @@ export default function TaskFormModal({
           </div>
           <div>
             <label className="text-xs font-medium text-slate-500">Owner *</label>
-            <select
+            <Combobox
               value={ownerId}
-              onChange={(e) => setOwnerId(e.target.value)}
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1"
-            >
-              {owners.map((o) => (
-                <option key={o.id} value={o.id}>
-                  {o.name}
-                </option>
-              ))}
-            </select>
+              onChange={setOwnerId}
+              options={owners.map((o) => ({ id: o.id, label: o.name }))}
+              placeholder="Cerca owner..."
+              className="mt-1"
+            />
           </div>
           {isEditing && (
             <div>
@@ -222,18 +219,14 @@ export default function TaskFormModal({
               </button>
             </div>
             {!showNewClient && (
-              <select
+              <Combobox
                 value={clientId}
-                onChange={(e) => setClientId(e.target.value)}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1"
-              >
-                <option value="">— Nessun cliente —</option>
-                {clients.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
+                onChange={setClientId}
+                options={clients.map((c) => ({ id: c.id, label: c.name }))}
+                emptyLabel="— Nessun cliente —"
+                placeholder="Cerca cliente..."
+                className="mt-1"
+              />
             )}
             {showNewClient && (
               <div className="flex gap-2 mt-1">
@@ -276,17 +269,13 @@ export default function TaskFormModal({
                       placeholder="Descrizione attività"
                       className="flex-1 min-w-[160px] border border-slate-200 rounded-lg px-3 py-1.5 text-sm"
                     />
-                    <select
+                    <Combobox
                       value={s.ownerId}
-                      onChange={(e) => updateSubtask(i, 'ownerId', e.target.value)}
-                      className="border border-slate-200 rounded-lg px-2 py-1.5 text-sm"
-                    >
-                      {owners.map((o) => (
-                        <option key={o.id} value={o.id}>
-                          {o.name}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(id) => updateSubtask(i, 'ownerId', id)}
+                      options={owners.map((o) => ({ id: o.id, label: o.name }))}
+                      placeholder="Cerca owner..."
+                      className="w-36"
+                    />
                     <input
                       type="date"
                       value={s.endDate}
