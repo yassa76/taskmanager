@@ -30,7 +30,7 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
 
   const [showEditForm, setShowEditForm] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [form, setForm] = useState({ name: '', description: '', industry: '', ownerId: '' })
+  const [form, setForm] = useState({ name: '', description: '', industry: '', status: 'attivo', ownerId: '' })
 
   const [showTaskForm, setShowTaskForm] = useState(false)
   const [editingTask, setEditingTask] = useState<TaskDTO | null>(null)
@@ -61,6 +61,7 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
         name: clientData.name,
         description: clientData.description || '',
         industry: clientData.industry || '',
+        status: clientData.status,
         ownerId: clientData.owner?.id || ''
       })
       setTasks(tasksRes.ok ? await tasksRes.json() : [])
@@ -100,6 +101,7 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
         name: form.name.trim(),
         description: form.description.trim() || null,
         industry: form.industry || null,
+        status: form.status,
         ownerId: form.ownerId || null
       })
     })
@@ -109,8 +111,12 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
   }
 
   async function deleteTask(t: TaskDTO) {
-    if (!confirm(`Eliminare il task "${t.title}" e tutti i suoi sub-task?`)) return
-    await fetch(`/api/tasks/${t.id}`, { method: 'DELETE' })
+    if (!confirm(`Eliminare il task "${t.title}"?`)) return
+    const res = await fetch(`/api/tasks/${t.id}`, { method: 'DELETE' })
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}))
+      alert(body.error || `Errore nell'eliminazione (status ${res.status})`)
+    }
     load()
   }
 
@@ -149,6 +155,15 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
                   {client.industry}
                 </span>
               )}
+              <span
+                className={
+                  client.status === 'inattivo'
+                    ? 'px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700'
+                    : 'px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700'
+                }
+              >
+                {client.status === 'inattivo' ? 'Inattivo' : 'Attivo'}
+              </span>
             </div>
             <p className="text-xs text-slate-400">
               Creato
@@ -201,15 +216,21 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
         <div className="px-5 py-3 border-b border-slate-200 flex items-center justify-between flex-wrap gap-2">
           <h2 className="font-semibold text-slate-800">Task associati</h2>
-          <button
-            onClick={() => {
-              setEditingTask(null)
-              setShowTaskForm(true)
-            }}
-            className="px-3 py-1.5 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700"
-          >
-            + Nuovo Task
-          </button>
+          {client.status === 'inattivo' ? (
+            <span className="text-xs text-slate-400" title="Riattiva il cliente per poter aggiungere nuovi task">
+              Cliente inattivo: nuovi task non consentiti
+            </span>
+          ) : (
+            <button
+              onClick={() => {
+                setEditingTask(null)
+                setShowTaskForm(true)
+              }}
+              className="px-3 py-1.5 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700"
+            >
+              + Nuovo Task
+            </button>
+          )}
         </div>
 
         <div className="p-3 border-b border-slate-100 flex flex-wrap gap-2 items-center">
@@ -402,6 +423,18 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
                     className="mt-1"
                   />
                 </div>
+                <div>
+                  <label className="text-xs font-medium text-slate-500">Stato</label>
+                  <select
+                    value={form.status}
+                    onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))}
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1"
+                  >
+                    <option value="attivo">Attivo</option>
+                    <option value="inattivo">Inattivo</option>
+                  </select>
+                  <p className="text-xs text-slate-400 mt-1">Se inattivo, non sarà selezionabile per nuovi task.</p>
+                </div>
               </div>
             </div>
             <div className="flex justify-end gap-2 mt-6">
@@ -438,7 +471,7 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
             setEditingTask(null)
             load()
           }}
-    />
+        />
       )}
 
       <ActivityLogPanel entityType="client" entityId={client.id} />
