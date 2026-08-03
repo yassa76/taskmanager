@@ -10,6 +10,7 @@ import type { TaskDTO, TeamMemberDTO, ClientDTO } from '@/types'
 import TaskFormModal from './TaskFormModal'
 import Filters, { FilterState } from './Filters'
 import Breadcrumbs from './Breadcrumbs'
+import TasksKanban from './TasksKanban'
 import { EditIcon, DeleteIcon } from './icons'
 
 type SortKey = 'title' | 'clientName' | 'owner' | 'startDate' | 'endDate' | 'status'
@@ -22,6 +23,7 @@ export default function TasksView() {
   const [team, setTeam] = useState<TeamMemberDTO[]>([])
   const [clients, setClients] = useState<ClientDTO[]>([])
   const [loading, setLoading] = useState(true)
+  // Filtri iniziali: possono arrivare dall'URL (es. click su un KPI in Home).
   const [filters, setFilters] = useState<FilterState>(() => ({
     view: searchParams.get('view') === 'mine' ? 'mine' : 'all',
     clientId: searchParams.get('clientId') || '',
@@ -37,6 +39,19 @@ export default function TasksView() {
   const [editingTask, setEditingTask] = useState<TaskDTO | null>(null)
   const [page, setPage] = useState(1)
   const PAGE_SIZE = 20
+  const [viewMode, setViewMode] = useState<'table' | 'kanban'>('table')
+
+  // Ripristina la vista scelta in precedenza (Tabella/Kanban), cosi' resta
+  // valida anche navigando su altre pagine e tornando qui.
+  useEffect(() => {
+    const saved = typeof window !== 'undefined' ? localStorage.getItem('tasksViewMode') : null
+    if (saved === 'table' || saved === 'kanban') setViewMode(saved)
+  }, [])
+
+  function changeViewMode(v: 'table' | 'kanban') {
+    setViewMode(v)
+    if (typeof window !== 'undefined') localStorage.setItem('tasksViewMode', v)
+  }
 
   const loadAll = useCallback(async () => {
     setLoading(true)
@@ -111,6 +126,9 @@ export default function TasksView() {
     return arr
   }, [tasks, sortKey, sortDir])
 
+  // Il filtro "in ritardo" e' derivato (non e' una colonna sul DB), quindi si applica lato client.
+  // Per default nascondiamo i task completati/annullati, a meno che l'utente non abbia scelto
+  // esplicitamente quello stato dal filtro, o non abbia attivato "Mostra completati/annullati".
   const filteredTasks = useMemo(() => {
     let arr = sortedTasks
     if (!filters.status && !filters.includeClosed) {
@@ -146,8 +164,29 @@ export default function TasksView() {
     loadAll()
   }
 
+  // Trascinamento tra colonne nella vista Kanban: imposta lo stato come
+  // override manuale, stesso meccanismo gia' usato dal form di modifica.
+  async function changeTaskStatus(taskId: string, newStatus: string) {
+    const task = tasks.find((t) => t.id === taskId)
+    if (!task || task.status === newStatus) return
+    // Aggiornamento ottimistico: aggiorna subito la UI, poi conferma col server.
+    setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, status: newStatus as TaskDTO['status'] } : t)))
+    const res = await fetch(`/api/tasks/${taskId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: newStatus })
+    })
+    if (!res.ok) {
+      loadAll() // qualcosa e' andato storto, ricarica per tornare allo stato reale
+    }
+  }
+
   const [exporting, setExporting] = useState(false)
 
+  // Esporta SEMPRE tutti i task/sub-task, a prescindere dai filtri attivi in
+  // quel momento sullo schermo (view, cliente, owner, stato, ricerca, in
+  // ritardo, mostra completati/annullati): fa una chiamata dedicata senza
+  // alcun parametro di filtro.
   async function exportXls() {
     setExporting(true)
     try {
@@ -204,7 +243,21 @@ export default function TasksView() {
       <Breadcrumbs items={[{ label: 'Task' }]} />
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <h1 className="text-xl font-bold text-slate-800">Task</h1>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
+          <div className="flex bg-slate-100 rounded-lg p-1">
+            {(['table', 'kanban'] as const).map((v) => (
+              <button
+                key={v}
+                onClick={() => changeViewMode(v)}
+                className={clsx(
+                  'px-3 py-1.5 rounded-md text-sm font-medium transition',
+                  viewMode === v ? 'bg-white shadow text-brand-700' : 'text-slate-500'
+                )}
+              >
+                {v === 'table' ? '☰ Tabella' : '▦ Kanban'}
+              </button>
+            ))}
+          </div>
           <button
             onClick={loadAll}
             className="px-4 py-2 rounded-lg border border-slate-300 text-sm font-medium text-slate-700 hover:bg-slate-100"
@@ -232,6 +285,12 @@ export default function TasksView() {
 
       <Filters filters={filters} onChange={setFilters} clients={clients} owners={owners} />
 
+      {viewMode === 'kanban' ? (
+        <div className="mt-4">
+          <TasksKanban tasks={filteredTasks} showCancelled={filters.includeClosed} onStatusChange={changeTaskStatus} />
+        </div>
+      ) : (
+        <>
       <div className="mt-4 bg-white rounded-xl border border-slate-200 overflow-x-auto shadow-sm">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 border-b border-slate-200">
@@ -361,6 +420,8 @@ export default function TasksView() {
             </button>
           </div>
         </div>
+      )}
+        </>
       )}
 
       {showForm && (
