@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { cookies } from 'next/headers'
+
+export const runtime = 'nodejs'
 
 export const size = { width: 32, height: 32 }
 export const contentType = 'image/png'
@@ -16,18 +16,10 @@ const THEME_COLORS: Record<string, string> = {
   pink: '#db2777'
 }
 
-export default async function Icon() {
-  let color = THEME_COLORS.blue
-  try {
-    const session = await getServerSession(authOptions)
-    if (session?.user) {
-      const userId = (session.user as any).id
-      const user = await prisma.user.findUnique({ where: { id: userId }, select: { themeColor: true } })
-      color = THEME_COLORS[user?.themeColor || 'blue'] || THEME_COLORS.blue
-    }
-  } catch {
-    // Se qualcosa va storto (utente non loggato, errore DB) usiamo il blu di default.
-  }
+export default function Icon() {
+  const cookieStore = cookies()
+  const themeCookie = cookieStore.get('themeColor')?.value
+  const color = THEME_COLORS[themeCookie || 'blue'] || THEME_COLORS.blue
 
   return new ImageResponse(
     (
