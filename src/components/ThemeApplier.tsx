@@ -13,6 +13,7 @@ export default function ThemeApplier() {
     } else {
       document.documentElement.setAttribute('data-theme', theme)
     }
+    document.cookie = `themeColor=${theme}; path=/; max-age=31536000; SameSite=Lax`
   }, [session])
 
   return null
