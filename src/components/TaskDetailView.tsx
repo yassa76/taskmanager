@@ -443,7 +443,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
           </tbody>
         </table>
 
-        {visibleSubtasks.length > SUB_PAGE_SIZE && (
+                {visibleSubtasks.length > SUB_PAGE_SIZE && (
           <div className="flex items-center justify-between px-4 py-2 border-t border-slate-100 text-xs text-slate-500">
             <span>
               {visibleSubtasks.length} sub-task — pagina {subPage} di {subTotalPages}
@@ -466,8 +466,10 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
             </div>
           </div>
         )}
+      </div>
 
-        <div className="flex gap-2 p-4 border-t border-slate-100 flex-wrap">
+      <div className="bg-white border border-slate-200 rounded-xl shadow-sm mt-3">
+        <div className="flex gap-2 p-4 flex-wrap">
           <input
             value={newSubtaskTitle}
             onChange={(e) => setNewSubtaskTitle(e.target.value)}
