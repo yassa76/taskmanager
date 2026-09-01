@@ -34,7 +34,16 @@ export default function Icon() {
           justifyContent: 'center'
         }}
       >
-        <span style={{ color: 'white', fontSize: 20, fontWeight: 700, lineHeight: 1 }}>✓</span>
+        <div
+          style={{
+            width: 12,
+            height: 7,
+            borderLeft: '3px solid white',
+            borderBottom: '3px solid white',
+            transform: 'rotate(-45deg)',
+            marginTop: -2
+          }}
+        />
       </div>
     ),
     { ...size }
