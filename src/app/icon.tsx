@@ -2,6 +2,10 @@ import { ImageResponse } from 'next/og'
 import { cookies } from 'next/headers'
 
 export const runtime = 'nodejs'
+// Impedisce del tutto la cache (CDN e browser): questa immagine è diversa
+// per ogni persona in base al cookie del tema, quindi non va mai condivisa
+// tra utenti diversi né riutilizzata da una richiesta all'altra.
+export const dynamic = 'force-dynamic'
 
 export const size = { width: 32, height: 32 }
 export const contentType = 'image/png'
@@ -46,6 +50,11 @@ export default function Icon() {
         />
       </div>
     ),
-    { ...size }
+    {
+      ...size,
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0'
+      }
+    }
   )
 }
