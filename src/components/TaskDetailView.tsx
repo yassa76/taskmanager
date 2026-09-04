@@ -412,14 +412,39 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
           />
         </div>
 
-        <table className="w-full text-sm">
+                <table className="w-full text-sm">
           <thead className="bg-slate-50 border-b border-slate-200">
             <tr>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Nome</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Owner</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Data inizio</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Data scadenza</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Stato</th>
+              <th
+                onClick={() => toggleSubSort('title')}
+                className="cursor-pointer px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase hover:text-brand-600"
+              >
+                Nome {subSortKey === 'title' ? (subSortDir === 'asc' ? '▲' : '▼') : ''}
+              </th>
+              <th
+                onClick={() => toggleSubSort('owner')}
+                className="cursor-pointer px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase hover:text-brand-600"
+              >
+                Owner {subSortKey === 'owner' ? (subSortDir === 'asc' ? '▲' : '▼') : ''}
+              </th>
+              <th
+                onClick={() => toggleSubSort('startDate')}
+                className="cursor-pointer px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase hover:text-brand-600"
+              >
+                Data inizio {subSortKey === 'startDate' ? (subSortDir === 'asc' ? '▲' : '▼') : ''}
+              </th>
+              <th
+                onClick={() => toggleSubSort('endDate')}
+                className="cursor-pointer px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase hover:text-brand-600"
+              >
+                Data scadenza {subSortKey === 'endDate' ? (subSortDir === 'asc' ? '▲' : '▼') : ''}
+              </th>
+              <th
+                onClick={() => toggleSubSort('status')}
+                className="cursor-pointer px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase hover:text-brand-600"
+              >
+                Stato {subSortKey === 'status' ? (subSortDir === 'asc' ? '▲' : '▼') : ''}
+              </th>
               <th className="px-4 py-2 text-right text-xs font-semibold text-slate-500 uppercase">Azioni</th>
             </tr>
           </thead>
