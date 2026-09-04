@@ -192,7 +192,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
   if (error) return <p className="text-red-500">{error}</p>
   if (!task) return <p className="text-slate-400">Task non trovato.</p>
 
-  const visibleSubtasks = task.subtasks
+    const visibleSubtasks = task.subtasks
     .filter((s) =>
       subStatusFilter
         ? s.status === subStatusFilter
@@ -202,6 +202,35 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
       (s) => !subOverdueOnly || (s.endDate && new Date(s.endDate) < new Date() && s.status !== 'completato' && s.status !== 'annullato')
     )
     .filter((s) => !subSearch || s.title.toLowerCase().includes(subSearch.toLowerCase()))
+    .sort((a, b) => {
+      let av = ''
+      let bv = ''
+      switch (subSortKey) {
+        case 'title':
+          av = a.title.toLowerCase()
+          bv = b.title.toLowerCase()
+          break
+        case 'owner':
+          av = (a.owner.name || a.owner.email).toLowerCase()
+          bv = (b.owner.name || b.owner.email).toLowerCase()
+          break
+        case 'startDate':
+          av = a.startDate || ''
+          bv = b.startDate || ''
+          break
+        case 'endDate':
+          av = a.endDate || ''
+          bv = b.endDate || ''
+          break
+        case 'status':
+          av = a.status
+          bv = b.status
+          break
+      }
+      if (av < bv) return subSortDir === 'asc' ? -1 : 1
+      if (av > bv) return subSortDir === 'asc' ? 1 : -1
+      return 0
+    })
 
   const subTotalPages = Math.max(1, Math.ceil(visibleSubtasks.length / SUB_PAGE_SIZE))
   const pagedSubtasks = visibleSubtasks.slice((subPage - 1) * SUB_PAGE_SIZE, subPage * SUB_PAGE_SIZE)
