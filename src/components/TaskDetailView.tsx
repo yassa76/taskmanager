@@ -44,6 +44,18 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
   const [subIncludeClosed, setSubIncludeClosed] = useState(false)
   const [subPage, setSubPage] = useState(1)
   const SUB_PAGE_SIZE = 10
+  const [subSortKey, setSubSortKey] = useState<'title' | 'owner' | 'startDate' | 'endDate' | 'status'>('endDate')
+  const [subSortDir, setSubSortDir] = useState<'asc' | 'desc'>('asc')
+
+  function toggleSubSort(key: typeof subSortKey) {
+    if (subSortKey === key) {
+      setSubSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
+    } else {
+      setSubSortKey(key)
+      setSubSortDir('asc')
+    }
+    setSubPage(1)
+  }
 
   const load = useCallback(async () => {
     setLoading(true)
