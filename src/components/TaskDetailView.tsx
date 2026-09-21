@@ -468,7 +468,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
                       {s.owner.name || s.owner.email}
                     </Link>
                   </td>
-                  <td className="px-4 py-2 text-slate-700">{s.startDate ? s.startDate.slice(0, 10) : '—'}</td>
+                  <td className="px-4 py-2 text-slate-700">{formatDate(s.startDate)}</td>
                   <td className="px-4 py-2">
                     <span className={clsx(overdue ? 'text-red-600 font-semibold' : 'text-slate-700')}>
                       {s.endDate ? s.endDate.slice(0, 10) : '—'}
