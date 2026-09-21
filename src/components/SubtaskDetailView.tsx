@@ -67,7 +67,7 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
   const owners = team
     .filter((t) => t.status !== 'inactive' && t.matchedUser)
     .map((t) => ({ id: t.matchedUser!.id, name: t.matchedUser!.name || t.email, email: t.email }))
-            .sort((a, b) => a.name.localeCompare(b.name))
+    .sort((a, b) => a.name.localeCompare(b.name))
 
   function openEdit() {
     if (!subtask) return
@@ -101,9 +101,6 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
     load()
   }
 
-  // "Chiudi oggi" imposta SOLO la data di chiusura effettiva (closedAt) e lo
-  // stato: non tocca la data di scadenza (endDate), che resta il termine
-  // originariamente previsto.
   async function closeNow() {
     const today = new Date().toISOString().slice(0, 10)
     setSaving(true)
@@ -116,7 +113,6 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
     load()
   }
 
-  // Scorciatoia rapida: passa da "Da avviare" a "In corso" senza aprire il modale.
   async function startNow() {
     setSaving(true)
     await fetch(`/api/subtasks/${subtaskId}`, {
@@ -180,7 +176,7 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
               ) : (
                 ''
               )}{' '}
-              il {subtask.createdAt.slice(0, 10)}
+              il {formatDate(subtask.createdAt)}
             </p>
           </div>
           <div className="flex gap-2 shrink-0">
@@ -225,17 +221,17 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
           </div>
           <div>
             <p className="text-xs text-slate-400 uppercase">Data inizio</p>
-            <p className="text-slate-700">{subtask.startDate.slice(0, 10)}</p>
+            <p className="text-slate-700">{formatDate(subtask.startDate)}</p>
           </div>
           <div>
             <p className="text-xs text-slate-400 uppercase">Data di scadenza</p>
             <p className={clsx(isOverdue ? 'text-red-600 font-semibold' : 'text-slate-700')}>
-              {subtask.endDate ? subtask.endDate.slice(0, 10) : '—'}
+              {formatDate(subtask.endDate)}
             </p>
           </div>
           <div>
             <p className="text-xs text-slate-400 uppercase">Data di chiusura</p>
-            <p className="text-slate-700">{subtask.closedAt ? subtask.closedAt.slice(0, 10) : '—'}</p>
+            <p className="text-slate-700">{formatDate(subtask.closedAt)}</p>
           </div>
         </div>
 
@@ -347,7 +343,7 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
               </button>
             </div>
           </div>
-   </div>
+        </div>
       )}
 
       <ActivityLogPanel entityType="subtask" entityId={subtaskId} />
