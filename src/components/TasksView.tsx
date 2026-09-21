@@ -351,7 +351,7 @@ export default function TasksView() {
                     {t.owner.name || t.owner.email}
                   </Link>
                 </td>
-                <td className="px-3 py-2">{t.startDate ? t.startDate.slice(0, 10) : '—'}</td>
+                <td className="px-3 py-2">{formatDate(t.startDate)}</td>
                 <td className="px-3 py-2">
                   <span
                     className={clsx(
