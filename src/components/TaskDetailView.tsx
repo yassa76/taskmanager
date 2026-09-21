@@ -336,7 +336,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
           </div>
           <div>
             <p className="text-xs text-slate-400 uppercase">Data avvio</p>
-            <p className="text-slate-700">{task.startDate ? task.startDate.slice(0, 10) : '—'}</p>
+            <p className="text-slate-700">{formatDate(task.startDate)}</p>
           </div>
           <div>
             <p className="text-xs text-slate-400 uppercase">Data di scadenza</p>
