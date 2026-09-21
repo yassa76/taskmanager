@@ -279,7 +279,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
               ) : (
                 ''
               )}{' '}
-              il {task.createdAt.slice(0, 10)}
+              il {formatDate(task.createdAt)}
             </p>
             {task.description && <p className="text-slate-500 text-sm mt-2">{task.description}</p>}
           </div>
