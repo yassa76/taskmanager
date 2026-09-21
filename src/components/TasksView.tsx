@@ -360,7 +360,7 @@ export default function TasksView() {
                         : ''
                     )}
                   >
-                    {t.endDate ? t.endDate.slice(0, 10) : '—'}
+                  {formatDate(t.endDate)}
                   </span>
                 </td>
                 <td className="px-3 py-2">
