@@ -5,6 +5,7 @@ import Link from 'next/link'
 import clsx from 'clsx'
 import Combobox from './Combobox'
 import { STATUS_COLORS, STATUS_LABELS } from '@/lib/taskStatus'
+import { formatDate } from '@/lib/formatDate'
 import Breadcrumbs from './Breadcrumbs'
 
 interface OwnerTask {
@@ -277,7 +278,7 @@ export default function OwnerDetailView({ ownerId }: { ownerId: string }) {
                 </td>
                 <td className="px-4 py-2">
                   <span className={clsx(t.overdue ? 'text-red-600 font-semibold' : 'text-slate-700')}>
-                    {t.endDate ? t.endDate.slice(0, 10) : '—'}
+                    {formatDate(t.endDate)}
                   </span>
                 </td>
                 <td className="px-4 py-2">
@@ -397,7 +398,7 @@ export default function OwnerDetailView({ ownerId }: { ownerId: string }) {
                 </td>
                 <td className="px-4 py-2">
                   <span className={clsx(s.overdue ? 'text-red-600 font-semibold' : 'text-slate-700')}>
-                    {s.endDate ? s.endDate.slice(0, 10) : '—'}
+                    {formatDate(s.endDate)}
                   </span>
                 </td>
                 <td className="px-4 py-2">
