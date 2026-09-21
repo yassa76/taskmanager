@@ -6,6 +6,7 @@ import clsx from 'clsx'
 import type { ClientDTO, TaskDTO, TeamMemberDTO } from '@/types'
 import { STATUS_COLORS, STATUS_LABELS } from '@/lib/taskStatus'
 import { getInitials } from '@/lib/initials'
+import { formatDate } from '@/lib/formatDate'
 import Breadcrumbs from './Breadcrumbs'
 import ActivityLogPanel from './ActivityLogPanel'
 import { EditIcon, DeleteIcon } from './icons'
@@ -181,7 +182,7 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
               ) : (
                 ''
               )}{' '}
-              il {client.createdAt.slice(0, 10)}
+              il {formatDate(client.createdAt)}
             </p>
           </div>
           <div className="flex gap-2 shrink-0">
@@ -308,7 +309,7 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
                         : ''
                     )}
                   >
-                    {t.endDate ? t.endDate.slice(0, 10) : '—'}
+                    {formatDate(t.endDate)}
                   </span>
                 </td>
                 <td className="px-4 py-2">
