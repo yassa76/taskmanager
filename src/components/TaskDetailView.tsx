@@ -347,7 +347,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
                   : 'text-slate-700'
               )}
             >
-              {task.endDate ? task.endDate.slice(0, 10) : '—'}
+            {formatDate(task.endDate)}
             </p>
           </div>
         </div>
