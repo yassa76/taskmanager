@@ -1,6 +1,5 @@
 'use client'
 
-import { formatDate } from '@/lib/formatDate'
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -14,6 +13,8 @@ import CloseParentModal from './CloseParentModal'
 import Breadcrumbs from './Breadcrumbs'
 import ActivityLogPanel from './ActivityLogPanel'
 import { EditIcon, DeleteIcon } from './icons'
+import ReadOnlyGuard from './ReadOnlyGuard'
+import { formatDate } from '@/lib/formatDate'
 
 export default function TaskDetailView({ taskId }: { taskId: string }) {
   const router = useRouter()
@@ -45,18 +46,6 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
   const [subIncludeClosed, setSubIncludeClosed] = useState(false)
   const [subPage, setSubPage] = useState(1)
   const SUB_PAGE_SIZE = 10
-  const [subSortKey, setSubSortKey] = useState<'title' | 'owner' | 'startDate' | 'endDate' | 'status'>('endDate')
-  const [subSortDir, setSubSortDir] = useState<'asc' | 'desc'>('asc')
-
-  function toggleSubSort(key: typeof subSortKey) {
-    if (subSortKey === key) {
-      setSubSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
-    } else {
-      setSubSortKey(key)
-      setSubSortDir('asc')
-    }
-    setSubPage(1)
-  }
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -193,7 +182,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
   if (error) return <p className="text-red-500">{error}</p>
   if (!task) return <p className="text-slate-400">Task non trovato.</p>
 
-    const visibleSubtasks = task.subtasks
+  const visibleSubtasks = task.subtasks
     .filter((s) =>
       subStatusFilter
         ? s.status === subStatusFilter
@@ -203,35 +192,6 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
       (s) => !subOverdueOnly || (s.endDate && new Date(s.endDate) < new Date() && s.status !== 'completato' && s.status !== 'annullato')
     )
     .filter((s) => !subSearch || s.title.toLowerCase().includes(subSearch.toLowerCase()))
-    .sort((a, b) => {
-      let av = ''
-      let bv = ''
-      switch (subSortKey) {
-        case 'title':
-          av = a.title.toLowerCase()
-          bv = b.title.toLowerCase()
-          break
-        case 'owner':
-          av = (a.owner.name || a.owner.email).toLowerCase()
-          bv = (b.owner.name || b.owner.email).toLowerCase()
-          break
-        case 'startDate':
-          av = a.startDate || ''
-          bv = b.startDate || ''
-          break
-        case 'endDate':
-          av = a.endDate || ''
-          bv = b.endDate || ''
-          break
-        case 'status':
-          av = a.status
-          bv = b.status
-          break
-      }
-      if (av < bv) return subSortDir === 'asc' ? -1 : 1
-      if (av > bv) return subSortDir === 'asc' ? 1 : -1
-      return 0
-    })
 
   const subTotalPages = Math.max(1, Math.ceil(visibleSubtasks.length / SUB_PAGE_SIZE))
   const pagedSubtasks = visibleSubtasks.slice((subPage - 1) * SUB_PAGE_SIZE, subPage * SUB_PAGE_SIZE)
@@ -285,12 +245,14 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
           </div>
           <div className="flex gap-2 shrink-0">
             {task.status === 'da_avviare' && (
-              <button
-                onClick={startTask}
-                className="px-3 py-1.5 rounded-lg bg-amber-500 text-white text-sm font-medium hover:bg-amber-600"
-              >
-                ▶ Avvia
-              </button>
+              <ReadOnlyGuard className="inline-flex">
+                <button
+                  onClick={startTask}
+                  className="px-3 py-1.5 rounded-lg bg-amber-500 text-white text-sm font-medium hover:bg-amber-600"
+                >
+                  ▶ Avvia
+                </button>
+              </ReadOnlyGuard>
             )}
             <button
               onClick={load}
@@ -298,20 +260,22 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
             >
               ↻ Aggiorna
             </button>
-            <button
-              onClick={() => setShowEditForm(true)}
-              className="inline-flex items-center px-3 py-1.5 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-100"
-              title="Modifica"
-            >
-              <EditIcon />
-            </button>
-            <button
-              onClick={deleteTask}
-              className="inline-flex items-center px-3 py-1.5 rounded-lg border border-red-200 text-red-600 hover:bg-red-50"
-              title="Elimina"
-            >
-              <DeleteIcon />
-            </button>
+            <ReadOnlyGuard className="flex gap-2">
+              <button
+                onClick={() => setShowEditForm(true)}
+                className="inline-flex items-center px-3 py-1.5 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-100"
+                title="Modifica"
+              >
+                <EditIcon />
+              </button>
+              <button
+                onClick={deleteTask}
+                className="inline-flex items-center px-3 py-1.5 rounded-lg border border-red-200 text-red-600 hover:bg-red-50"
+                title="Elimina"
+              >
+                <DeleteIcon />
+              </button>
+            </ReadOnlyGuard>
           </div>
         </div>
 
@@ -336,7 +300,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
           </div>
           <div>
             <p className="text-xs text-slate-400 uppercase">Data avvio</p>
-            <p className="text-slate-700">{formatDate(task.startDate)}</p>
+            <p className="text-slate-700">{task.startDate ? formatDate(task.startDate) : '—'}</p>
           </div>
           <div>
             <p className="text-xs text-slate-400 uppercase">Data di scadenza</p>
@@ -347,7 +311,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
                   : 'text-slate-700'
               )}
             >
-            {formatDate(task.endDate)}
+              {task.endDate ? formatDate(task.endDate) : '—'}
             </p>
           </div>
         </div>
@@ -413,39 +377,14 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
           />
         </div>
 
-                <table className="w-full text-sm">
+        <table className="w-full text-sm">
           <thead className="bg-slate-50 border-b border-slate-200">
             <tr>
-              <th
-                onClick={() => toggleSubSort('title')}
-                className="cursor-pointer px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase hover:text-brand-600"
-              >
-                Nome {subSortKey === 'title' ? (subSortDir === 'asc' ? '▲' : '▼') : ''}
-              </th>
-              <th
-                onClick={() => toggleSubSort('owner')}
-                className="cursor-pointer px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase hover:text-brand-600"
-              >
-                Owner {subSortKey === 'owner' ? (subSortDir === 'asc' ? '▲' : '▼') : ''}
-              </th>
-              <th
-                onClick={() => toggleSubSort('startDate')}
-                className="cursor-pointer px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase hover:text-brand-600"
-              >
-                Data inizio {subSortKey === 'startDate' ? (subSortDir === 'asc' ? '▲' : '▼') : ''}
-              </th>
-              <th
-                onClick={() => toggleSubSort('endDate')}
-                className="cursor-pointer px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase hover:text-brand-600"
-              >
-                Data scadenza {subSortKey === 'endDate' ? (subSortDir === 'asc' ? '▲' : '▼') : ''}
-              </th>
-              <th
-                onClick={() => toggleSubSort('status')}
-                className="cursor-pointer px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase hover:text-brand-600"
-              >
-                Stato {subSortKey === 'status' ? (subSortDir === 'asc' ? '▲' : '▼') : ''}
-              </th>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Nome</th>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Owner</th>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Data inizio</th>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Data scadenza</th>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Stato</th>
               <th className="px-4 py-2 text-right text-xs font-semibold text-slate-500 uppercase">Azioni</th>
             </tr>
           </thead>
@@ -468,10 +407,10 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
                       {s.owner.name || s.owner.email}
                     </Link>
                   </td>
-                  <td className="px-4 py-2 text-slate-700">{formatDate(s.startDate)}</td>
+                  <td className="px-4 py-2 text-slate-700">{s.startDate ? formatDate(s.startDate) : '—'}</td>
                   <td className="px-4 py-2">
                     <span className={clsx(overdue ? 'text-red-600 font-semibold' : 'text-slate-700')}>
-                    {formatDate(s.endDate)}
+                      {s.endDate ? formatDate(s.endDate) : '—'}
                     </span>
                   </td>
                   <td className="px-4 py-2">
@@ -480,20 +419,22 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
                     </span>
                   </td>
                   <td className="px-4 py-2 text-right whitespace-nowrap">
-                    <button
-                      onClick={() => openEditSubtask(s)}
-                      className="inline-flex text-slate-400 hover:text-brand-600 mr-3 align-middle"
-                      title="Modifica"
-                    >
-                      <EditIcon />
-                    </button>
-                    <button
-                      onClick={() => deleteSubtask(s.id)}
-                      className="inline-flex text-slate-400 hover:text-red-600 align-middle"
-                      title="Elimina"
-                    >
-                      <DeleteIcon />
-                    </button>
+                    <ReadOnlyGuard className="inline-flex">
+                      <button
+                        onClick={() => openEditSubtask(s)}
+                        className="inline-flex text-slate-400 hover:text-brand-600 mr-3 align-middle"
+                        title="Modifica"
+                      >
+                        <EditIcon />
+                      </button>
+                      <button
+                        onClick={() => deleteSubtask(s.id)}
+                        className="inline-flex text-slate-400 hover:text-red-600 align-middle"
+                        title="Elimina"
+                      >
+                        <DeleteIcon />
+                      </button>
+                    </ReadOnlyGuard>
                   </td>
                 </tr>
               )
@@ -510,7 +451,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
           </tbody>
         </table>
 
-                {visibleSubtasks.length > SUB_PAGE_SIZE && (
+        {visibleSubtasks.length > SUB_PAGE_SIZE && (
           <div className="flex items-center justify-between px-4 py-2 border-t border-slate-100 text-xs text-slate-500">
             <span>
               {visibleSubtasks.length} sub-task — pagina {subPage} di {subTotalPages}
@@ -533,10 +474,8 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
             </div>
           </div>
         )}
-      </div>
 
-      <div className="bg-white border border-slate-200 rounded-xl shadow-sm mt-3">
-        <div className="flex gap-2 p-4 flex-wrap">
+        <ReadOnlyGuard className="flex gap-2 p-4 border-t border-slate-100 flex-wrap w-full">
           <input
             value={newSubtaskTitle}
             onChange={(e) => setNewSubtaskTitle(e.target.value)}
@@ -564,7 +503,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
           >
             + Aggiungi
           </button>
-        </div>
+        </ReadOnlyGuard>
       </div>
 
       {showEditForm && (
