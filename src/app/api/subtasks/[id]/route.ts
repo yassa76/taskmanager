@@ -3,9 +3,24 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { deriveTaskStatus } from '@/lib/taskStatus'
-import { canEditRecord } from '@/lib/permissions'
+import { getRole, getUserId } from '@/lib/permissions'
 import { logActivity } from '@/lib/activityLog'
 import type { SubtaskDetailDTO } from '@/types'
+
+// Puo' modificare/eliminare un sub-task: admin, owner del sub-task,
+// owner del task padre, oppure chi lo ha creato. Mai i read_only.
+function canManageSubtask(
+  session: any,
+  subtask: { ownerId: string; createdById: string | null },
+  taskOwnerId: string
+): boolean {
+  const role = getRole(session)
+  if (role === 'read_only') return false
+  if (role === 'admin') return true
+  const uid = getUserId(session)
+  if (!uid) return false
+  return subtask.ownerId === uid || taskOwnerId === uid || subtask.createdById === uid
+}
 
 function toSubtaskDetailDTO(subtask: any): SubtaskDetailDTO {
   return {
@@ -49,9 +64,12 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
 
-  const existing = await prisma.subtask.findUnique({ where: { id: params.id }, include: { owner: true } })
+  const existing = await prisma.subtask.findUnique({
+    where: { id: params.id },
+    include: { owner: true, task: true }
+  })
   if (!existing) return NextResponse.json({ error: 'Sub-task non trovato' }, { status: 404 })
-  if (!canEditRecord(session, existing.ownerId)) {
+  if (!canManageSubtask(session, existing, existing.task.ownerId)) {
     return NextResponse.json({ error: 'Non hai i permessi per modificare questo sub-task' }, { status: 403 })
   }
 
@@ -121,9 +139,12 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
   const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
 
-  const existing = await prisma.subtask.findUnique({ where: { id: params.id } })
+  const existing = await prisma.subtask.findUnique({
+    where: { id: params.id },
+    include: { task: true }
+  })
   if (!existing) return NextResponse.json({ error: 'Sub-task non trovato' }, { status: 404 })
-  if (!canEditRecord(session, existing.ownerId)) {
+  if (!canManageSubtask(session, existing, existing.task.ownerId)) {
     return NextResponse.json({ error: 'Non hai i permessi per eliminare questo sub-task' }, { status: 403 })
   }
 
