@@ -6,12 +6,13 @@ import clsx from 'clsx'
 import type { ClientDTO, TaskDTO, TeamMemberDTO } from '@/types'
 import { STATUS_COLORS, STATUS_LABELS } from '@/lib/taskStatus'
 import { getInitials } from '@/lib/initials'
-import { formatDate } from '@/lib/formatDate'
 import Breadcrumbs from './Breadcrumbs'
 import ActivityLogPanel from './ActivityLogPanel'
 import { EditIcon, DeleteIcon } from './icons'
 import TaskFormModal from './TaskFormModal'
 import Combobox from './Combobox'
+import ReadOnlyGuard from './ReadOnlyGuard'
+import { formatDate } from '@/lib/formatDate'
 
 const INDUSTRIES = ['GPS', 'TMT', 'ER&I', 'FSI', 'CONS']
 
@@ -192,13 +193,15 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
             >
               ↻ Aggiorna
             </button>
-            <button
-              onClick={() => setShowEditForm(true)}
-              className="inline-flex items-center px-3 py-1.5 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-100"
-              title="Modifica"
-            >
-              <EditIcon />
-            </button>
+            <ReadOnlyGuard className="inline-flex">
+              <button
+                onClick={() => setShowEditForm(true)}
+                className="inline-flex items-center px-3 py-1.5 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-100"
+                title="Modifica"
+              >
+                <EditIcon />
+              </button>
+            </ReadOnlyGuard>
           </div>
         </div>
         {client.description && <p className="text-slate-500 text-sm mt-2">{client.description}</p>}
@@ -222,15 +225,17 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
               Cliente inattivo: nuovi task non consentiti
             </span>
           ) : (
-            <button
-              onClick={() => {
-                setEditingTask(null)
-                setShowTaskForm(true)
-              }}
-              className="px-3 py-1.5 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700"
-            >
-              + Nuovo Task
-            </button>
+            <ReadOnlyGuard className="inline-flex">
+              <button
+                onClick={() => {
+                  setEditingTask(null)
+                  setShowTaskForm(true)
+                }}
+                className="px-3 py-1.5 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700"
+              >
+                + Nuovo Task
+              </button>
+            </ReadOnlyGuard>
           )}
         </div>
 
@@ -309,7 +314,7 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
                         : ''
                     )}
                   >
-                    {formatDate(t.endDate)}
+                    {t.endDate ? formatDate(t.endDate) : '—'}
                   </span>
                 </td>
                 <td className="px-4 py-2">
@@ -318,23 +323,25 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
                   </span>
                 </td>
                 <td className="px-4 py-2 text-right whitespace-nowrap">
-                  <button
-                    onClick={() => {
-                      setEditingTask(t)
-                      setShowTaskForm(true)
-                    }}
-                    className="inline-flex text-slate-400 hover:text-brand-600 mr-3 align-middle"
-                    title="Modifica"
-                  >
-                    <EditIcon />
-                  </button>
-                  <button
-                    onClick={() => deleteTask(t)}
-                    className="inline-flex text-slate-400 hover:text-red-600 align-middle"
-                    title="Elimina"
-                  >
-                    <DeleteIcon />
-                  </button>
+                  <ReadOnlyGuard className="inline-flex">
+                    <button
+                      onClick={() => {
+                        setEditingTask(t)
+                        setShowTaskForm(true)
+                      }}
+                      className="inline-flex text-slate-400 hover:text-brand-600 mr-3 align-middle"
+                      title="Modifica"
+                    >
+                      <EditIcon />
+                    </button>
+                    <button
+                      onClick={() => deleteTask(t)}
+                      className="inline-flex text-slate-400 hover:text-red-600 align-middle"
+                      title="Elimina"
+                    >
+                      <DeleteIcon />
+                    </button>
+                  </ReadOnlyGuard>
                 </td>
               </tr>
             ))}
