@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { canEditRecord } from '@/lib/permissions'
+import { canCreate } from '@/lib/permissions'
 import { logActivity } from '@/lib/activityLog'
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
@@ -11,8 +11,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   const task = await prisma.task.findUnique({ where: { id: params.id } })
   if (!task) return NextResponse.json({ error: 'Task non trovato' }, { status: 404 })
-  if (!canEditRecord(session, task.ownerId)) {
-    return NextResponse.json({ error: 'Non hai i permessi per aggiungere sub-task a questo task' }, { status: 403 })
+  if (!canCreate(session)) {
+    return NextResponse.json({ error: 'Utente in sola lettura: non puoi aggiungere sub-task' }, { status: 403 })
   }
 
   const body = await req.json()
