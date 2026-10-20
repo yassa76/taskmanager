@@ -12,6 +12,7 @@ import Breadcrumbs from './Breadcrumbs'
 import ActivityLogPanel from './ActivityLogPanel'
 import Combobox from './Combobox'
 import { EditIcon, DeleteIcon } from './icons'
+import ReadOnlyGuard from './ReadOnlyGuard'
 
 export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) {
   const router = useRouter()
@@ -101,6 +102,9 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
     load()
   }
 
+  // "Chiudi oggi" imposta SOLO la data di chiusura effettiva (closedAt) e lo
+  // stato: non tocca la data di scadenza (endDate), che resta il termine
+  // originariamente previsto.
   async function closeNow() {
     const today = new Date().toISOString().slice(0, 10)
     setSaving(true)
@@ -113,6 +117,7 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
     load()
   }
 
+  // Scorciatoia rapida: passa da "Da avviare" a "In corso" senza aprire il modale.
   async function startNow() {
     setSaving(true)
     await fetch(`/api/subtasks/${subtaskId}`, {
@@ -179,7 +184,7 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
               il {formatDate(subtask.createdAt)}
             </p>
           </div>
-          <div className="flex gap-2 shrink-0">
+          <ReadOnlyGuard className="flex gap-2 shrink-0">
             {subtask.status === 'da_avviare' && (
               <button
                 onClick={startNow}
@@ -202,7 +207,7 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
             >
               <DeleteIcon />
             </button>
-          </div>
+          </ReadOnlyGuard>
         </div>
 
         <div className="mb-4">
@@ -226,21 +231,21 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
           <div>
             <p className="text-xs text-slate-400 uppercase">Data di scadenza</p>
             <p className={clsx(isOverdue ? 'text-red-600 font-semibold' : 'text-slate-700')}>
-              {formatDate(subtask.endDate)}
+              {subtask.endDate ? formatDate(subtask.endDate) : '—'}
             </p>
           </div>
           <div>
             <p className="text-xs text-slate-400 uppercase">Data di chiusura</p>
-            <p className="text-slate-700">{formatDate(subtask.closedAt)}</p>
+            <p className="text-slate-700">{subtask.closedAt ? formatDate(subtask.closedAt) : '—'}</p>
           </div>
         </div>
 
         {subtask.status !== 'completato' && subtask.status !== 'annullato' && (
-          <div className="mt-6 pt-4 border-t border-slate-100">
+          <ReadOnlyGuard className="mt-6 pt-4 border-t border-slate-100 block w-full">
             <button onClick={closeNow} className="text-sm text-emerald-700 font-medium hover:underline">
               ✓ Chiudi oggi
             </button>
-          </div>
+          </ReadOnlyGuard>
         )}
       </div>
 
