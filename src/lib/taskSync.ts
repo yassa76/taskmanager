@@ -1,4 +1,6 @@
 import { prisma } from '@/lib/prisma'
+import { logActivity } from '@/lib/activityLog'
+import { formatDate } from '@/lib/formatDate'
 
 /**
  * Dopo la creazione o la modifica di un sub-task aggiorna il task padre:
@@ -6,11 +8,12 @@ import { prisma } from '@/lib/prisma'
  *   spostata a quella data (mai accorciata);
  * - stato: se il sub-task e' "in corso" e il task era fermo su "da avviare"
  *   in modo manuale, rimuove il blocco manuale cosi' il task passa a "in corso".
- * Non tocca i task chiusi o annullati manualmente.
+ * Non tocca i task chiusi o annullati manualmente. Ogni cambio finisce in cronologia.
  */
 export async function syncTaskFromSubtask(
   taskId: string,
-  subtask: { status: string; endDate: Date | null }
+  subtask: { status: string; endDate: Date | null },
+  userId: string
 ) {
   if (subtask.status === 'completato' || subtask.status === 'annullato') return
 
@@ -29,7 +32,30 @@ export async function syncTaskFromSubtask(
     data.statusOverride = null
   }
 
-  if (Object.keys(data).length > 0) {
-    await prisma.task.update({ where: { id: taskId }, data })
+  if (Object.keys(data).length === 0) return
+
+  await prisma.task.update({ where: { id: taskId }, data })
+
+  if (data.endDate) {
+    await logActivity({
+      entityType: 'task',
+      entityId: task.id,
+      action: 'scadenza',
+      entityLabel: task.title,
+      detail: `${task.endDate ? formatDate(task.endDate.toISOString()) : '—'} → ${formatDate(
+        data.endDate.toISOString()
+      )} (automatico, da sub-task)`,
+      userId
+    })
+  }
+  if (data.statusOverride === null) {
+    await logActivity({
+      entityType: 'task',
+      entityId: task.id,
+      action: 'stato',
+      entityLabel: task.title,
+      detail: 'da_avviare → in_corso (automatico, sub-task in corso)',
+      userId
+    })
   }
 }
