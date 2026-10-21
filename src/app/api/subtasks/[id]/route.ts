@@ -129,7 +129,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     await prisma.task.update({ where: { id: subtask.task.id }, data: { closedManually: false } })
   }
 
-  await syncTaskFromSubtask(subtask.taskId, subtask)
+  await syncTaskFromSubtask(subtask.taskId, subtask, (session.user as any).id)
   
   return NextResponse.json({
     subtask: toSubtaskDetailDTO(subtask),
