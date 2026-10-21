@@ -18,7 +18,8 @@ const ACTION_COLORS: Record<string, string> = {
   creato: 'bg-emerald-100 text-emerald-700',
   stato: 'bg-amber-100 text-amber-700',
   owner: 'bg-blue-100 text-blue-700',
-  eliminato: 'bg-red-100 text-red-700'
+  eliminato: 'bg-red-100 text-red-700',
+  scadenza: 'bg-violet-100 text-violet-700'
 }
 
 export default function ActivityLogPanel({
