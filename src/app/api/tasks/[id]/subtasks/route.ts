@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { canCreate } from '@/lib/permissions'
 import { logActivity } from '@/lib/activityLog'
+import { syncTaskFromSubtask } from '@/lib/taskSync'
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
@@ -40,7 +41,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   if (task.closedManually) {
     await prisma.task.update({ where: { id: task.id }, data: { closedManually: false } })
   }
-
+  
+  await syncTaskFromSubtask(task.id, subtask)
+  
   await logActivity({
     entityType: 'subtask',
     entityId: subtask.id,
