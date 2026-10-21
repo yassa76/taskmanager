@@ -475,7 +475,12 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
           </div>
         )}
 
-        <ReadOnlyGuard className="flex gap-2 p-4 border-t border-slate-100 flex-wrap w-full">
+        </div>
+
+      {/* Riquadro separato (senza overflow-hidden) cosi' il menu degli owner non viene tagliato */}
+      <div className="bg-white border border-slate-200 rounded-xl shadow-sm mt-4">
+        <p className="px-4 pt-3 text-xs font-semibold text-slate-500 uppercase">Nuovo sub-task</p>
+        <ReadOnlyGuard className="flex gap-2 p-4 flex-wrap w-full">
           <input
             value={newSubtaskTitle}
             onChange={(e) => setNewSubtaskTitle(e.target.value)}
