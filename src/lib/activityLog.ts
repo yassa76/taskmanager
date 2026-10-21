@@ -1,7 +1,7 @@
 import { prisma } from './prisma'
 
 export type ActivityEntityType = 'task' | 'subtask' | 'client'
-export type ActivityAction = 'creato' | 'stato' | 'owner' | 'eliminato'
+export type ActivityAction = 'creato' | 'stato' | 'owner' | 'eliminato' | 'scadenza'
 
 /**
  * Scrive una riga nel log attivita'. Non blocca mai l'operazione principale:
