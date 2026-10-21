@@ -1,4 +1,4 @@
-export type SubtaskStatus = 'da_avviare' | 'in_corso' | 'completato'
+export type SubtaskStatus = 'da_avviare' | 'in_corso' | 'completato' | 'annullato'
 export type DerivedStatus = 'da_avviare' | 'in_corso' | 'completato' | 'annullato'
 
 export interface DerivedTaskStatus {
@@ -12,9 +12,12 @@ export function deriveTaskStatus(
   closedManually: boolean,
   statusOverride?: string | null
 ): DerivedTaskStatus {
-  const total = subtaskStatuses.length
-  const completedCount = subtaskStatuses.filter((s) => s === 'completato').length
-  const progress = total > 0 ? Math.round((completedCount / total) * 100) : statusOverride === 'completato' ? 100 : 0
+  // I sub-task annullati non contano ne' per lo stato ne' per l'avanzamento.
+  const active = subtaskStatuses.filter((s) => s !== 'annullato')
+  const total = active.length
+  const completedCount = active.filter((s) => s === 'completato').length
+  const progress =
+    total > 0 ? Math.round((completedCount / total) * 100) : statusOverride === 'completato' ? 100 : 0
 
   if (
     statusOverride === 'da_avviare' ||
@@ -29,8 +32,8 @@ export function deriveTaskStatus(
     return { status: 'da_avviare', pendingClosure: false, progress: 0 }
   }
 
-  const inProgressCount = subtaskStatuses.filter((s) => s === 'in_corso').length
-  const notStartedCount = subtaskStatuses.filter((s) => s === 'da_avviare').length
+  const inProgressCount = active.filter((s) => s === 'in_corso').length
+  const notStartedCount = active.filter((s) => s === 'da_avviare').length
 
   if (completedCount === total) {
     if (closedManually) {
