@@ -42,7 +42,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     await prisma.task.update({ where: { id: task.id }, data: { closedManually: false } })
   }
   
-  await syncTaskFromSubtask(task.id, subtask)
+  await syncTaskFromSubtask(task.id, subtask, (session.user as any).id)
   
   await logActivity({
     entityType: 'subtask',
