@@ -6,6 +6,7 @@ import { deriveTaskStatus } from '@/lib/taskStatus'
 import { getRole, getUserId } from '@/lib/permissions'
 import { logActivity } from '@/lib/activityLog'
 import type { SubtaskDetailDTO } from '@/types'
+import { syncTaskFromSubtask } from '@/lib/taskSync'
 
 // Puo' modificare/eliminare un sub-task: admin, owner del sub-task,
 // owner del task padre, oppure chi lo ha creato. Mai i read_only.
@@ -128,6 +129,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     await prisma.task.update({ where: { id: subtask.task.id }, data: { closedManually: false } })
   }
 
+  await syncTaskFromSubtask(subtask.taskId, subtask)
+  
   return NextResponse.json({
     subtask: toSubtaskDetailDTO(subtask),
     taskId: subtask.taskId,
