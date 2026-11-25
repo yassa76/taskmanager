@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import type { ClientDTO, TaskDTO } from '@/types'
 import Combobox from './Combobox'
+import { RECURRENCE_HELP, RECURRENCE_OPTIONS } from '@/lib/recurrenceShared'
 
 interface OwnerLite {
   id: string
@@ -38,6 +39,9 @@ export default function TaskFormModal({
   const [ownerId, setOwnerId] = useState(task?.owner?.id || owners[0]?.id || '')
   const [clientId, setClientId] = useState(task?.clientId || defaultClientId || '')
   const [status, setStatus] = useState(task?.statusOverride || 'auto')
+  // '' = task singolo; altrimenti uno dei valori di RECURRENCE_OPTIONS
+  const [recurrence, setRecurrence] = useState(task?.recurrence || '')
+  const [recurrenceEnd, setRecurrenceEnd] = useState(task?.recurrenceEndDate ? task.recurrenceEndDate.slice(0, 10) : '')
   const [subtasks, setSubtasks] = useState<{ title: string; ownerId: string; endDate: string }[]>([])
   const [saving, setSaving] = useState(false)
 
@@ -109,6 +113,8 @@ export default function TaskFormModal({
       endDate: endDate || null,
       ownerId,
       clientId: clientId || null,
+      recurrence: recurrence || '',
+      recurrenceEndDate: recurrence && recurrenceEnd ? recurrenceEnd : null,
       ...(isEditing ? { status } : {}),
       ...(isEditing
         ? {}
@@ -181,6 +187,59 @@ export default function TaskFormModal({
                 className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1"
               />
             </div>
+          </div>
+          <div>
+            <div className="flex items-center gap-1.5">
+              <label className="text-xs font-medium text-slate-500">Tipo di task</label>
+              <span
+                className="inline-flex w-4 h-4 items-center justify-center rounded-full bg-slate-200 text-slate-600 text-[10px] font-bold cursor-help"
+                title={RECURRENCE_HELP}
+                aria-label="Come funzionano i task ricorrenti"
+              >
+                i
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-3 mt-1">
+              <select
+                value={recurrence ? 'ricorrente' : 'singolo'}
+                onChange={(e) => setRecurrence(e.target.value === 'ricorrente' ? 'monthly' : '')}
+                className="w-full border border-slate-200 rounded-lg px-3 py-2"
+              >
+                <option value="singolo">Singolo (non si ripete)</option>
+                <option value="ricorrente">Ricorrente</option>
+              </select>
+              {recurrence && (
+                <select
+                  value={recurrence}
+                  onChange={(e) => setRecurrence(e.target.value)}
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2"
+                  title="Ogni quanto si ripete"
+                >
+                  {RECURRENCE_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+            {recurrence && (
+              <div className="mt-2 space-y-2">
+                <div>
+                  <label className="text-xs font-medium text-slate-500">Ripeti fino al (facoltativo)</label>
+                  <input
+                    type="date"
+                    value={recurrenceEnd}
+                    onChange={(e) => setRecurrenceEnd(e.target.value)}
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1"
+                  />
+                </div>
+                <p className="text-xs text-slate-500 bg-slate-50 rounded-lg px-3 py-2">
+                  Quando chiudi questo task (stato &quot;Completato&quot;) ne verrà creato in automatico uno nuovo, con le date spostate
+                  in avanti di un intervallo. Vengono copiati titolo, descrizione, cliente e owner; i sub-task no.
+                </p>
+              </div>
+            )}
           </div>
           <div>
             <label className="text-xs font-medium text-slate-500">Owner *</label>
