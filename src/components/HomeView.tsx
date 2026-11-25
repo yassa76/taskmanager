@@ -59,7 +59,7 @@ function KpiCard({
   href?: string
 }) {
   const content = (
-    <div className="bg-white border border-slate-200 rounded-xl p-3 shadow-sm h-full flex flex-col justify-center hover:border-brand-300 hover:shadow-md transition">
+    <div className="bg-white border border-slate-200 rounded-xl px-3 py-2 shadow-sm h-full flex flex-col justify-center hover:border-brand-300 hover:shadow-md transition">
       <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">{label}</p>
       <p className={clsx('text-2xl font-bold mt-1', accent || 'text-slate-800')}>{value}</p>
     </div>
@@ -147,11 +147,11 @@ export default function HomeView({ userName }: { userName: string }) {
 
       {!loading && data && (
         <>
-          <div className="grid lg:grid-cols-5 gap-6 mb-6 items-stretch">
+          <div className="grid lg:grid-cols-5 gap-4 mb-4 items-start">
             <div className="lg:col-span-2">
               <DeadlineCalendar items={data.calendarItems} />
             </div>
-            <div className="lg:col-span-3 grid grid-cols-2 sm:grid-cols-3 auto-rows-fr gap-3">
+            <div className="lg:col-span-3 grid grid-cols-2 sm:grid-cols-3 auto-rows-fr gap-2 lg:h-[220px]">
               <KpiCard label={scope === 'mine' ? 'I miei task' : 'Task del team'} value={data.kpi.totalTasks} href={tasksHref('')} />
               <KpiCard label="In corso" value={data.kpi.inProgress} accent="text-amber-600" href={tasksHref('status=in_corso')} />
               <KpiCard label="Da avviare" value={data.kpi.notStarted} href={tasksHref('status=da_avviare')} />
