@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import clsx from 'clsx'
 import {
@@ -55,12 +56,19 @@ const PERIOD_OPTIONS: { value: string; label: string; days: number | null }[] = 
   { value: '365', label: 'Ultimo anno', days: 365 }
 ]
 
-function KpiCard({ label, value, accent }: { label: string; value: string | number; accent?: string }) {
-  return (
-    <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+function KpiCard({ label, value, accent, href }: { label: string; value: string | number; accent?: string; href?: string }) {
+  const body = (
+    <>
       <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">{label}</p>
       <p className={`text-2xl font-bold mt-1 ${accent || 'text-slate-800'}`}>{value}</p>
-    </div>
+    </>
+  )
+  const base = 'bg-white border border-slate-200 rounded-xl p-4 shadow-sm'
+  if (!href) return <div className={base}>{body}</div>
+  return (
+    <Link href={href} className={`${base} block hover:border-brand-400 hover:shadow transition`}>
+      {body}
+    </Link>
   )
 }
 
@@ -152,6 +160,14 @@ export default function ReportsView() {
     return load()
   }, [load])
 
+  // Link alla lista task filtrata. Nota: il periodo scelto qui sopra non viene trasportato
+  // nella lista, che mostra i task per stato senza limite di date.
+  function tasksHref(extra: string) {
+    const params = new URLSearchParams(extra)
+    if (scope === 'mine') params.set('view', 'mine')
+    return `/tasks?${params.toString()}`
+  }
+
   if (!data) return <p className="text-slate-400">Caricamento report...</p>
 
   return (
@@ -212,14 +228,14 @@ export default function ReportsView() {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <KpiCard label="Task totali (tutti gli stati)" value={data.kpi.totalTasks} />
-        <KpiCard label="Task attivi" value={data.kpi.inProgress + data.kpi.notStarted} />
+        <KpiCard label="Task totali (tutti gli stati)" value={data.kpi.totalTasks} href={tasksHref('closed=true')} />
+        <KpiCard label="Task attivi" value={data.kpi.inProgress + data.kpi.notStarted} href={tasksHref('')} />
         <KpiCard label="% completamento" value={`${data.kpi.completionRate}%`} accent="text-emerald-600" />
-        <KpiCard label="In corso" value={data.kpi.inProgress} accent="text-amber-600" />
-        <KpiCard label="In ritardo" value={data.kpi.overdue} accent="text-red-600" />
-        <KpiCard label="Da avviare" value={data.kpi.notStarted} />
-        <KpiCard label="Completati" value={data.kpi.completed} accent="text-emerald-600" />
-        <KpiCard label="Annullati" value={data.kpi.cancelled} accent="text-slate-500" />
+        <KpiCard label="In corso" value={data.kpi.inProgress} accent="text-amber-600" href={tasksHref('status=in_corso')} />
+        <KpiCard label="In ritardo" value={data.kpi.overdue} accent="text-red-600" href={tasksHref('overdue=true')} />
+        <KpiCard label="Da avviare" value={data.kpi.notStarted} href={tasksHref('status=da_avviare')} />
+        <KpiCard label="Completati" value={data.kpi.completed} accent="text-emerald-600" href={tasksHref('status=completato')} />
+        <KpiCard label="Annullati" value={data.kpi.cancelled} accent="text-slate-500" href={tasksHref('status=annullato')} />
         <KpiCard label="Sub-task totali" value={data.kpi.totalSubtasks} />
         <KpiCard label="% sub-task completati" value={`${data.kpi.subtaskCompletionRate}%`} />
       </div>
