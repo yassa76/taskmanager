@@ -17,6 +17,8 @@ const links = [
 export default function NavBar() {
   const pathname = usePathname()
   const { data: session } = useSession()
+  const isAdmin = (session?.user as any)?.role === 'admin'
+  const visibleLinks = isAdmin ? [...links, { href: '/settings', label: 'Impostazioni' }] : links
 
   return (
     <header className="bg-brand-50 border-b border-brand-100 sticky top-0 z-20">
@@ -26,7 +28,7 @@ export default function NavBar() {
             Task Manager
           </Link>
           <nav className="flex gap-1">
-            {links.map((l) => (
+            {visibleLinks.map((l) => (
               <Link
                 key={l.href}
                 href={l.href}

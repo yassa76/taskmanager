@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { canCreate } from '@/lib/permissions'
 import { deriveTaskStatus } from '@/lib/taskStatus'
 import { logActivity } from '@/lib/activityLog'
+import { pickLocation } from '@/lib/geo'
 import type { ClientDTO } from '@/types'
 
 function toClientDTO(client: any): ClientDTO {
@@ -23,6 +24,10 @@ function toClientDTO(client: any): ClientDTO {
     description: client.description,
     industry: client.industry,
     status: client.status,
+    address: client.address ?? null,
+    country: client.country ?? null,
+    province: client.province ?? null,
+    city: client.city ?? null,
     owner: client.owner
       ? { id: client.owner.id, name: client.owner.name, email: client.owner.email }
       : null,
@@ -56,7 +61,9 @@ export async function POST(req: NextRequest) {
   if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
   if (!canCreate(session)) return NextResponse.json({ error: 'Utente in sola lettura' }, { status: 403 })
 
-  const { name, description, industry, ownerId, status } = await req.json()
+  const body = await req.json()
+  const { name, description, industry, ownerId, status } = body
+  const location = pickLocation(body)
   if (!name) return NextResponse.json({ error: 'Nome obbligatorio' }, { status: 400 })
 
   const alreadyExisted = !!(await prisma.client.findUnique({ where: { name } }))
@@ -69,6 +76,10 @@ export async function POST(req: NextRequest) {
       description: description || null,
       industry: industry || null,
       status: status === 'inattivo' ? 'inattivo' : 'attivo',
+      address: location.address ?? null,
+      country: location.country ?? null,
+      province: location.province ?? null,
+      city: location.city ?? null,
       ownerId: ownerId || null,
       createdById: (session.user as any).id
     },

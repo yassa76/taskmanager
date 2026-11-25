@@ -11,6 +11,8 @@ import ActivityLogPanel from './ActivityLogPanel'
 import { EditIcon, DeleteIcon } from './icons'
 import TaskFormModal from './TaskFormModal'
 import Combobox from './Combobox'
+import ClientLocationFields from './ClientLocationFields'
+import { countryLabel } from '@/lib/geoShared'
 import ReadOnlyGuard from './ReadOnlyGuard'
 import { formatDate } from '@/lib/formatDate'
 
@@ -32,7 +34,17 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
 
   const [showEditForm, setShowEditForm] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [form, setForm] = useState({ name: '', description: '', industry: '', status: 'attivo', ownerId: '' })
+  const [form, setForm] = useState({
+    name: '',
+    description: '',
+    industry: '',
+    status: 'attivo',
+    ownerId: '',
+    address: '',
+    country: '',
+    province: '',
+    city: ''
+  })
 
   const [showTaskForm, setShowTaskForm] = useState(false)
   const [editingTask, setEditingTask] = useState<TaskDTO | null>(null)
@@ -64,7 +76,11 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
         description: clientData.description || '',
         industry: clientData.industry || '',
         status: clientData.status,
-        ownerId: clientData.owner?.id || ''
+        ownerId: clientData.owner?.id || '',
+        address: clientData.address || '',
+        country: clientData.country || '',
+        province: clientData.province || '',
+        city: clientData.city || ''
       })
       setTasks(tasksRes.ok ? await tasksRes.json() : [])
       setAllClients(clientsRes.ok ? await clientsRes.json() : [])
@@ -104,7 +120,11 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
         description: form.description.trim() || null,
         industry: form.industry || null,
         status: form.status,
-        ownerId: form.ownerId || null
+        ownerId: form.ownerId || null,
+        address: form.address.trim() || null,
+        country: form.country || null,
+        province: form.province || null,
+        city: form.city || null
       })
     })
     setSaving(false)
@@ -205,6 +225,20 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
           </div>
         </div>
         {client.description && <p className="text-slate-500 text-sm mt-2">{client.description}</p>}
+        {(client.address || client.city || client.country) && (
+          <p className="text-sm text-slate-500 mt-2">
+            📍{' '}
+            {[
+              client.address,
+              client.country === 'IT'
+                ? [client.city, client.province ? `(${client.province})` : ''].filter(Boolean).join(' ')
+                : [client.city, client.province].filter(Boolean).join(', '),
+              countryLabel(client.country)
+            ]
+              .filter(Boolean)
+              .join(', ')}
+          </p>
+        )}
         <p className="text-xs text-slate-400 mt-2">
           Owner:{' '}
           {client.owner ? (
@@ -384,7 +418,7 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
 
       {showEditForm && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl">
+          <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 shadow-2xl">
             <h2 className="text-lg font-bold text-slate-800 mb-4">Modifica cliente</h2>
             <div className="space-y-3">
               <div>
@@ -404,6 +438,10 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
                   className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1"
                 />
               </div>
+              <ClientLocationFields
+                value={{ address: form.address, country: form.country, province: form.province, city: form.city }}
+                onChange={(loc) => setForm((f) => ({ ...f, ...loc }))}
+              />
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-medium text-slate-500">Industry</label>
