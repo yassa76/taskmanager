@@ -1,3 +1,5 @@
+import provinceRegion from '@/data/it-province-region.json'
+
 // Parti di geo.ts senza l'elenco di province/comuni, cosi' possono finire nel
 // bundle del browser senza trascinarsi dietro il file dati (~100 KB).
 
@@ -31,4 +33,16 @@ export interface GeocodeCandidate {
   /** Solo Italia: true se il comune e' presente nell'elenco ufficiale delle tendine. */
   cityKnown: boolean
   partialMatch: boolean
+}
+
+// Regione italiana (nome breve) a partire dalla sigla di provincia, es. RM -> Lazio.
+
+export function regionOfProvince(sigla: string | null | undefined): string | null {
+  if (!sigla) return null
+  return (provinceRegion as Record<string, string>)[sigla.toUpperCase()] || null
+}
+
+// Regione di un cliente: solo per l'Italia con provincia valorizzata.
+export function clientRegion(c: { country: string | null; province: string | null }): string | null {
+  return c.country === 'IT' ? regionOfProvince(c.province) : null
 }
