@@ -46,3 +46,36 @@ export function regionOfProvince(sigla: string | null | undefined): string | nul
 export function clientRegion(c: { country: string | null; province: string | null }): string | null {
   return c.country === 'IT' ? regionOfProvince(c.province) : null
 }
+
+// Elenco di tutti i paesi selezionabili dall'admin: i codici ISO a 2 lettere che il browser/Node
+// sa nominare in italiano. Esclusi i codici speciali (Unione europea, ONU, "sconosciuto", ecc.).
+const NOT_A_COUNTRY = new Set(['ZZ', 'EU', 'EZ', 'UN', 'XA', 'XB', 'QO', 'AC', 'CP', 'DG', 'EA', 'IC', 'TA'])
+
+let allCountriesCache: { code: string; label: string }[] | null = null
+
+export function allCountries(): { code: string; label: string }[] {
+  if (allCountriesCache) return allCountriesCache
+  const names = new Intl.DisplayNames(['it'], { type: 'region', fallback: 'none' })
+  const list: { code: string; label: string }[] = []
+  const A = 65
+  for (let i = 0; i < 26; i++) {
+    for (let j = 0; j < 26; j++) {
+      const code = String.fromCharCode(A + i, A + j)
+      if (NOT_A_COUNTRY.has(code)) continue
+      let label: string | undefined
+      try {
+        label = names.of(code)
+      } catch {
+        label = undefined
+      }
+      if (label && label !== code) list.push({ code, label })
+    }
+  }
+  list.sort((a, b) => a.label.localeCompare(b.label, 'it'))
+  allCountriesCache = list
+  return list
+}
+
+export function isValidCountryCode(code: unknown): code is string {
+  return typeof code === 'string' && /^[A-Z]{2}$/.test(code) && allCountries().some((c) => c.code === code)
+}

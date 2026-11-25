@@ -78,7 +78,8 @@ export async function GET(req: NextRequest) {
     .sort((a, b) => (a.endDate! < b.endDate! ? -1 : a.endDate! > b.endDate! ? 1 : 0))
 
   const kpi = {
-    totalTasks: enrichedTasks.length,
+    // task attivi (da avviare + in corso): coerente con la lista task, che nasconde completati e annullati
+    totalTasks: enrichedTasks.filter((t) => t.status === 'da_avviare' || t.status === 'in_corso').length,
     inProgress: enrichedTasks.filter((t) => t.status === 'in_corso').length,
     notStarted: enrichedTasks.filter((t) => t.status === 'da_avviare').length,
     completed: enrichedTasks.filter((t) => t.status === 'completato').length,

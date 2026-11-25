@@ -81,19 +81,33 @@ export default function HomeView({ userName }: { userName: string }) {
   const [loading, setLoading] = useState(true)
   const [scope, setScope] = useState<'mine' | 'team'>('mine')
 
+  // La preferenza salvata va letta PRIMA del primo caricamento: altrimenti parte la richiesta
+  // "mine" e la sua risposta puo' arrivare dopo quella "team", mostrando numeri sbagliati.
+  const [ready, setReady] = useState(false)
+
   const load = useCallback(() => {
+    if (!ready) return
+    let stale = false
     setLoading(true)
     fetch(`/api/home?scope=${scope}`)
       .then((r) => r.json())
-      .then(setData)
-      .finally(() => setLoading(false))
-  }, [scope])
+      .then((d) => {
+        if (!stale) setData(d)
+      })
+      .finally(() => {
+        if (!stale) setLoading(false)
+      })
+    return () => {
+      stale = true
+    }
+  }, [scope, ready])
 
   // Ripristina la preferenza "i miei / tutto il team" salvata in precedenza,
   // cosi' resta valida anche navigando su altre pagine e tornando qui.
   useEffect(() => {
     const saved = typeof window !== 'undefined' ? localStorage.getItem('homeScope') : null
     if (saved === 'team' || saved === 'mine') setScope(saved)
+    setReady(true)
   }, [])
 
   function changeScope(v: 'mine' | 'team') {
@@ -102,7 +116,7 @@ export default function HomeView({ userName }: { userName: string }) {
   }
 
   useEffect(() => {
-    load()
+    return load()
   }, [load])
 
   // Costruisce il link verso la vista Task con i filtri giusti a seconda
@@ -136,7 +150,9 @@ export default function HomeView({ userName }: { userName: string }) {
             </div>
           )}
           <button
-            onClick={load}
+            onClick={() => {
+              load()
+            }}
             className="px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-medium text-slate-700 hover:bg-slate-100"
           >
             ↻ Aggiorna
@@ -153,7 +169,7 @@ export default function HomeView({ userName }: { userName: string }) {
               <DeadlineCalendar items={data.calendarItems} />
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 auto-rows-fr gap-2 lg:h-[200px]">
-              <KpiCard label={scope === 'mine' ? 'I miei task' : 'Task del team'} value={data.kpi.totalTasks} href={tasksHref('')} />
+              <KpiCard label={scope === 'mine' ? 'I miei task attivi' : 'Task attivi del team'} value={data.kpi.totalTasks} href={tasksHref('')} />
               <KpiCard label="In corso" value={data.kpi.inProgress} accent="text-amber-600" href={tasksHref('status=in_corso')} />
               <KpiCard label="Da avviare" value={data.kpi.notStarted} href={tasksHref('status=da_avviare')} />
               <KpiCard label="Task in ritardo" value={data.kpi.overdueTasks} accent="text-red-600" href={tasksHref('overdue=true')} />
