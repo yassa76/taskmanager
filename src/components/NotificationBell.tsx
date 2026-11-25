@@ -126,7 +126,7 @@ export default function NotificationBell() {
             ))}
           </div>
           <div className="px-4 py-1.5 flex items-center justify-between text-xs border-b border-slate-100">
-            <Link href="/notifications" onClick={() => setOpen(false)} className="text-brand-600 hover:underline">
+            <Link href="/profile?tab=notifiche" onClick={() => setOpen(false)} className="text-brand-600 hover:underline">
               Vedi tutte
             </Link>
             {unreadInKind > 0 && (

@@ -195,7 +195,7 @@ const TABS = [
   { id: 'paesi', label: 'Paesi dei clienti', render: () => <CountriesSettings /> },
   { id: 'indirizzi', label: 'Verifica indirizzi', render: () => <GeocodeSettingsPanel /> },
   { id: 'registro', label: 'Registro modifiche', render: () => <ActivityLogSettings /> },
-  { id: 'accessi', label: 'Accessi', render: () => <AccessLogSettings /> }
+  { id: 'accessi', label: 'Registro accessi', render: () => <AccessLogSettings /> }
 ]
 
 export default function SettingsView() {
@@ -205,8 +205,8 @@ export default function SettingsView() {
 
   return (
     <div>
-      <Breadcrumbs items={[{ label: 'Impostazioni' }]} />
-      <h1 className="text-xl font-bold text-slate-800 mb-4">Impostazioni</h1>
+      <Breadcrumbs items={[{ label: 'Admin' }]} />
+      <h1 className="text-xl font-bold text-slate-800 mb-4">Admin</h1>
 
       <div className="flex gap-1 border-b border-slate-200 mb-5 overflow-x-auto">
         {TABS.map((t) => (
@@ -226,6 +226,10 @@ export default function SettingsView() {
       </div>
 
       {current.render()}
+
+      <p className="text-[11px] text-slate-400 mt-8">
+        Crediti: confini regionali della mappa clienti © Openpolis, CC BY 4.0 (dati ISTAT).
+      </p>
     </div>
   )
 }

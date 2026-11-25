@@ -6,6 +6,7 @@ import clsx from 'clsx'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Breadcrumbs from './Breadcrumbs'
 import NotificationPrefsPanel from './NotificationPrefsPanel'
+import NotificationsView from './NotificationsView'
 
 const THEMES: { key: string; label: string; swatch: string }[] = [
   { key: 'blue', label: 'Blu', swatch: '#2f49b3' },
@@ -166,7 +167,17 @@ export default function ProfileView() {
         ))}
       </div>
 
-      {current === 'preferenze' ? <PreferencesPanel /> : <NotificationPrefsPanel />}
+      {current === 'preferenze' ? (
+        <PreferencesPanel />
+      ) : (
+        <div className="space-y-8">
+          <section>
+            <h2 className="font-semibold text-slate-800 mb-2">Le tue notifiche</h2>
+            <NotificationsView />
+          </section>
+          <NotificationPrefsPanel />
+        </div>
+      )}
     </div>
   )
 }
