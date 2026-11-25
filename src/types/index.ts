@@ -75,7 +75,7 @@ export interface ClientDTO {
 export interface TeamMemberDTO {
   id: string
   email: string
-  status: 'new' | 'invited' | 'active' | 'inactive'
+  status: 'new' | 'invited' | 'active' | 'inactive' | 'pending' | 'rejected'
   invitedAt: string
   matchedUser: {
     id: string

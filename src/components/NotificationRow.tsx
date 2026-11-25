@@ -8,20 +8,21 @@ export interface NotificationItem {
   read: boolean
   createdAt: string
   authorName: string | null
-  entityType: 'task' | 'subtask'
+  entityType: 'task' | 'subtask' | 'team'
   entityId: string
   entityTitle: string | null
   snippet: string | null
   message: string | null
 }
 
-const ICONS: Record<string, string> = { menzione: '💬', assegnato: '👤', scadenza_cambiata: '📅', in_scadenza: '⏰' }
+const ICONS: Record<string, string> = { richiesta_accesso: '🔑', menzione: '💬', assegnato: '👤', scadenza_cambiata: '📅', in_scadenza: '⏰' }
 
 export function whenLabel(iso: string) {
   return new Date(iso).toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'short' })
 }
 
 export function notificationHref(i: NotificationItem) {
+  if (i.entityType === 'team') return '/team'
   const base = `/${i.entityType === 'task' ? 'tasks' : 'subtasks'}/${i.entityId}`
   return i.reason === 'menzione' ? `${base}#commenti` : base
 }
