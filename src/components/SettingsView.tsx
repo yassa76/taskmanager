@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import clsx from 'clsx'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Breadcrumbs from './Breadcrumbs'
 import CountriesSettings from './CountriesSettings'
 
@@ -34,7 +35,7 @@ function UsageBar({ label, used, limit }: { label: string; used: number; limit: 
   )
 }
 
-export default function SettingsView() {
+function GeocodeSettingsPanel() {
   const [data, setData] = useState<GeocodeSettings | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -101,9 +102,6 @@ export default function SettingsView() {
 
   return (
     <div>
-      <Breadcrumbs items={[{ label: 'Impostazioni' }]} />
-      <h1 className="text-xl font-bold text-slate-800 mb-4">Impostazioni</h1>
-
       <div className="bg-white border border-slate-200 rounded-xl p-5 max-w-2xl">
         <div className="flex items-center gap-2 mb-1 flex-wrap">
           <h2 className="font-semibold text-slate-800">Verifica indirizzi (Google Maps)</h2>
@@ -186,8 +184,44 @@ export default function SettingsView() {
           </button>
         </div>
       </div>
+    </div>
+  )
+}
 
-      <CountriesSettings />
+// Sezioni delle impostazioni: per aggiungerne una basta una riga qui sotto.
+const TABS = [
+  { id: 'paesi', label: 'Paesi dei clienti', render: () => <CountriesSettings /> },
+  { id: 'indirizzi', label: 'Verifica indirizzi', render: () => <GeocodeSettingsPanel /> }
+]
+
+export default function SettingsView() {
+  const router = useRouter()
+  const params = useSearchParams()
+  const current = TABS.find((t) => t.id === params?.get('tab')) ?? TABS[0]
+
+  return (
+    <div>
+      <Breadcrumbs items={[{ label: 'Impostazioni' }]} />
+      <h1 className="text-xl font-bold text-slate-800 mb-4">Impostazioni</h1>
+
+      <div className="flex gap-1 border-b border-slate-200 mb-5 overflow-x-auto">
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => router.replace(`/settings?tab=${t.id}`)}
+            className={clsx(
+              'px-4 py-2 text-sm font-medium -mb-px border-b-2 whitespace-nowrap',
+              t.id === current.id
+                ? 'border-brand-600 text-brand-700'
+                : 'border-transparent text-slate-500 hover:text-slate-700'
+            )}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {current.render()}
     </div>
   )
 }
