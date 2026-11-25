@@ -19,7 +19,8 @@ export interface DeadlineRow {
 }
 
 type Filter = 'tutti' | 'scaduti' | 'settimana'
-const PAGE_SIZE = 15
+type Horizon = '30' | 'all'
+const PAGE_SIZES = [15, 30, 50]
 
 function getInitials(name?: string) {
   if (!name) return '—'
@@ -89,23 +90,53 @@ export default function HomeDeadlineList({
 }) {
   const [filter, setFilter] = useState<Filter>('tutti')
   const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(15)
+  const [horizon, setHorizon] = useState<Horizon>('30')
+
+  // Preferenze condivise dalle due liste, ricordate nel browser
+  useEffect(() => {
+    try {
+      const ps = Number(localStorage.getItem('homeListPageSize'))
+      if (PAGE_SIZES.includes(ps)) setPageSize(ps)
+      const h = localStorage.getItem('homeListHorizon')
+      if (h === '30' || h === 'all') setHorizon(h)
+    } catch {}
+  }, [])
+  function changePageSize(n: number) {
+    setPageSize(n)
+    try {
+      localStorage.setItem('homeListPageSize', String(n))
+    } catch {}
+  }
+  function changeHorizon(h: Horizon) {
+    setHorizon(h)
+    try {
+      localStorage.setItem('homeListHorizon', h)
+    } catch {}
+  }
+
+  // Con orizzonte 30 giorni: ritardi + scadenze entro 30 giorni
+  const scoped = useMemo(
+    () => (horizon === 'all' ? rows : rows.filter((r) => r.overdue || (!!r.endDate && dayDiff(r.endDate) <= 30))),
+    [rows, horizon]
+  )
 
   const counts = useMemo(() => {
     let scaduti = 0
     let settimana = 0
-    for (const r of rows) {
+    for (const r of scoped) {
       if (!r.endDate) continue
       const d = dayDiff(r.endDate)
       if (r.overdue || d < 0) scaduti++
       else if (d <= 7) settimana++
     }
-    return { tutti: rows.length, scaduti, settimana }
-  }, [rows])
+    return { tutti: scoped.length, scaduti, settimana }
+  }, [scoped])
 
   // Gli scaduti vengono prima, poi i piu' vicini (le righe arrivano gia' per data).
   const visible = useMemo(() => {
     const isLate = (r: DeadlineRow) => r.overdue || (!!r.endDate && dayDiff(r.endDate) < 0)
-    const list = rows.filter((r) => {
+    const list = scoped.filter((r) => {
       if (filter === 'tutti') return true
       if (!r.endDate) return false
       if (filter === 'scaduti') return isLate(r)
@@ -118,14 +149,16 @@ export default function HomeDeadlineList({
       if (la !== lb) return la - lb
       return (a.endDate || '').localeCompare(b.endDate || '')
     })
-  }, [rows, filter])
+  }, [scoped, filter])
 
   useEffect(() => {
     setPage(1)
-  }, [filter, rows])
+  }, [filter, scoped, pageSize])
 
-  const totalPages = Math.max(1, Math.ceil(visible.length / PAGE_SIZE))
-  const paged = visible.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  const totalPages = Math.max(1, Math.ceil(visible.length / pageSize))
+  const paged = visible.slice((page - 1) * pageSize, page * pageSize)
+  const from = visible.length === 0 ? 0 : (page - 1) * pageSize + 1
+  const to = Math.min(visible.length, page * pageSize)
 
   const chips: { key: Filter; label: string }[] = [
     { key: 'tutti', label: 'Tutti' },
@@ -137,7 +170,16 @@ export default function HomeDeadlineList({
     <div id={anchorId} className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm scroll-mt-20">
       <div className="px-4 py-2.5 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2">
         <h2 className="font-semibold text-slate-800 text-sm">{title}</h2>
-        <div className="flex gap-1">
+        <div className="flex flex-wrap items-center gap-1">
+          <select
+            value={horizon}
+            onChange={(e) => changeHorizon(e.target.value as Horizon)}
+            className="border border-slate-200 rounded-full px-2 py-1 text-xs text-slate-600 mr-1"
+            title="Quali scadenze mostrare"
+          >
+            <option value="30">Prossimi 30 giorni</option>
+            <option value="all">Tutte le scadenze</option>
+          </select>
           {chips.map((c) => (
             <button
               key={c.key}
@@ -213,29 +255,42 @@ export default function HomeDeadlineList({
           )}
         </tbody>
       </table>
-      {visible.length > PAGE_SIZE && (
-        <div className="flex items-center justify-between px-3 py-1.5 border-t border-slate-100 text-xs text-slate-500">
+      <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-1.5 border-t border-slate-100 text-xs text-slate-500">
+        <span>
+          {from}–{to} di {visible.length}
+        </span>
+        <div className="flex items-center gap-2">
+          <select
+            value={pageSize}
+            onChange={(e) => changePageSize(Number(e.target.value))}
+            className="border border-slate-200 rounded px-1.5 py-1"
+            title="Righe per pagina"
+          >
+            {PAGE_SIZES.map((n) => (
+              <option key={n} value={n}>
+                {n} per pagina
+              </option>
+            ))}
+          </select>
           <span>
             Pagina {page} di {totalPages}
           </span>
-          <div className="flex gap-1">
-            <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
-              className="px-2 py-1 rounded border border-slate-200 disabled:opacity-40 hover:bg-slate-100"
-            >
-              ←
-            </button>
-            <button
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages}
-              className="px-2 py-1 rounded border border-slate-200 disabled:opacity-40 hover:bg-slate-100"
-            >
-              →
-            </button>
-          </div>
+          <button
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className="px-2 py-1 rounded border border-slate-200 disabled:opacity-40 hover:bg-slate-100"
+          >
+            ←
+          </button>
+          <button
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={page === totalPages}
+            className="px-2 py-1 rounded border border-slate-200 disabled:opacity-40 hover:bg-slate-100"
+          >
+            →
+          </button>
         </div>
-      )}
+      </div>
     </div>
   )
 }
