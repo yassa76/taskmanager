@@ -7,10 +7,12 @@ import Breadcrumbs from './Breadcrumbs'
 import { EditIcon, DeleteIcon } from './icons'
 import Combobox from './Combobox'
 import ClientLocationFields from './ClientLocationFields'
+import ClientsMap from './ClientsMap'
+import { clientRegion, countryLabel } from '@/lib/geoShared'
 
 const INDUSTRIES = ['GPS', 'TMT', 'ER&I', 'FSI', 'CONS']
 
-type SortKey = 'name' | 'industry' | 'owner'
+type SortKey = 'name' | 'industry' | 'country' | 'region'
 type SortDir = 'asc' | 'desc'
 
 interface OwnerLite {
@@ -58,7 +60,10 @@ export default function ClientsView() {
   const PAGE_SIZE = 20
   const [search, setSearch] = useState('')
   const [industryFilter, setIndustryFilter] = useState('')
-  const [ownerFilter, setOwnerFilter] = useState('')
+  const [countryFilter, setCountryFilter] = useState('')
+  const [regionFilter, setRegionFilter] = useState('')
+  const [cityFilter, setCityFilter] = useState('')
+  const [view, setView] = useState<'table' | 'map'>('table')
   const [statusFilter, setStatusFilter] = useState('')
 
   async function load() {
@@ -79,13 +84,75 @@ export default function ClientsView() {
     load()
   }, [])
 
-  const filteredClients = useMemo(() => {
+  // filtri "generici": la mappa conta i clienti su questi, senza filtri geografici
+  const baseClients = useMemo(() => {
     return clients
       .filter((c) => !search || c.name.toLowerCase().includes(search.toLowerCase()))
       .filter((c) => !industryFilter || c.industry === industryFilter)
-      .filter((c) => !ownerFilter || c.owner?.id === ownerFilter)
       .filter((c) => !statusFilter || c.status === statusFilter)
-  }, [clients, search, industryFilter, ownerFilter, statusFilter])
+  }, [clients, search, industryFilter, statusFilter])
+
+  const filteredClients = useMemo(() => {
+    return baseClients
+      .filter((c) => {
+        if (!countryFilter) return true
+        if (countryFilter === '__none') return !c.country || (c.country === 'IT' && !clientRegion(c))
+        return c.country === countryFilter
+      })
+      .filter((c) => !regionFilter || clientRegion(c) === regionFilter)
+      .filter((c) => !cityFilter || c.city === cityFilter)
+  }, [baseClients, countryFilter, regionFilter, cityFilter])
+
+  // opzioni dei filtri geografici
+  const countryOptions = useMemo(() => {
+    const codes = Array.from(new Set(clients.map((c) => c.country).filter(Boolean) as string[]))
+    return codes.map((code) => ({ code, label: countryLabel(code) })).sort((a, b) => a.label.localeCompare(b.label))
+  }, [clients])
+  const regionOptions = useMemo(
+    () => Array.from(new Set(clients.map((c) => clientRegion(c)).filter(Boolean) as string[])).sort((a, b) => a.localeCompare(b)),
+    [clients]
+  )
+  const cityOptions = useMemo(() => {
+    const set = new Set<string>()
+    for (const c of clients) {
+      if (!c.city) continue
+      if (countryFilter && countryFilter !== '__none' && c.country !== countryFilter) continue
+      if (regionFilter && clientRegion(c) !== regionFilter) continue
+      set.add(c.city)
+    }
+    return Array.from(set).sort((a, b) => a.localeCompare(b))
+  }, [clients, countryFilter, regionFilter])
+
+  // dati per la mappa
+  const mapData = useMemo(() => {
+    const regionCounts: Record<string, number> = {}
+    const abroadMap = new Map<string, number>()
+    let noLocation = 0
+    for (const c of baseClients) {
+      const reg = clientRegion(c)
+      if (reg) regionCounts[reg] = (regionCounts[reg] || 0) + 1
+      else if (c.country && c.country !== 'IT') abroadMap.set(c.country, (abroadMap.get(c.country) || 0) + 1)
+      else noLocation++
+    }
+    const abroad = Array.from(abroadMap, ([code, count]) => ({ code, label: countryLabel(code), count })).sort((a, b) =>
+      a.label.localeCompare(b.label)
+    )
+    return { regionCounts, abroad, noLocation }
+  }, [baseClients])
+
+  function pickRegion(region: string) {
+    setCountryFilter('IT')
+    setRegionFilter(region)
+    setCityFilter('')
+    setView('table')
+  }
+  function pickCountry(code: string) {
+    setCountryFilter(code)
+    setRegionFilter('')
+    setCityFilter('')
+    setView('table')
+  }
+  const geoFilterActive = !!(countryFilter || regionFilter || cityFilter)
 
   const sortedClients = useMemo(() => {
     const arr = [...filteredClients]
@@ -101,9 +168,13 @@ export default function ClientsView() {
           av = (a.industry || '').toLowerCase()
           bv = (b.industry || '').toLowerCase()
           break
-        case 'owner':
-          av = (a.owner?.name || a.owner?.email || '').toLowerCase()
-          bv = (b.owner?.name || b.owner?.email || '').toLowerCase()
+        case 'country':
+          av = countryLabel(a.country).toLowerCase()
+          bv = countryLabel(b.country).toLowerCase()
+          break
+        case 'region':
+          av = (clientRegion(a) || '').toLowerCase()
+          bv = (clientRegion(b) || '').toLowerCase()
           break
       }
       if (av < bv) return sortDir === 'asc' ? -1 : 1
@@ -115,7 +186,7 @@ export default function ClientsView() {
 
   useEffect(() => {
     setPage(1)
-  }, [search, industryFilter, ownerFilter, statusFilter])
+  }, [search, industryFilter, statusFilter, countryFilter, regionFilter, cityFilter])
 
   function toggleSort(key: SortKey) {
     if (sortKey === key) {
@@ -213,7 +284,23 @@ export default function ClientsView() {
     <div>
       <Breadcrumbs items={[{ label: 'Clienti' }]} />
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-bold text-slate-800">Clienti</h1>
+        <div className="flex items-center gap-4">
+          <h1 className="text-xl font-bold text-slate-800">Clienti</h1>
+          <div className="inline-flex rounded-lg border border-slate-300 overflow-hidden text-sm">
+            <button
+              onClick={() => setView('table')}
+              className={view === 'table' ? 'px-3 py-1.5 bg-brand-600 text-white' : 'px-3 py-1.5 text-slate-600 hover:bg-slate-100'}
+            >
+              Tabella
+            </button>
+            <button
+              onClick={() => setView('map')}
+              className={view === 'map' ? 'px-3 py-1.5 bg-brand-600 text-white' : 'px-3 py-1.5 text-slate-600 hover:bg-slate-100'}
+            >
+              Mappa
+            </button>
+          </div>
+        </div>
         <div className="flex gap-2">
           <button
             onClick={load}
@@ -252,14 +339,63 @@ export default function ClientsView() {
           <option value="attivo">Attivo</option>
           <option value="inattivo">Inattivo</option>
         </select>
-        <Combobox
-          value={ownerFilter}
-          onChange={setOwnerFilter}
-          options={owners.map((o) => ({ id: o.id, label: o.name }))}
-          emptyLabel="Tutti gli owner"
-          placeholder="Cerca owner..."
-          className="w-48"
-        />
+        <select
+          value={countryFilter}
+          onChange={(e) => {
+            setCountryFilter(e.target.value)
+            setRegionFilter('')
+            setCityFilter('')
+          }}
+          className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm"
+        >
+          <option value="">Tutti i paesi</option>
+          {countryOptions.map((o) => (
+            <option key={o.code} value={o.code}>
+              {o.label}
+            </option>
+          ))}
+          <option value="__none">Località non indicata</option>
+        </select>
+        <select
+          value={regionFilter}
+          onChange={(e) => {
+            setRegionFilter(e.target.value)
+            if (e.target.value) setCountryFilter('IT')
+            setCityFilter('')
+          }}
+          className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm"
+        >
+          <option value="">Tutte le regioni</option>
+          {regionOptions.map((r) => (
+            <option key={r} value={r}>
+              {r}
+            </option>
+          ))}
+        </select>
+        <select
+          value={cityFilter}
+          onChange={(e) => setCityFilter(e.target.value)}
+          className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm"
+        >
+          <option value="">Tutte le città</option>
+          {cityOptions.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </select>
+        {geoFilterActive && (
+          <button
+            onClick={() => {
+              setCountryFilter('')
+              setRegionFilter('')
+              setCityFilter('')
+            }}
+            className="px-3 py-1.5 rounded-lg text-sm text-slate-500 hover:bg-slate-100"
+          >
+            ✕ Azzera luogo
+          </button>
+        )}
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -268,6 +404,18 @@ export default function ClientsView() {
         />
       </div>
 
+      {view === 'map' && (
+        <ClientsMap
+          regionCounts={mapData.regionCounts}
+          abroad={mapData.abroad}
+          noLocation={mapData.noLocation}
+          onSelectRegion={pickRegion}
+          onSelectCountry={pickCountry}
+        />
+      )}
+
+      {view === 'table' && (
+      <>
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 border-b border-slate-200">
@@ -275,7 +423,9 @@ export default function ClientsView() {
               <SortHeader label="Nome" k="name" />
               <SortHeader label="Industry" k="industry" />
               <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Stato</th>
-              <SortHeader label="Owner" k="owner" />
+              <SortHeader label="Country" k="country" />
+              <SortHeader label="Regione" k="region" />
+              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Città</th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Task attivi</th>
               <th className="px-4 py-2 text-right text-xs font-semibold text-slate-500 uppercase">Azioni</th>
             </tr>
@@ -283,7 +433,7 @@ export default function ClientsView() {
           <tbody>
             {loading && (
               <tr>
-                <td colSpan={6} className="text-center py-8 text-slate-400">
+                <td colSpan={8} className="text-center py-8 text-slate-400">
                   Caricamento...
                 </td>
               </tr>
@@ -315,15 +465,9 @@ export default function ClientsView() {
                       {c.status === 'inattivo' ? 'Inattivo' : 'Attivo'}
                     </span>
                   </td>
-                  <td className="px-4 py-2">
-                    {c.owner ? (
-                      <Link href={`/owners/${c.owner.id}`} className="text-brand-600 hover:underline">
-                        {c.owner.name || c.owner.email}
-                      </Link>
-                    ) : (
-                      '—'
-                    )}
-                  </td>
+                  <td className="px-4 py-2">{c.country ? countryLabel(c.country) : <span className="text-slate-300">—</span>}</td>
+                  <td className="px-4 py-2">{clientRegion(c) || <span className="text-slate-300">—</span>}</td>
+                  <td className="px-4 py-2">{c.city || <span className="text-slate-300">—</span>}</td>
                   <td className="px-4 py-2">
                     <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
                       {c.activeTasksCount}
@@ -349,7 +493,7 @@ export default function ClientsView() {
               ))}
             {!loading && sortedClients.length === 0 && (
               <tr>
-                <td colSpan={6} className="text-center py-8 text-slate-400">
+                <td colSpan={8} className="text-center py-8 text-slate-400">
                   {clients.length === 0
                     ? 'Nessun cliente ancora. Aggiungine uno con il pulsante sopra.'
                     : 'Nessun cliente trovato con questi filtri.'}
@@ -382,6 +526,8 @@ export default function ClientsView() {
             </button>
           </div>
         </div>
+      )}
+      </>
       )}
 
       {showForm && (
