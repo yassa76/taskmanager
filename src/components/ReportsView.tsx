@@ -64,6 +64,27 @@ function KpiCard({ label, value, accent }: { label: string; value: string | numb
   )
 }
 
+function ownerInitials(name?: string) {
+  if (!name) return '—'
+  const parts = name.trim().split(/\s+/).filter(Boolean)
+  if (parts.length === 0) return '—'
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+}
+
+// Etichetta asse X: solo iniziali, nome completo al passaggio del mouse
+function OwnerTick(props: any) {
+  const { x, y, payload } = props
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <text x={0} y={0} dy={14} textAnchor="middle" fill="#666" fontSize={11} style={{ cursor: 'default' }}>
+        <title>{payload?.value}</title>
+        {ownerInitials(payload?.value)}
+      </text>
+    </g>
+  )
+}
+
 export default function ReportsView() {
   const router = useRouter()
   const { data: session } = useSession()
@@ -221,7 +242,7 @@ export default function ReportsView() {
           </h2>
           <ResponsiveContainer width="100%" height={260}>
             <BarChart data={data.byOwner}>
-              <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+              <XAxis dataKey="name" tick={<OwnerTick />} interval={0} />
               <YAxis allowDecimals={false} />
               <Tooltip />
               <Legend />
@@ -254,7 +275,7 @@ export default function ReportsView() {
           </h2>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={data.byOwnerStatus}>
-              <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+              <XAxis dataKey="name" tick={<OwnerTick />} interval={0} />
               <YAxis allowDecimals={false} />
               <Tooltip />
               <Legend />
