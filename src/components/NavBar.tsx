@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { signOut, useSession } from 'next-auth/react'
 import clsx from 'clsx'
 import GlobalSearch from './GlobalSearch'
+import NotificationBell from './NotificationBell'
 
 const links = [
   { href: '/home', label: 'Home' },
@@ -48,6 +49,7 @@ export default function NavBar() {
           <GlobalSearch />
         </div>
         <div className="flex items-center gap-3">
+          <NotificationBell />
           {session?.user?.image && (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={session.user.image} alt="" className="w-8 h-8 rounded-full" />

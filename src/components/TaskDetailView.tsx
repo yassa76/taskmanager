@@ -12,6 +12,7 @@ import Combobox from './Combobox'
 import CloseParentModal from './CloseParentModal'
 import Breadcrumbs from './Breadcrumbs'
 import ActivityLogPanel from './ActivityLogPanel'
+import CommentsPanel from './CommentsPanel'
 import { EditIcon, DeleteIcon } from './icons'
 import ReadOnlyGuard from './ReadOnlyGuard'
 import { RECURRENCE_HELP, recurrenceLabel } from '@/lib/recurrenceShared'
@@ -663,6 +664,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
         />
       )}
 
+      <CommentsPanel entityType="task" entityId={task.id} />
       <ActivityLogPanel entityType="task" entityId={task.id} />
     </div>
   )

@@ -74,6 +74,9 @@ model User {
   createdClients  Client[]  @relation("ClientCreatedBy")
 
   activityLogs ActivityLog[]
+
+  comments      Comment[]      @relation("CommentAuthor")
+  notifications Notification[] @relation("NotificationRecipient")
 }
 
 // Elenco email del team, gestito dagli admin. Quando un utente si registra
@@ -193,4 +196,35 @@ model AppSetting {
 model GeocodeUsage {
   day   String @id
   count Int    @default(0)
+}
+
+// Commenti su task e sub-task. Nel testo le menzioni sono salvate come
+// @[Nome](idUtente), cosi' restano corrette anche se il nome cambia.
+model Comment {
+  id         String    @id @default(cuid())
+  entityType String    // "task" | "subtask"
+  entityId   String
+  authorId   String
+  author     User      @relation("CommentAuthor", fields: [authorId], references: [id])
+  body       String    @db.Text
+  createdAt  DateTime  @default(now())
+  editedAt   DateTime?
+
+  notifications Notification[]
+
+  @@index([entityType, entityId, createdAt])
+}
+
+// Avvisi in-app (campanella). Uno per destinatario e per commento.
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
+  commentId String
+  comment   Comment   @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  reason    String    // "menzione" | "owner" | "thread"
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, readAt, createdAt])
 }
