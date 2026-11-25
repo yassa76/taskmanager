@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import clsx from 'clsx'
-import Breadcrumbs from './Breadcrumbs'
 import NotificationRow, { notificationHref, type NotificationItem } from './NotificationRow'
 
 export default function NotificationsView() {
@@ -42,9 +41,6 @@ export default function NotificationsView() {
 
   return (
     <div>
-      <Breadcrumbs items={[{ label: 'Notifiche' }]} />
-      <h1 className="text-xl font-bold text-slate-800 mb-4">Notifiche</h1>
-
       <div className="flex gap-1 border-b border-slate-200 mb-3">
         {(
           [
@@ -71,13 +67,7 @@ export default function NotificationsView() {
       </div>
 
       <div className="flex items-center justify-between text-sm text-slate-500 mb-2">
-        <span>
-          Le notifiche lette si cancellano dopo 30 giorni, quelle non lette dopo 90. Quali ricevere si sceglie dal{' '}
-          <a href="/profile?tab=notifiche" className="text-brand-600 hover:underline">
-            profilo
-          </a>
-          .
-        </span>
+        <span>Le notifiche lette si cancellano dopo 30 giorni, quelle non lette dopo 90.</span>
         {unread[kind] > 0 && (
           <button onClick={() => markRead({ all: true, kind })} className="text-brand-600 hover:underline whitespace-nowrap ml-3">
             Segna tutte come lette

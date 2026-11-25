@@ -124,7 +124,6 @@ export default function ClientsMap({ regionCounts, abroad, noLocation, onSelectR
               Include anche i clienti italiani senza provincia. Clicca una regione per vedere l&apos;elenco.
             </p>
           </div>
-          <p className="text-[11px] text-slate-400">Confini regionali: © Openpolis, CC BY 4.0 (dati ISTAT).</p>
         </div>
       </div>
     </div>
