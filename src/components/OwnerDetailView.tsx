@@ -7,6 +7,8 @@ import Combobox from './Combobox'
 import { STATUS_COLORS, STATUS_LABELS } from '@/lib/taskStatus'
 import { formatDate } from '@/lib/formatDate'
 import Breadcrumbs from './Breadcrumbs'
+import SubtaskCount from './SubtaskCount'
+import RecurrenceBadge from './RecurrenceBadge'
 
 interface OwnerTask {
   id: string
@@ -17,6 +19,8 @@ interface OwnerTask {
   endDate: string | null
   status: 'da_avviare' | 'in_corso' | 'completato' | 'annullato'
   progress: number
+  activeSubtasks: number
+  totalSubtasks: number
   overdue: boolean
 }
 
@@ -24,6 +28,7 @@ interface OwnerSubtask {
   id: string
   title: string
   status: 'da_avviare' | 'in_corso' | 'completato' | 'annullato'
+  recurrence: string | null
   endDate: string | null
   taskId: string
   taskTitle: string
@@ -252,7 +257,7 @@ export default function OwnerDetailView({ ownerId }: { ownerId: string }) {
               <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Cliente</th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Scadenza</th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Stato</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Avanz.</th>
+              <th className="px-4 py-2 text-center text-xs font-semibold text-slate-500 uppercase" title="Sub-task ancora da fare (da avviare o in corso)">Sub-task attivi</th>
             </tr>
           </thead>
           <tbody>
@@ -286,11 +291,8 @@ export default function OwnerDetailView({ ownerId }: { ownerId: string }) {
                     {STATUS_LABELS[t.status]}
                   </span>
                 </td>
-                <td className="px-4 py-2 w-28">
-                  <div className="w-full bg-slate-100 rounded-full h-2">
-                    <div className="bg-brand-500 h-2 rounded-full" style={{ width: `${t.progress}%` }} />
-                  </div>
-                  <span className="text-xs text-slate-400">{t.progress}%</span>
+                <td className="px-4 py-2 text-center">
+                  <SubtaskCount active={t.activeSubtasks} total={t.totalSubtasks} />
                 </td>
               </tr>
             ))}
@@ -374,13 +376,16 @@ export default function OwnerDetailView({ ownerId }: { ownerId: string }) {
             {visibleSubtasks.map((s) => (
               <tr key={s.id} className="border-b border-slate-100 hover:bg-slate-50">
                 <td className="px-4 py-2 max-w-xs">
-                  <Link
-                    href={`/subtasks/${s.id}`}
-                    className="block truncate text-brand-600 font-medium hover:underline"
-                    title={s.title}
-                  >
-                    {s.title}
-                  </Link>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Link
+                      href={`/subtasks/${s.id}`}
+                      className="block truncate text-brand-600 font-medium hover:underline"
+                      title={s.title}
+                    >
+                      {s.title}
+                    </Link>
+                    <RecurrenceBadge recurrence={s.recurrence} />
+                  </div>
                 </td>
                 <td className="px-4 py-2 max-w-[160px] truncate" title={s.taskTitle}>
                   <Link href={`/tasks/${s.taskId}`} className="text-slate-600 hover:underline">

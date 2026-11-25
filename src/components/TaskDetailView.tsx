@@ -16,7 +16,7 @@ import CommentsPanel from './CommentsPanel'
 import { EditIcon, DeleteIcon } from './icons'
 import ReadOnlyGuard from './ReadOnlyGuard'
 import RecurrenceFields from './RecurrenceFields'
-import { recurrenceLabel } from '@/lib/recurrenceShared'
+import RecurrenceBadge from './RecurrenceBadge'
 import { formatDate } from '@/lib/formatDate'
 
 export default function TaskDetailView({ taskId }: { taskId: string }) {
@@ -409,14 +409,16 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
               return (
                 <tr key={s.id} className="border-b border-slate-100 hover:bg-slate-50">
                   <td className="px-4 py-2 max-w-xs">
-                    <Link
-                      href={`/subtasks/${s.id}`}
-                      className="block truncate text-brand-600 font-medium hover:underline"
-                      title={s.recurrence ? `${s.title} — ricorrente (${recurrenceLabel(s.recurrence).toLowerCase()})` : s.title}
-                    >
-                      {s.recurrence ? '🔁 ' : ''}
-                      {s.title}
-                    </Link>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Link
+                        href={`/subtasks/${s.id}`}
+                        className="block truncate text-brand-600 font-medium hover:underline"
+                        title={s.title}
+                      >
+                        {s.title}
+                      </Link>
+                      <RecurrenceBadge recurrence={s.recurrence} />
+                    </div>
                   </td>
                   <td className="px-4 py-2 text-slate-700">
                     <Link href={`/owners/${s.owner.id}`} className="text-brand-600 hover:underline">

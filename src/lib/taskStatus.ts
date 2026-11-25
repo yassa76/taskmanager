@@ -66,3 +66,8 @@ export const STATUS_COLORS: Record<DerivedStatus, string> = {
   completato: 'bg-emerald-100 text-emerald-800',
   annullato: 'bg-slate-300 text-slate-700'
 }
+
+// Sub-task "attivi" = ancora da fare (non completati ne' annullati).
+export function countActiveSubtasks(statuses: string[]): number {
+  return statuses.filter((s) => s !== 'completato' && s !== 'annullato').length
+}

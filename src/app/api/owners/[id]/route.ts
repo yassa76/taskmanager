@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { deriveTaskStatus } from '@/lib/taskStatus'
+import { countActiveSubtasks, deriveTaskStatus } from '@/lib/taskStatus'
 
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
@@ -43,6 +43,8 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
       endDate: t.endDate ? t.endDate.toISOString() : null,
       status: derived.status,
       progress: derived.progress,
+      activeSubtasks: countActiveSubtasks(t.subtasks.map((s) => s.status)),
+      totalSubtasks: t.subtasks.length,
       overdue
     }
   })
@@ -53,6 +55,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
       id: s.id,
       title: s.title,
       status: s.status,
+      recurrence: s.recurrence ?? null,
       endDate: s.endDate ? s.endDate.toISOString() : null,
       taskId: s.taskId,
       taskTitle: s.task.title,

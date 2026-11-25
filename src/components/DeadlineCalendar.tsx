@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
+import RecurrenceBadge from './RecurrenceBadge'
 import clsx from 'clsx'
 
 export interface CalendarItem {
@@ -10,6 +11,7 @@ export interface CalendarItem {
   title: string
   date: string // YYYY-MM-DD
   clientName?: string | null
+  recurrence?: string | null
   ownerId?: string
   ownerName?: string
 }
@@ -171,6 +173,7 @@ export default function DeadlineCalendar({ items }: { items: CalendarItem[] }) {
                     {item.type === 'subtask' ? '↳ ' : ''}
                     {item.title}
                   </span>
+                  <RecurrenceBadge recurrence={item.recurrence} />
                 </Link>
                 {item.ownerId ? (
                   <Link

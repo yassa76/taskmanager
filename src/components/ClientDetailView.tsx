@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import clsx from 'clsx'
 import type { ClientDTO, TaskDTO, TeamMemberDTO } from '@/types'
-import { STATUS_COLORS, STATUS_LABELS } from '@/lib/taskStatus'
+import { STATUS_COLORS, STATUS_LABELS, countActiveSubtasks } from '@/lib/taskStatus'
 import { getInitials } from '@/lib/initials'
 import Breadcrumbs from './Breadcrumbs'
 import ActivityLogPanel from './ActivityLogPanel'
@@ -14,6 +14,7 @@ import Combobox from './Combobox'
 import ClientLocationFields from './ClientLocationFields'
 import { countryLabel } from '@/lib/geoShared'
 import ReadOnlyGuard from './ReadOnlyGuard'
+import SubtaskCount from './SubtaskCount'
 import { formatDate } from '@/lib/formatDate'
 
 const INDUSTRIES = ['GPS', 'TMT', 'ER&I', 'FSI', 'CONS']
@@ -320,6 +321,7 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
               <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Owner</th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Scadenza</th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Stato</th>
+              <th className="px-4 py-2 text-center text-xs font-semibold text-slate-500 uppercase" title="Sub-task ancora da fare (da avviare o in corso)">Sub-task attivi</th>
               <th className="px-4 py-2 text-right text-xs font-semibold text-slate-500 uppercase">Azioni</th>
             </tr>
           </thead>
@@ -356,6 +358,9 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
                     {STATUS_LABELS[t.status]}
                   </span>
                 </td>
+                <td className="px-4 py-2 text-center">
+                  <SubtaskCount active={countActiveSubtasks(t.subtasks.map((s) => s.status))} total={t.subtasks.length} />
+                </td>
                 <td className="px-4 py-2 text-right whitespace-nowrap">
                   <ReadOnlyGuard className="inline-flex">
                     <button
@@ -381,7 +386,7 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
             ))}
             {visibleTasks.length === 0 && (
               <tr>
-                <td colSpan={5} className="text-center py-6 text-slate-400">
+                <td colSpan={6} className="text-center py-6 text-slate-400">
                   {tasks.length === 0
                     ? 'Nessun task associato a questo cliente.'
                     : 'Nessun task trovato con questi filtri.'}

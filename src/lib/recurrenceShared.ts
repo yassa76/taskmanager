@@ -57,3 +57,23 @@ export function addInterval(date: Date, rec: Recurrence): Date {
       return addMonthsUTC(date, 12)
   }
 }
+
+// Etichetta breve per le liste (es. "Mensile")
+export function recurrenceShort(v: string | null | undefined): string {
+  switch (v) {
+    case 'weekly':
+      return 'Settimanale'
+    case 'biweekly':
+      return 'Ogni 2 sett.'
+    case 'monthly':
+      return 'Mensile'
+    case 'quarterly':
+      return 'Trimestrale'
+    case 'semiannual':
+      return 'Semestrale'
+    case 'yearly':
+      return 'Annuale'
+    default:
+      return ''
+  }
+}
