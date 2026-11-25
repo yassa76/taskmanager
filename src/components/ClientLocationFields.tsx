@@ -34,6 +34,19 @@ export default function ClientLocationFields({
   const [checking, setChecking] = useState(false)
   const [candidates, setCandidates] = useState<GeocodeCandidate[] | null>(null)
   const [message, setMessage] = useState<string | null>(null)
+  // Paesi selezionabili: li gestisce l'admin dalle Impostazioni; finche' non arrivano, quelli iniziali
+  const [countryList, setCountryList] = useState<{ code: string; label: string }[]>(
+    SUPPORTED_COUNTRIES.map((c) => ({ code: c.code, label: c.label }))
+  )
+
+  useEffect(() => {
+    fetch('/api/settings/countries')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (d?.countries?.length) setCountryList(d.countries.map((c: any) => ({ code: c.code, label: c.label })))
+      })
+      .catch(() => {})
+  }, [])
 
   const isItaly = value.country === 'IT'
 
@@ -59,12 +72,12 @@ export default function ClientLocationFields({
   }, [geo, value.province, value.city])
 
   const countryOptions = useMemo(() => {
-    const list: { code: string; label: string }[] = SUPPORTED_COUNTRIES.map((c) => ({ code: c.code, label: c.label }))
+    const list = [...countryList]
     if (value.country && !list.some((c) => c.code === value.country)) {
       list.push({ code: value.country, label: countryLabel(value.country) })
     }
     return list
-  }, [value.country])
+  }, [value.country, countryList])
 
   function changeCountry(code: string) {
     if (code === value.country) return

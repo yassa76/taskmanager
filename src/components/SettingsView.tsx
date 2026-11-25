@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import clsx from 'clsx'
 import Breadcrumbs from './Breadcrumbs'
+import CountriesSettings from './CountriesSettings'
 
 interface GeocodeSettings {
   dailyLimit: number
@@ -185,6 +186,8 @@ export default function SettingsView() {
           </button>
         </div>
       </div>
+
+      <CountriesSettings />
     </div>
   )
 }
