@@ -5,6 +5,7 @@ import clsx from 'clsx'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Breadcrumbs from './Breadcrumbs'
 import CountriesSettings from './CountriesSettings'
+import ActivityLogSettings from './ActivityLogSettings'
 
 interface GeocodeSettings {
   dailyLimit: number
@@ -191,7 +192,8 @@ function GeocodeSettingsPanel() {
 // Sezioni delle impostazioni: per aggiungerne una basta una riga qui sotto.
 const TABS = [
   { id: 'paesi', label: 'Paesi dei clienti', render: () => <CountriesSettings /> },
-  { id: 'indirizzi', label: 'Verifica indirizzi', render: () => <GeocodeSettingsPanel /> }
+  { id: 'indirizzi', label: 'Verifica indirizzi', render: () => <GeocodeSettingsPanel /> },
+  { id: 'registro', label: 'Registro modifiche', render: () => <ActivityLogSettings /> }
 ]
 
 export default function SettingsView() {
