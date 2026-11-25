@@ -50,7 +50,7 @@ export default function CountriesSettings() {
   }, [countries])
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-5 max-w-2xl mt-6">
+    <div className="bg-white border border-slate-200 rounded-xl p-5 max-w-2xl">
       <h2 className="font-semibold text-slate-800">Paesi dei clienti</h2>
       <p className="text-sm text-slate-500 mt-1">
         Questi paesi compaiono nel menu &quot;Country&quot; del cliente. Provincia e città sono disponibili solo per l&apos;Italia;
