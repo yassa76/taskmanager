@@ -19,6 +19,7 @@ interface CommentDTO {
 interface Member {
   id: string
   name: string
+  email: string
 }
 
 const MAX_LEN = 4000
@@ -175,6 +176,9 @@ function CommentInput({
                 className={`w-full text-left px-3 py-1.5 ${i === active ? 'bg-brand-50 text-brand-700' : 'hover:bg-slate-50'}`}
               >
                 @{m.name}
+                {members.some((o) => o.id !== m.id && o.name === m.name) && (
+                  <span className="ml-2 text-xs text-slate-400">{m.email}</span>
+                )}
               </button>
             </li>
           ))}
@@ -182,7 +186,7 @@ function CommentInput({
       )}
       <div className="flex items-center justify-between mt-2 gap-3">
         <p className="text-xs text-slate-400">
-          Scrivi <span className="font-mono">@</span> per menzionare un collega: riceverà un avviso. Ctrl/Cmd+Invio per inviare.
+          Scrivi <span className="font-mono">@</span> per menzionare un collega: riceverà un avviso sulla campanella. Ctrl/Cmd+Invio per inviare.
         </p>
         <div className="flex gap-2 shrink-0">
           {onCancel && (
@@ -229,7 +233,7 @@ export default function CommentsPanel({
         setMembers(
           team
             .filter((t) => t.status !== 'inactive' && t.matchedUser)
-            .map((t) => ({ id: t.matchedUser.id as string, name: (t.matchedUser.name || t.email) as string }))
+            .map((t) => ({ id: t.matchedUser.id as string, name: (t.matchedUser.name || t.email) as string, email: t.email as string }))
             .sort((a, b) => a.name.localeCompare(b.name))
         )
       )

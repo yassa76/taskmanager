@@ -4,7 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { getRole, getUserId } from '@/lib/permissions'
 import { extractMentionIds } from '@/lib/commentText'
-import { MAX_COMMENT_LENGTH, createNotifications, getEntityInfo, isEntityType, toCommentDTO } from '@/lib/comments'
+import { MAX_COMMENT_LENGTH, createNotifications, toCommentDTO } from '@/lib/comments'
 
 // Modifica: solo l'autore.
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
@@ -34,17 +34,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   try {
     const before = new Set(extractMentionIds(existing.body))
     const added = extractMentionIds(text).filter((id) => !before.has(id))
-    if (added.length > 0 && isEntityType(existing.entityType)) {
-      const info = await getEntityInfo(existing.entityType, existing.entityId)
-      await createNotifications({
-        commentId: existing.id,
-        authorId: existing.authorId,
-        entityType: existing.entityType,
-        entityId: existing.entityId,
-        mentionIds: added,
-        ownerIds: info?.ownerIds ?? [],
-        onlyMentions: true
-      })
+    if (added.length > 0) {
+      await createNotifications({ commentId: existing.id, authorId: existing.authorId, mentionIds: added })
     }
   } catch (e) {
     console.error('Errore nella creazione degli avvisi:', e)
