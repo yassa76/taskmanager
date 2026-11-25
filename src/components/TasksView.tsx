@@ -33,7 +33,7 @@ export default function TasksView() {
     status: searchParams.get('status') || '',
     search: '',
     overdue: searchParams.get('overdue') === 'true',
-    includeClosed: false
+    includeClosed: searchParams.get('closed') === 'true'
   }))
   const [sortKey, setSortKey] = useState<SortKey>('endDate')
   const [sortDir, setSortDir] = useState<SortDir>('asc')
