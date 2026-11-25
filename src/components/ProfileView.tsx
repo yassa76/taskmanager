@@ -3,7 +3,9 @@
 import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import clsx from 'clsx'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Breadcrumbs from './Breadcrumbs'
+import NotificationPrefsPanel from './NotificationPrefsPanel'
 
 const THEMES: { key: string; label: string; swatch: string }[] = [
   { key: 'blue', label: 'Blu', swatch: '#2f49b3' },
@@ -15,7 +17,7 @@ const THEMES: { key: string; label: string; swatch: string }[] = [
   { key: 'pink', label: 'Rosa', swatch: '#db2777' }
 ]
 
-export default function ProfileView() {
+function PreferencesPanel() {
   const { update } = useSession()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -65,9 +67,6 @@ export default function ProfileView() {
 
   return (
     <div>
-      <Breadcrumbs items={[{ label: 'Profilo' }]} />
-      <h1 className="text-xl font-bold text-slate-800 mb-6">Il tuo profilo</h1>
-
       <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-5">
         <div className="grid grid-cols-2 gap-3">
           <div>
@@ -133,6 +132,41 @@ export default function ProfileView() {
         Informativa: gli amministratori possono vedere quando accedi e quando usi l&apos;app, e le modifiche che fai. Questi
         dati si cancellano automaticamente dopo un periodo limitato (di default 90 giorni).
       </p>
+    </div>
+  )
+}
+
+const TABS = [
+  { id: 'preferenze', label: 'Preferenze personali' },
+  { id: 'notifiche', label: 'Notifiche' }
+]
+
+export default function ProfileView() {
+  const router = useRouter()
+  const params = useSearchParams()
+  const current = TABS.find((t) => t.id === params?.get('tab'))?.id ?? 'preferenze'
+
+  return (
+    <div>
+      <Breadcrumbs items={[{ label: 'Profilo' }]} />
+      <h1 className="text-xl font-bold text-slate-800 mb-4">Il tuo profilo</h1>
+
+      <div className="flex gap-1 border-b border-slate-200 mb-5">
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => router.replace(`/profile?tab=${t.id}`)}
+            className={clsx(
+              'px-4 py-2 text-sm font-medium -mb-px border-b-2 whitespace-nowrap',
+              t.id === current ? 'border-brand-600 text-brand-700' : 'border-transparent text-slate-500 hover:text-slate-700'
+            )}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {current === 'preferenze' ? <PreferencesPanel /> : <NotificationPrefsPanel />}
     </div>
   )
 }

@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { deriveTaskStatus } from '@/lib/taskStatus'
 import { canEditRecord } from '@/lib/permissions'
 import { logActivity } from '@/lib/activityLog'
+import { notifyUser, actorName, assignedMessage, deadlineChangedMessage } from '@/lib/notify'
 import type { TaskDTO } from '@/types'
 
 function toTaskDTO(task: any): TaskDTO {
@@ -129,6 +130,35 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       detail: `${existing.owner.name || existing.owner.email} → ${task.owner.name || task.owner.email}`,
       userId: actorId
     })
+  }
+
+  // Avvisi: nuovo owner e cambio di scadenza (fatti da un altro)
+  const ownerChanged = ownerId !== undefined && ownerId !== existing.ownerId
+  const newEnd = endDate !== undefined ? (endDate ? new Date(endDate) : null) : undefined
+  const endChanged = newEnd !== undefined && (newEnd?.getTime() ?? null) !== (existing.endDate?.getTime() ?? null)
+  if (ownerChanged || endChanged) {
+    const who = await actorName(actorId)
+    if (ownerChanged) {
+      await notifyUser({
+        userId: task.ownerId,
+        actorId,
+        reason: 'assegnato',
+        entityType: 'task',
+        entityId: task.id,
+        message: assignedMessage(who, 'task', task.title)
+      })
+    }
+    if (endChanged && !ownerChanged) {
+      await notifyUser({
+        userId: task.ownerId,
+        actorId,
+        reason: 'scadenza_cambiata',
+        entityType: 'task',
+        entityId: task.id,
+        message: deadlineChangedMessage(who, 'task', task.title, existing.endDate, newEnd ?? null),
+        mergeRecent: true
+      })
+    }
   }
 
   return NextResponse.json(toTaskDTO(task))

@@ -58,6 +58,7 @@ model User {
   image         String?
   role          String    @default("normal") // "admin" | "normal" | "read_only"
   createdAt     DateTime  @default(now())
+  notificationPrefs String? // JSON: quali notifiche non-menzione ricevere (vuoto = tutte)
   lastActiveAt  DateTime? // ultima volta che la persona ha usato davvero l'app (non solo tenuto la finestra aperta)
 
   accessLogs AccessLog[]
@@ -233,9 +234,13 @@ model Notification {
   id        String    @id @default(cuid())
   userId    String
   user      User      @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
-  commentId String
-  comment   Comment   @relation(fields: [commentId], references: [id], onDelete: Cascade)
-  reason    String    // "menzione" | "owner" | "thread"
+  commentId String?   // solo per le menzioni
+  comment   Comment?  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  reason    String    // "menzione" | "assegnato" | "scadenza_cambiata" | "in_scadenza"
+  entityType String?  // oggetto a cui si riferisce (per le notifiche non legate a un commento)
+  entityId   String?
+  message    String?  // testo gia' pronto, es. "Mario ti ha assegnato il task «X»"
+  dedupeKey  String?  // evita doppioni (es. stessa scadenza avvisata una volta sola)
   readAt    DateTime?
   createdAt DateTime  @default(now())
 

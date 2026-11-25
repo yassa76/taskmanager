@@ -53,6 +53,9 @@ export async function runCleanupIfDue(): Promise<void> {
     const cutoff = (days: number) => new Date(Date.now() - days * 24 * 60 * 60 * 1000)
     await prisma.accessLog.deleteMany({ where: { createdAt: { lt: cutoff(access) } } })
     await prisma.activityLog.deleteMany({ where: { createdAt: { lt: cutoff(activity) } } })
+    // Avvisi: quelli gia' letti si tolgono dopo 30 giorni, quelli non letti dopo 90.
+    await prisma.notification.deleteMany({ where: { readAt: { not: null }, createdAt: { lt: cutoff(30) } } })
+    await prisma.notification.deleteMany({ where: { readAt: null, createdAt: { lt: cutoff(90) } } })
   } catch (e) {
     console.error('Pulizia registri non riuscita', e)
   }

@@ -1,5 +1,6 @@
 'use client'
 
+import { RECURRENCE_HELP, RECURRENCE_OPTIONS, RECURRENCE_SHORT } from '@/lib/recurrenceShared'
 import { useState } from 'react'
 import type { ClientDTO, TaskDTO } from '@/types'
 import Combobox from './Combobox'
@@ -38,7 +39,9 @@ export default function TaskFormModal({
   const [ownerId, setOwnerId] = useState(task?.owner?.id || owners[0]?.id || '')
   const [clientId, setClientId] = useState(task?.clientId || defaultClientId || '')
   const [status, setStatus] = useState(task?.statusOverride || 'auto')
-  const [subtasks, setSubtasks] = useState<{ title: string; ownerId: string; endDate: string }[]>([])
+  const [subtasks, setSubtasks] = useState<
+    { title: string; ownerId: string; endDate: string; recurrence: string; recurrenceEnd: string }[]
+  >([])
   const [saving, setSaving] = useState(false)
 
   const [showNewClient, setShowNewClient] = useState(false)
@@ -87,10 +90,10 @@ export default function TaskFormModal({
   }
 
   function addSubtask() {
-    setSubtasks((s) => [...s, { title: '', ownerId, endDate: '' }])
+    setSubtasks((s) => [...s, { title: '', ownerId, endDate: '', recurrence: '', recurrenceEnd: '' }])
   }
 
-  function updateSubtask(i: number, field: 'title' | 'ownerId' | 'endDate', value: string) {
+  function updateSubtask(i: number, field: 'title' | 'ownerId' | 'endDate' | 'recurrence' | 'recurrenceEnd', value: string) {
     setSubtasks((s) => s.map((st, idx) => (idx === i ? { ...st, [field]: value } : st)))
   }
 
@@ -115,7 +118,13 @@ export default function TaskFormModal({
         : {
             subtasks: subtasks
               .filter((s) => s.title.trim().length > 0)
-              .map((s) => ({ title: s.title, ownerId: s.ownerId, endDate: s.endDate }))
+              .map((s) => ({
+                title: s.title,
+                ownerId: s.ownerId,
+                endDate: s.endDate,
+                recurrence: s.recurrence || null,
+                recurrenceEndDate: s.recurrence && s.recurrenceEnd ? s.recurrenceEnd : null
+              }))
           })
     }
 
@@ -293,6 +302,28 @@ export default function TaskFormModal({
                       title="Data di scadenza (obbligatoria)"
                       className="border border-slate-200 rounded-lg px-2 py-1.5 text-sm"
                     />
+                    <select
+                      value={s.recurrence}
+                      onChange={(e) => updateSubtask(i, 'recurrence', e.target.value)}
+                      title={RECURRENCE_HELP}
+                      className="border border-slate-200 rounded-lg px-2 py-1.5 text-sm"
+                    >
+                      <option value="">Singolo</option>
+                      {RECURRENCE_OPTIONS.map((o) => (
+                        <option key={o.value} value={o.value}>
+                          🔁 {o.label}
+                        </option>
+                      ))}
+                    </select>
+                    {s.recurrence && (
+                      <input
+                        type="date"
+                        value={s.recurrenceEnd}
+                        onChange={(e) => updateSubtask(i, 'recurrenceEnd', e.target.value)}
+                        title="Ripeti fino al (facoltativo)"
+                        className="border border-slate-200 rounded-lg px-2 py-1.5 text-sm"
+                      />
+                    )}
                     <button
                       type="button"
                       onClick={() => removeSubtask(i)}
@@ -302,6 +333,9 @@ export default function TaskFormModal({
                     </button>
                   </div>
                 ))}
+                {subtasks.some((s) => s.recurrence) && (
+                  <p className="text-xs text-slate-500 bg-slate-50 rounded-lg px-3 py-2">{RECURRENCE_SHORT}</p>
+                )}
                 {subtasks.length === 0 && (
                   <p className="text-xs text-slate-400">
                     Nessun sub-task aggiunto. Potrai aggiungerne in seguito dalla pagina di dettaglio del task.
