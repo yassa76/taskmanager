@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import clsx from 'clsx'
 import Link from 'next/link'
 import type { ClientDTO, TeamMemberDTO } from '@/types'
 import Breadcrumbs from './Breadcrumbs'
@@ -66,6 +67,44 @@ export default function ClientsView() {
   const [view, setView] = useState<'table' | 'map'>('table')
   const [statusFilter, setStatusFilter] = useState('')
 
+  // Vista e filtri restano memorizzati navigando su altre pagine e tornando qui
+  // (sessione del browser). "Azzera filtri" li riporta a zero.
+  const [restored, setRestored] = useState(false)
+  useEffect(() => {
+    try {
+      const v = localStorage.getItem('clientsViewMode')
+      if (v === 'table' || v === 'map') setView(v)
+      const raw = sessionStorage.getItem('clientsFilters')
+      if (raw) {
+        const f = JSON.parse(raw)
+        setSearch(f.search || '')
+        setIndustryFilter(f.industry || '')
+        setStatusFilter(f.status || '')
+        setCountryFilter(f.country || '')
+        setRegionFilter(f.region || '')
+        setCityFilter(f.city || '')
+      }
+    } catch {}
+    setRestored(true)
+  }, [])
+  useEffect(() => {
+    if (!restored) return
+    try {
+      localStorage.setItem('clientsViewMode', view)
+      sessionStorage.setItem(
+        'clientsFilters',
+        JSON.stringify({
+          search,
+          industry: industryFilter,
+          status: statusFilter,
+          country: countryFilter,
+          region: regionFilter,
+          city: cityFilter
+        })
+      )
+    } catch {}
+  }, [restored, view, search, industryFilter, statusFilter, countryFilter, regionFilter, cityFilter])
+
   async function load() {
     setLoading(true)
     const [clientsRes, teamRes] = await Promise.all([fetch('/api/clients'), fetch('/api/team')])
@@ -128,7 +167,7 @@ export default function ClientsView() {
     const regionCounts: Record<string, number> = {}
     const abroadMap = new Map<string, number>()
     let noLocation = 0
-    for (const c of baseClients) {
+    for (const c of clients) {
       const reg = clientRegion(c)
       if (reg) regionCounts[reg] = (regionCounts[reg] || 0) + 1
       else if (c.country && c.country !== 'IT') abroadMap.set(c.country, (abroadMap.get(c.country) || 0) + 1)
@@ -138,21 +177,32 @@ export default function ClientsView() {
       a.label.localeCompare(b.label)
     )
     return { regionCounts, abroad, noLocation }
-  }, [baseClients])
+  }, [clients])
+
+  function resetFilters() {
+    setSearch('')
+    setIndustryFilter('')
+    setStatusFilter('')
+    setCountryFilter('')
+    setRegionFilter('')
+    setCityFilter('')
+  }
 
   function pickRegion(region: string) {
+    resetFilters()
     setCountryFilter('IT')
     setRegionFilter(region)
     setCityFilter('')
     setView('table')
   }
   function pickCountry(code: string) {
+    resetFilters()
     setCountryFilter(code)
     setRegionFilter('')
     setCityFilter('')
     setView('table')
   }
-  const geoFilterActive = !!(countryFilter || regionFilter || cityFilter)
+  const anyFilterActive = !!(search || industryFilter || statusFilter || countryFilter || regionFilter || cityFilter)
 
   const sortedClients = useMemo(() => {
     const arr = [...filteredClients]
@@ -284,24 +334,22 @@ export default function ClientsView() {
     <div>
       <Breadcrumbs items={[{ label: 'Clienti' }]} />
       <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <h1 className="text-xl font-bold text-slate-800">Clienti</h1>
-          <div className="inline-flex rounded-lg border border-slate-300 overflow-hidden text-sm">
-            <button
-              onClick={() => setView('table')}
-              className={view === 'table' ? 'px-3 py-1.5 bg-brand-600 text-white' : 'px-3 py-1.5 text-slate-600 hover:bg-slate-100'}
-            >
-              Tabella
-            </button>
-            <button
-              onClick={() => setView('map')}
-              className={view === 'map' ? 'px-3 py-1.5 bg-brand-600 text-white' : 'px-3 py-1.5 text-slate-600 hover:bg-slate-100'}
-            >
-              Mappa
-            </button>
+        <h1 className="text-xl font-bold text-slate-800">Clienti</h1>
+        <div className="flex gap-2 items-center">
+          <div className="flex bg-slate-100 rounded-lg p-1">
+            {(['table', 'map'] as const).map((v) => (
+              <button
+                key={v}
+                onClick={() => setView(v)}
+                className={clsx(
+                  'px-3 py-1.5 rounded-md text-sm font-medium transition',
+                  view === v ? 'bg-white shadow text-brand-700' : 'text-slate-500'
+                )}
+              >
+                {v === 'table' ? '☰ Tabella' : '🗺 Mappa'}
+              </button>
+            ))}
           </div>
-        </div>
-        <div className="flex gap-2">
           <button
             onClick={load}
             className="px-4 py-2 rounded-lg border border-slate-300 text-sm font-medium text-slate-700 hover:bg-slate-100"
@@ -317,6 +365,7 @@ export default function ClientsView() {
         </div>
       </div>
 
+      {view === 'table' && (
       <div className="bg-white border border-slate-200 rounded-xl p-3 flex flex-wrap items-center gap-2 mb-4">
         <select
           value={industryFilter}
@@ -384,25 +433,19 @@ export default function ClientsView() {
             </option>
           ))}
         </select>
-        {geoFilterActive && (
-          <button
-            onClick={() => {
-              setCountryFilter('')
-              setRegionFilter('')
-              setCityFilter('')
-            }}
-            className="px-3 py-1.5 rounded-lg text-sm text-slate-500 hover:bg-slate-100"
-          >
-            ✕ Azzera luogo
-          </button>
-        )}
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Cerca per nome cliente..."
           className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm flex-1 min-w-[180px]"
         />
+        {anyFilterActive && (
+          <button onClick={resetFilters} className="px-3 py-1.5 rounded-lg text-sm text-slate-500 hover:bg-slate-100">
+            ✕ Azzera filtri
+          </button>
+        )}
       </div>
+      )}
 
       {view === 'map' && (
         <ClientsMap
