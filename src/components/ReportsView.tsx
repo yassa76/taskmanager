@@ -94,6 +94,9 @@ export default function ReportsView() {
   const [scope, setScope] = useState<'mine' | 'team'>('mine')
   const [period, setPeriod] = useState('all')
   const [includeClosed, setIncludeClosed] = useState(false)
+  // I filtri salvati vanno letti PRIMA del primo caricamento, altrimenti parte una richiesta con
+  // i valori di default e la sua risposta puo' sovrascrivere quella giusta.
+  const [ready, setReady] = useState(false)
 
   // Ripristina i filtri salvati in precedenza, cosi' restano validi anche
   // navigando su altre pagine e tornando qui (stesso meccanismo della Home).
@@ -105,6 +108,7 @@ export default function ReportsView() {
     if (savedPeriod && PERIOD_OPTIONS.some((p) => p.value === savedPeriod)) setPeriod(savedPeriod)
     const savedIncludeClosed = localStorage.getItem('reportsIncludeClosed')
     if (savedIncludeClosed === 'true') setIncludeClosed(true)
+    setReady(true)
   }, [])
 
   function changeScope(v: 'mine' | 'team') {
@@ -123,6 +127,8 @@ export default function ReportsView() {
   }
 
   const load = useCallback(() => {
+    if (!ready) return
+    let stale = false
     const params = new URLSearchParams()
     params.set('scope', scope)
     if (includeClosed) params.set('includeClosed', 'true')
@@ -134,11 +140,16 @@ export default function ReportsView() {
     }
     fetch(`/api/reports?${params.toString()}`)
       .then((r) => r.json())
-      .then(setData)
-  }, [scope, period, includeClosed])
+      .then((d) => {
+        if (!stale) setData(d)
+      })
+    return () => {
+      stale = true
+    }
+  }, [scope, period, includeClosed, ready])
 
   useEffect(() => {
-    load()
+    return load()
   }, [load])
 
   if (!data) return <p className="text-slate-400">Caricamento report...</p>
@@ -201,7 +212,7 @@ export default function ReportsView() {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <KpiCard label="Task totali" value={data.kpi.totalTasks} />
+        <KpiCard label="Task totali (tutti gli stati)" value={data.kpi.totalTasks} />
         <KpiCard label="% completamento" value={`${data.kpi.completionRate}%`} accent="text-emerald-600" />
         <KpiCard label="In corso" value={data.kpi.inProgress} accent="text-amber-600" />
         <KpiCard label="In ritardo" value={data.kpi.overdue} accent="text-red-600" />
