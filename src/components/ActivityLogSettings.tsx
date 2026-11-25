@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import RetentionSelect from './RetentionSelect'
 
 interface Item {
   id: string
@@ -82,6 +83,8 @@ export default function ActivityLogSettings() {
       <p className="text-sm text-slate-500 mt-1">
         Creazioni, cambi di stato, owner e scadenza, eliminazioni di task, sub-task e clienti, con chi le ha fatte.
       </p>
+
+      <RetentionSelect kind="activity" />
 
       <div className="flex flex-wrap gap-2 mt-4">
         <input

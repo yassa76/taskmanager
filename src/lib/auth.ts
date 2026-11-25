@@ -2,6 +2,7 @@ import { PrismaAdapter } from '@next-auth/prisma-adapter'
 import type { NextAuthOptions } from 'next-auth'
 import GoogleProvider from 'next-auth/providers/google'
 import { prisma } from './prisma'
+import { runCleanupIfDue } from './retention'
 
 // La ricerca "utente esistente per email" della libreria di autenticazione è
 // sensibile a maiuscole/minuscole di suo: se l'email inserita a mano
@@ -59,6 +60,20 @@ export const authOptions: NextAuthOptions = {
     }
   },
   events: {
+    // Ogni login riuscito: lo registra per l'elenco accessi (solo utente e orario) e
+    // approfitta per la pulizia periodica dei registri vecchi.
+    async signIn({ user }) {
+      try {
+        if (!user?.id) return
+        const now = new Date()
+        await prisma.accessLog.create({ data: { userId: user.id, createdAt: now } })
+        await prisma.user.update({ where: { id: user.id }, data: { lastActiveAt: now } })
+        await runCleanupIfDue()
+      } catch (e) {
+        console.error('Registrazione accesso non riuscita', e)
+      }
+    },
+
     // Al primo login/registrazione: prova a fare il match con la lista Team.
     // Se l'email non e' ancora nella lista Team, viene creata automaticamente
     // cosi' compare nella vista Team (utile per il primo utente/admin).
