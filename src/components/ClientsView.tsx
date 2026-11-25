@@ -65,6 +65,7 @@ export default function ClientsView() {
   const [regionFilter, setRegionFilter] = useState('')
   const [cityFilter, setCityFilter] = useState('')
   const [view, setView] = useState<'table' | 'map'>('table')
+  const [statusFilter, setStatusFilter] = useState('')
 
   // Vista e filtri restano memorizzati navigando su altre pagine e tornando qui
   // (sessione del browser). "Azzera filtri" li riporta a zero.
@@ -103,7 +104,6 @@ export default function ClientsView() {
       )
     } catch {}
   }, [restored, view, search, industryFilter, statusFilter, countryFilter, regionFilter, cityFilter])
-  const [statusFilter, setStatusFilter] = useState('')
 
   async function load() {
     setLoading(true)
