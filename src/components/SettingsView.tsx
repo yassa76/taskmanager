@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Breadcrumbs from './Breadcrumbs'
 import CountriesSettings from './CountriesSettings'
 import ActivityLogSettings from './ActivityLogSettings'
+import AccessLogSettings from './AccessLogSettings'
 
 interface GeocodeSettings {
   dailyLimit: number
@@ -193,7 +194,8 @@ function GeocodeSettingsPanel() {
 const TABS = [
   { id: 'paesi', label: 'Paesi dei clienti', render: () => <CountriesSettings /> },
   { id: 'indirizzi', label: 'Verifica indirizzi', render: () => <GeocodeSettingsPanel /> },
-  { id: 'registro', label: 'Registro modifiche', render: () => <ActivityLogSettings /> }
+  { id: 'registro', label: 'Registro modifiche', render: () => <ActivityLogSettings /> },
+  { id: 'accessi', label: 'Accessi', render: () => <AccessLogSettings /> }
 ]
 
 export default function SettingsView() {

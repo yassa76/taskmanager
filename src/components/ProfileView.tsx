@@ -128,6 +128,11 @@ export default function ProfileView() {
           {saved && <span className="text-sm text-emerald-600">✓ Salvato</span>}
         </div>
       </div>
+
+      <p className="text-xs text-slate-400 mt-4 max-w-2xl">
+        Informativa: gli amministratori possono vedere quando accedi e quando usi l&apos;app, e le modifiche che fai. Questi
+        dati si cancellano automaticamente dopo un periodo limitato (di default 90 giorni).
+      </p>
     </div>
   )
 }
