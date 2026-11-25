@@ -1,5 +1,6 @@
 'use client'
 
+import ChangelogLink from './ChangelogLink'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut, useSession } from 'next-auth/react'
@@ -49,6 +50,7 @@ export default function NavBar() {
           <GlobalSearch />
         </div>
         <div className="flex items-center gap-3">
+          <ChangelogLink />
           <NotificationBell />
           {session?.user?.image && (
             // eslint-disable-next-line @next/next/no-img-element

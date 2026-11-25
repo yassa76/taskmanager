@@ -24,14 +24,18 @@ const STATUS_LABELS: Record<string, string> = {
   new: 'Nuovo',
   invited: 'Invitato',
   active: 'Attivo',
-  inactive: 'Inattivo'
+  inactive: 'Inattivo',
+  pending: 'In attesa',
+  rejected: 'Rifiutato'
 }
 
 const STATUS_COLORS: Record<string, string> = {
   new: 'bg-slate-200 text-slate-600',
   invited: 'bg-amber-100 text-amber-800',
   active: 'bg-emerald-100 text-emerald-800',
-  inactive: 'bg-red-100 text-red-700'
+  inactive: 'bg-red-100 text-red-700',
+  pending: 'bg-violet-100 text-violet-800',
+  rejected: 'bg-red-100 text-red-700'
 }
 
 export default function TeamView() {
@@ -136,6 +140,21 @@ export default function TeamView() {
     setPage(1)
   }, [search])
 
+  // Approva o rifiuta una richiesta di accesso (solo admin: lo controlla anche il server)
+  async function decide(m: TeamMemberDTO, status: 'active' | 'rejected') {
+    const res = await fetch(`/api/team/${m.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status })
+    })
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}))
+      alert(body.error || `Errore (status ${res.status})`)
+      return
+    }
+    load()
+  }
+
   async function invite() {
     if (!firstName.trim() || !email.trim()) return
     setSaving(true)
@@ -210,6 +229,39 @@ export default function TeamView() {
       <p className="text-slate-500 text-sm mb-6">
         Aggiungi qui le persone del team (quelle inattive non sono selezionabili per i task).
       </p>
+
+      {isAdmin && members.some((m) => m.status === 'pending') && (
+        <div className="bg-violet-50 border border-violet-200 rounded-xl p-4 mb-6">
+          <h2 className="font-semibold text-violet-900 text-sm mb-1">Richieste di accesso in attesa</h2>
+          <p className="text-xs text-violet-800 mb-3">
+            Queste persone hanno provato ad accedere con il loro account Google ma non erano nel Team. Dopo l&apos;approvazione
+            potranno entrare al prossimo accesso.
+          </p>
+          <ul className="divide-y divide-violet-100">
+            {members
+              .filter((m) => m.status === 'pending')
+              .map((m) => (
+                <li key={m.id} className="py-2 flex items-center justify-between gap-3 text-sm">
+                  <span className="text-slate-800">{m.email}</span>
+                  <span className="flex gap-2 shrink-0">
+                    <button
+                      onClick={() => decide(m, 'active')}
+                      className="px-3 py-1 rounded-lg bg-emerald-600 text-white text-xs font-medium hover:bg-emerald-700"
+                    >
+                      Approva
+                    </button>
+                    <button
+                      onClick={() => decide(m, 'rejected')}
+                      className="px-3 py-1 rounded-lg border border-red-300 text-red-700 text-xs font-medium hover:bg-red-50"
+                    >
+                      Rifiuta
+                    </button>
+                  </span>
+                </li>
+              ))}
+          </ul>
+        </div>
+      )}
 
       <div className="bg-white border border-slate-200 rounded-xl p-4 mb-6 flex flex-wrap gap-2 items-end">
         <div className="flex-1 min-w-[140px]">
@@ -443,6 +495,8 @@ export default function TeamView() {
                     <option value="invited">Invitato</option>
                     <option value="active">Attivo</option>
                     <option value="inactive">Inattivo</option>
+                    <option value="pending">In attesa</option>
+                    <option value="rejected">Rifiutato</option>
                   </select>
                 </div>
               </div>

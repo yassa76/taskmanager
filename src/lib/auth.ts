@@ -3,6 +3,7 @@ import type { NextAuthOptions } from 'next-auth'
 import GoogleProvider from 'next-auth/providers/google'
 import { prisma } from './prisma'
 import { runCleanupIfDue } from './retention'
+import { notifyAdminsAccessRequest } from './notify'
 
 // La ricerca "utente esistente per email" della libreria di autenticazione è
 // sensibile a maiuscole/minuscole di suo: se l'email inserita a mano
@@ -35,16 +36,30 @@ export const authOptions: NextAuthOptions = {
     signIn: '/login'
   },
   callbacks: {
-    // Blocca l'accesso a chi e' stato segnato come "Inattivo" nel Team,
-    // anche se aveva gia' un account valido.
+    // Controlla chi puo' entrare:
+    // - "Inattivo" nel Team: bloccato, anche se aveva gia' un account.
+    // - Persona sconosciuta (mai invitata, mai vista): non entra; si registra una richiesta di accesso
+    //   ("In attesa") e gli admin vengono avvisati. Solo il primissimo utente entra subito (diventa admin).
+    // - "In attesa" / "Rifiutato": bloccato finche' un admin non cambia lo stato.
     async signIn({ user }) {
       if (!user.email) return true
+      const email = user.email
       const dbUser = await prisma.user.findFirst({
-        where: { email: { equals: user.email, mode: 'insensitive' } },
+        where: { email: { equals: email, mode: 'insensitive' } },
         include: { teamMember: true }
       })
-      if (dbUser?.teamMember?.status === 'inactive') {
-        return '/login?error=account_inactive'
+      const member =
+        dbUser?.teamMember ??
+        (await prisma.teamMember.findFirst({ where: { email: { equals: email, mode: 'insensitive' } } }))
+
+      if (member?.status === 'inactive') return '/login?error=account_inactive'
+      if (member?.status === 'pending') return '/login?error=pending_approval'
+      if (member?.status === 'rejected') return '/login?error=access_denied'
+
+      if (!dbUser && !member && (await prisma.user.count()) > 0) {
+        const created = await prisma.teamMember.create({ data: { email: email.toLowerCase(), status: 'pending' } })
+        await notifyAdminsAccessRequest(created.id, user.name || email)
+        return '/login?error=pending_approval'
       }
       return true
     },

@@ -72,6 +72,30 @@ export async function notifyUser(params: {
   }
 }
 
+/** Avvisa tutti gli admin che una persona ha chiesto di accedere (una volta sola per richiesta). */
+export async function notifyAdminsAccessRequest(memberId: string, who: string) {
+  try {
+    const admins = await prisma.user.findMany({ where: { role: 'admin' }, select: { id: true } })
+    for (const a of admins) {
+      const key = `access_request:${memberId}`
+      const exists = await prisma.notification.findFirst({ where: { userId: a.id, dedupeKey: key }, select: { id: true } })
+      if (exists) continue
+      await prisma.notification.create({
+        data: {
+          userId: a.id,
+          reason: 'richiesta_accesso',
+          entityType: 'team',
+          entityId: memberId,
+          message: `${who} ha chiesto di accedere alla piattaforma: approva o rifiuta dalla pagina Team`,
+          dedupeKey: key
+        }
+      })
+    }
+  } catch (e) {
+    console.error('Avviso richiesta accesso non riuscito', e)
+  }
+}
+
 export async function actorName(actorId: string | null | undefined): Promise<string> {
   if (!actorId) return 'Qualcuno'
   const u = await prisma.user.findUnique({ where: { id: actorId }, select: { name: true, email: true } })
