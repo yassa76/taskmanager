@@ -86,11 +86,11 @@ export default function DeadlineCalendar({ items }: { items: CalendarItem[] }) {
   const selectedItems = selectedDate ? itemsByDate.get(selectedDate) || [] : []
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-3">
-      <div className="flex items-center justify-between mb-1">
+    <div className="relative h-full flex flex-col bg-white border border-slate-200 rounded-xl shadow-sm px-2.5 py-2">
+      <div className="flex items-center justify-between shrink-0">
         <button
           onClick={prevMonth}
-          className="w-7 h-7 rounded-lg hover:bg-slate-100 text-slate-500 flex items-center justify-center"
+          className="w-6 h-6 text-xs rounded-md hover:bg-slate-100 text-slate-500 flex items-center justify-center"
         >
           ←
         </button>
@@ -99,21 +99,21 @@ export default function DeadlineCalendar({ items }: { items: CalendarItem[] }) {
         </h2>
         <button
           onClick={nextMonth}
-          className="w-7 h-7 rounded-lg hover:bg-slate-100 text-slate-500 flex items-center justify-center"
+          className="w-6 h-6 text-xs rounded-md hover:bg-slate-100 text-slate-500 flex items-center justify-center"
         >
           →
         </button>
       </div>
 
-      <div className="grid grid-cols-7 gap-0.5 text-center">
+      <div className="grid grid-cols-7 gap-0.5 text-center shrink-0">
         {WEEKDAY_NAMES.map((w) => (
-          <div key={w} className="text-[10px] font-semibold text-slate-400 uppercase py-0.5">
+          <div key={w} className="text-[9px] font-semibold text-slate-400 uppercase leading-4">
             {w}
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-7 gap-0.5">
+      <div className="grid grid-cols-7 auto-rows-fr gap-0.5 flex-1 min-h-0">
         {cells.map((cell, i) => {
           if (cell.day === null) return <div key={i} />
           const dayItems = cell.key ? itemsByDate.get(cell.key) || [] : []
@@ -124,7 +124,7 @@ export default function DeadlineCalendar({ items }: { items: CalendarItem[] }) {
               key={i}
               onClick={() => setSelectedDate(cell.key === selectedDate ? null : cell.key)}
               className={clsx(
-                'h-7 rounded-md text-xs flex flex-col items-center justify-center relative transition',
+                'h-full min-h-0 rounded-md text-[11px] leading-none flex flex-col items-center justify-center relative transition',
                 isSelected
                   ? 'bg-brand-600 text-white'
                   : isToday
@@ -147,7 +147,7 @@ export default function DeadlineCalendar({ items }: { items: CalendarItem[] }) {
       </div>
 
       {selectedDate && (
-        <div className="mt-4 pt-4 border-t border-slate-100">
+        <div className="absolute left-0 right-0 top-full mt-1 z-20 max-h-64 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-lg p-3">
           <p className="text-xs font-semibold text-slate-500 uppercase mb-2">
             Scadenze del {selectedDate.slice(8, 10)}/{selectedDate.slice(5, 7)}/{selectedDate.slice(0, 4)}
           </p>
