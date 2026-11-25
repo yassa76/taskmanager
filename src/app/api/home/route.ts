@@ -34,11 +34,6 @@ export async function GET(req: NextRequest) {
   ])
 
   const now = new Date()
-  // Orizzonte per le liste "in scadenza": prossimi 30 giorni (gli item già in
-  // ritardo restano comunque visibili, non hanno un limite superiore di data).
-  const horizon = new Date(now)
-  horizon.setDate(horizon.getDate() + 30)
-
   const enrichedTasks = tasks.map((t) => {
     const derived = deriveTaskStatus(
       t.subtasks.map((s) => s.status),
@@ -61,12 +56,11 @@ export async function GET(req: NextRequest) {
 
   const upcomingTasks = enrichedTasks
     .filter((t) => t.status !== 'completato' && t.status !== 'annullato' && t.endDate)
-    .filter((t) => new Date(t.endDate!) <= horizon)
     .sort((a, b) => (a.endDate! < b.endDate! ? -1 : a.endDate! > b.endDate! ? 1 : 0))
 
   const upcomingSubtasks = subtasks
     .filter((s) => s.status !== 'completato' && s.status !== 'annullato')
-    .filter((s) => s.endDate && s.endDate <= horizon)
+    .filter((s) => s.endDate)
     .map((s) => ({
       id: s.id,
       title: s.title,

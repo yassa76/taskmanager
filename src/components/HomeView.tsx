@@ -59,7 +59,7 @@ function KpiCard({
   href?: string
 }) {
   const content = (
-    <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm h-full hover:border-brand-300 hover:shadow-md transition">
+    <div className="bg-white border border-slate-200 rounded-xl p-3 shadow-sm h-full flex flex-col justify-center hover:border-brand-300 hover:shadow-md transition">
       <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">{label}</p>
       <p className={clsx('text-2xl font-bold mt-1', accent || 'text-slate-800')}>{value}</p>
     </div>
@@ -147,38 +147,21 @@ export default function HomeView({ userName }: { userName: string }) {
 
       {!loading && data && (
         <>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-            <KpiCard label={scope === 'mine' ? 'I miei task' : 'Task del team'} value={data.kpi.totalTasks} href={tasksHref('')} />
-            <KpiCard
-              label="In corso"
-              value={data.kpi.inProgress}
-              accent="text-amber-600"
-              href={tasksHref('status=in_corso')}
-            />
-            <KpiCard
-              label="Da avviare"
-              value={data.kpi.notStarted}
-              href={tasksHref('status=da_avviare')}
-            />
-            <KpiCard
-              label="Task in ritardo"
-              value={data.kpi.overdueTasks}
-              accent="text-red-600"
-              href={tasksHref('overdue=true')}
-            />
-            <KpiCard
-              label="Sub-task in ritardo"
-              value={data.kpi.overdueSubtasks}
-              accent="text-red-600"
-              href="#subtask-deadlines"
-            />
-          </div>
-
-          <div className="grid lg:grid-cols-3 gap-6 mb-6 items-start">
-            <div className="lg:col-span-1">
+          <div className="grid lg:grid-cols-5 gap-6 mb-6 items-stretch">
+            <div className="lg:col-span-2">
               <DeadlineCalendar items={data.calendarItems} />
             </div>
-            <div className="lg:col-span-2 space-y-6">
+            <div className="lg:col-span-3 grid grid-cols-2 sm:grid-cols-3 auto-rows-fr gap-3">
+              <KpiCard label={scope === 'mine' ? 'I miei task' : 'Task del team'} value={data.kpi.totalTasks} href={tasksHref('')} />
+              <KpiCard label="In corso" value={data.kpi.inProgress} accent="text-amber-600" href={tasksHref('status=in_corso')} />
+              <KpiCard label="Da avviare" value={data.kpi.notStarted} href={tasksHref('status=da_avviare')} />
+              <KpiCard label="Task in ritardo" value={data.kpi.overdueTasks} accent="text-red-600" href={tasksHref('overdue=true')} />
+              <KpiCard label="Sub-task in ritardo" value={data.kpi.overdueSubtasks} accent="text-red-600" href="#subtask-deadlines" />
+              <KpiCard label="Completati" value={data.kpi.completed} accent="text-emerald-600" href={tasksHref('status=completato')} />
+            </div>
+          </div>
+
+          <div className="grid xl:grid-cols-2 gap-6 mb-6 items-start">
               <HomeDeadlineList
                 title={scope === 'mine' ? 'I miei task in scadenza' : 'Task del team in scadenza'}
                 firstColLabel="Task"
@@ -216,7 +199,6 @@ export default function HomeView({ userName }: { userName: string }) {
                   overdue: s.overdue
                 }))}
               />
-            </div>
           </div>
         </>
       )}
