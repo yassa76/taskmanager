@@ -6,6 +6,7 @@ import type { ClientDTO, TeamMemberDTO } from '@/types'
 import Breadcrumbs from './Breadcrumbs'
 import { EditIcon, DeleteIcon } from './icons'
 import Combobox from './Combobox'
+import ClientLocationFields from './ClientLocationFields'
 
 const INDUSTRIES = ['GPS', 'TMT', 'ER&I', 'FSI', 'CONS']
 
@@ -24,9 +25,23 @@ interface ClientFormState {
   industry: string
   status: 'attivo' | 'inattivo'
   ownerId: string
+  address: string
+  country: string
+  province: string
+  city: string
 }
 
-const emptyForm: ClientFormState = { name: '', description: '', industry: '', status: 'attivo', ownerId: '' }
+const emptyForm: ClientFormState = {
+  name: '',
+  description: '',
+  industry: '',
+  status: 'attivo',
+  ownerId: '',
+  address: '',
+  country: '',
+  province: '',
+  city: ''
+}
 
 export default function ClientsView() {
   const [clients, setClients] = useState<ClientDTO[]>([])
@@ -128,7 +143,11 @@ export default function ClientsView() {
       description: c.description || '',
       industry: c.industry || '',
       status: c.status,
-      ownerId: c.owner?.id || ''
+      ownerId: c.owner?.id || '',
+      address: c.address || '',
+      country: c.country || '',
+      province: c.province || '',
+      city: c.city || ''
     })
     setShowForm(true)
   }
@@ -141,7 +160,11 @@ export default function ClientsView() {
       description: form.description.trim() || null,
       industry: form.industry || null,
       status: form.status,
-      ownerId: form.ownerId || null
+      ownerId: form.ownerId || null,
+      address: form.address.trim() || null,
+      country: form.country || null,
+      province: form.province || null,
+      city: form.city || null
     }
     if (editingId) {
       await fetch(`/api/clients/${editingId}`, {
@@ -363,7 +386,7 @@ export default function ClientsView() {
 
       {showForm && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl">
+          <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 shadow-2xl">
             <h2 className="text-lg font-bold text-slate-800 mb-4">
               {editingId ? 'Modifica cliente' : 'Nuovo cliente'}
             </h2>
@@ -385,6 +408,10 @@ export default function ClientsView() {
                   className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1"
                 />
               </div>
+              <ClientLocationFields
+                value={{ address: form.address, country: form.country, province: form.province, city: form.city }}
+                onChange={(loc) => setForm((f) => ({ ...f, ...loc }))}
+              />
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-medium text-slate-500">Industry</label>

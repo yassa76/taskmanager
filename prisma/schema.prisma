@@ -94,6 +94,10 @@ model Client {
   description String?
   industry    String?   // "GPS" | "TMT" | "ER&I" | "FSI" | "CONS"
   status      String    @default("attivo") // "attivo" | "inattivo": se inattivo, non selezionabile per nuovi task
+  address     String?   // via e numero civico
+  country     String?   // codice ISO a 2 lettere: "IT" | "SA" | "AE" | "DE" (o altro se arriva dal geocoding)
+  province    String?   // Italia: sigla (es. "MI"); altri paesi: regione/stato, solo da geocoding
+  city        String?   // Italia: nome del comune; altri paesi: solo da geocoding
   ownerId     String?
   owner       User?     @relation("ClientOwner", fields: [ownerId], references: [id])
   projects    Project[]
@@ -166,4 +170,19 @@ model ActivityLog {
   createdAt  DateTime @default(now())
 
   @@index([entityType, entityId])
+}
+
+// Impostazioni dell'applicazione modificabili dagli admin (chiave/valore).
+// Es. "geocode.dailyLimit", "geocode.monthlyLimit".
+model AppSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+// Contatore giornaliero delle chiamate a Google Geocoding. "day" e' la data nel
+// fuso Pacifico (YYYY-MM-DD), lo stesso usato da Google per azzerare le quote.
+model GeocodeUsage {
+  day   String @id
+  count Int    @default(0)
 }

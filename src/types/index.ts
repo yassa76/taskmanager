@@ -56,6 +56,10 @@ export interface ClientDTO {
   description: string | null
   industry: string | null
   status: 'attivo' | 'inattivo'
+  address: string | null
+  country: string | null
+  province: string | null
+  city: string | null
   owner: OwnerLite | null
   createdBy: OwnerLite | null
   createdAt: string

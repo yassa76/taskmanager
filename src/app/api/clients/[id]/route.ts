@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { canEditRecord } from '@/lib/permissions'
 import { deriveTaskStatus } from '@/lib/taskStatus'
 import { logActivity } from '@/lib/activityLog'
+import { pickLocation } from '@/lib/geo'
 import type { ClientDTO } from '@/types'
 
 function toClientDTO(client: any): ClientDTO {
@@ -23,6 +24,10 @@ function toClientDTO(client: any): ClientDTO {
     description: client.description,
     industry: client.industry,
     status: client.status,
+    address: client.address ?? null,
+    country: client.country ?? null,
+    province: client.province ?? null,
+    city: client.city ?? null,
     owner: client.owner
       ? { id: client.owner.id, name: client.owner.name, email: client.owner.email }
       : null,
@@ -67,6 +72,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
   const body = await req.json()
   const { name, description, industry, ownerId, status } = body
+  const location = pickLocation(body)
 
   const client = await prisma.client.update({
     where: { id: params.id },
@@ -75,6 +81,10 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       ...(description !== undefined ? { description: description || null } : {}),
       ...(industry !== undefined ? { industry: industry || null } : {}),
       ...(status !== undefined ? { status } : {}),
+      ...(location.address !== undefined ? { address: location.address } : {}),
+      ...(location.country !== undefined ? { country: location.country } : {}),
+      ...(location.province !== undefined ? { province: location.province } : {}),
+      ...(location.city !== undefined ? { city: location.city } : {}),
       ...(ownerId !== undefined ? { ownerId: ownerId || null } : {})
     },
     include: clientInclude
