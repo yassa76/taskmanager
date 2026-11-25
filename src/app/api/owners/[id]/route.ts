@@ -26,6 +26,13 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
 
   const now = new Date()
 
+  // Sub-task ancora attivi di QUESTA persona, per task (nella lista dei task si mostra il suo carico)
+  const ownActiveByTask = new Map<string, number>()
+  for (const s of subtasks) {
+    if (s.status === 'completato' || s.status === 'annullato') continue
+    ownActiveByTask.set(s.taskId, (ownActiveByTask.get(s.taskId) ?? 0) + 1)
+  }
+
   const taskDtos = tasks.map((t) => {
     const derived = deriveTaskStatus(
       t.subtasks.map((s) => s.status),
@@ -43,7 +50,8 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
       endDate: t.endDate ? t.endDate.toISOString() : null,
       status: derived.status,
       progress: derived.progress,
-      activeSubtasks: countActiveSubtasks(t.subtasks.map((s) => s.status)),
+      activeSubtasks: ownActiveByTask.get(t.id) ?? 0,
+      activeSubtasksAll: countActiveSubtasks(t.subtasks.map((s) => s.status)),
       totalSubtasks: t.subtasks.length,
       overdue
     }
