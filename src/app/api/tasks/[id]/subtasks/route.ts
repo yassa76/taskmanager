@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { canCreate } from '@/lib/permissions'
 import { logActivity } from '@/lib/activityLog'
 import { syncTaskFromSubtask } from '@/lib/taskSync'
+import { isRecurrence } from '@/lib/recurrenceShared'
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
@@ -17,10 +18,14 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   }
 
   const body = await req.json()
-  const { title, ownerId, status, startDate, endDate, description } = body
+  const { title, ownerId, status, startDate, endDate, description, recurrence, recurrenceEndDate } = body
 
   if (!title) return NextResponse.json({ error: 'Titolo obbligatorio' }, { status: 400 })
   if (!endDate) return NextResponse.json({ error: 'La data di scadenza è obbligatoria' }, { status: 400 })
+
+  if (recurrence && !isRecurrence(recurrence)) {
+    return NextResponse.json({ error: 'Ricorrenza non valida' }, { status: 400 })
+  }
 
   const subtask = await prisma.subtask.create({
     data: {
@@ -31,6 +36,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       endDate: endDate ? new Date(endDate) : null,
       ownerId: ownerId || task.ownerId, // default: owner del task padre
       taskId: task.id,
+      recurrence: recurrence || null,
+      recurrenceEndDate: recurrence && recurrenceEndDate ? new Date(recurrenceEndDate) : null,
       createdById: (session.user as any).id
     },
     include: { owner: true, createdBy: true }

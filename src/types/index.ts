@@ -15,6 +15,11 @@ export interface SubtaskDTO {
   owner: OwnerLite
   createdBy: OwnerLite | null
   taskId: string
+  // ricorrenza (null = sub-task singolo)
+  recurrence?: string | null
+  recurrenceEndDate?: string | null
+  recurrenceSourceId?: string | null // sub-task precedente della serie
+  recurrenceNextId?: string | null // sub-task successivo, se gia' creato
   createdAt: string
   updatedAt: string
 }
@@ -42,11 +47,6 @@ export interface TaskDTO {
   projectId: string | null
   closedManually: boolean
   statusOverride: string | null
-  // ricorrenza (null = task singolo)
-  recurrence?: string | null
-  recurrenceEndDate?: string | null
-  recurrenceSourceId?: string | null // task precedente della serie
-  recurrenceNextId?: string | null // task successivo, se gia' creato
   status: 'da_avviare' | 'in_corso' | 'completato' | 'annullato'
   pendingClosure: boolean
   progress: number

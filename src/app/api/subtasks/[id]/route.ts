@@ -7,6 +7,8 @@ import { getRole, getUserId } from '@/lib/permissions'
 import { logActivity } from '@/lib/activityLog'
 import type { SubtaskDetailDTO } from '@/types'
 import { syncTaskFromSubtask } from '@/lib/taskSync'
+import { isRecurrence } from '@/lib/recurrenceShared'
+import { spawnNextSubtask } from '@/lib/recurrence'
 
 // Puo' modificare/eliminare un sub-task: admin, owner del sub-task,
 // owner del task padre, oppure chi lo ha creato. Mai i read_only.
@@ -37,6 +39,10 @@ function toSubtaskDetailDTO(subtask: any): SubtaskDetailDTO {
       ? { id: subtask.createdBy.id, name: subtask.createdBy.name, email: subtask.createdBy.email }
       : null,
     taskId: subtask.taskId,
+    recurrence: subtask.recurrence ?? null,
+    recurrenceEndDate: subtask.recurrenceEndDate ? subtask.recurrenceEndDate.toISOString() : null,
+    recurrenceSourceId: subtask.recurrenceSourceId ?? null,
+    recurrenceNextId: subtask.recurrenceNext?.id ?? null,
     createdAt: subtask.createdAt.toISOString(),
     updatedAt: subtask.updatedAt.toISOString(),
     task: {
@@ -54,7 +60,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
 
   const subtask = await prisma.subtask.findUnique({
     where: { id: params.id },
-    include: { owner: true, createdBy: true, task: { include: { client: true } } }
+    include: { owner: true, createdBy: true, recurrenceNext: { select: { id: true } }, task: { include: { client: true } } }
   })
   if (!subtask) return NextResponse.json({ error: 'Sub-task non trovato' }, { status: 404 })
 
@@ -75,7 +81,16 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   }
 
   const body = await req.json()
-  const { title, description, status, ownerId, startDate, endDate, closedAt } = body
+  const { title, description, status, ownerId, startDate, endDate, closedAt, recurrence, recurrenceEndDate } = body
+
+  // Ricorrenza: '' / null = sub-task singolo. Serve una data di scadenza da cui ripartire.
+  if (recurrence && !isRecurrence(recurrence)) {
+    return NextResponse.json({ error: 'Ricorrenza non valida' }, { status: 400 })
+  }
+  const resultingEnd = endDate !== undefined ? endDate : existing.endDate
+  if (recurrence && !resultingEnd) {
+    return NextResponse.json({ error: 'Per un sub-task ricorrente serve la data di scadenza' }, { status: 400 })
+  }
 
   const subtask = await prisma.subtask.update({
     where: { id: params.id },
@@ -86,9 +101,15 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       ...(ownerId !== undefined ? { ownerId } : {}),
       ...(startDate !== undefined ? { startDate: startDate ? new Date(startDate) : new Date() } : {}),
       ...(endDate !== undefined ? { endDate: endDate ? new Date(endDate) : null } : {}),
-      ...(closedAt !== undefined ? { closedAt: closedAt ? new Date(closedAt) : null } : {})
+      ...(closedAt !== undefined ? { closedAt: closedAt ? new Date(closedAt) : null } : {}),
+      ...(recurrence !== undefined
+        ? {
+            recurrence: recurrence || null,
+            recurrenceEndDate: recurrence && recurrenceEndDate ? new Date(recurrenceEndDate) : null
+          }
+        : {})
     },
-    include: { owner: true, createdBy: true, task: { include: { subtasks: true, client: true } } }
+    include: { owner: true, createdBy: true, recurrenceNext: { select: { id: true } }, task: { include: { subtasks: true, client: true } } }
   })
 
   const actorId = (session.user as any).id
@@ -115,10 +136,17 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     })
   }
 
+  // Se il sub-task ricorrente risulta chiuso, crea il successivo (stesso task, da avviare).
+  // Va fatto prima di valutare il padre: con un nuovo sub-task aperto il padre non va chiuso.
+  const next = await spawnNextSubtask(subtask.id, actorId)
+  const siblings = next
+    ? await prisma.subtask.findMany({ where: { taskId: subtask.taskId }, select: { status: true } })
+    : subtask.task.subtasks
+
   // Se cambiando questo sotto-task NON tutti i fratelli sono piu' completati,
   // annulliamo un'eventuale chiusura manuale precedente del padre.
   const derived = deriveTaskStatus(
-    subtask.task.subtasks.map((s) => s.status),
+    siblings.map((s) => s.status),
     subtask.task.closedManually,
     subtask.task.statusOverride
   )
@@ -134,7 +162,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   return NextResponse.json({
     subtask: toSubtaskDetailDTO(subtask),
     taskId: subtask.taskId,
-    pendingClosure
+    pendingClosure,
+    nextSubtaskId: next ? next.id : null
   })
 }
 

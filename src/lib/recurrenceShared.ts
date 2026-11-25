@@ -19,11 +19,16 @@ export function recurrenceLabel(v: string | null | undefined): string {
   return RECURRENCE_OPTIONS.find((o) => o.value === v)?.label ?? ''
 }
 
-// Spiegazione mostrata a chi usa la piattaforma (testo + tooltip)
+// Spiegazione mostrata a chi usa la piattaforma (tooltip)
 export const RECURRENCE_HELP =
-  'Un task ricorrente non si ripete da solo a date fisse: quando lo chiudi (stato "Completato") la piattaforma crea automaticamente il successivo, ' +
-  'con le date di avvio e di scadenza spostate in avanti di un intervallo. Titolo, descrizione, cliente e owner vengono copiati; i sub-task no. ' +
-  'Se il task viene annullato la serie si ferma, e anche se la nuova scadenza supera la data "Ripeti fino al".'
+  'Un sub-task ricorrente non si ripete da solo a date fisse: quando lo chiudi (stato "Completato") la piattaforma crea automaticamente il successivo, ' +
+  'nello stesso task, con le date di avvio e di scadenza spostate in avanti di un intervallo. Nome, dettagli e owner vengono copiati. ' +
+  'Il task padre resta aperto finché la serie continua e la sua scadenza si allunga se il nuovo sub-task scade dopo. ' +
+  'La serie si ferma se annulli il sub-task, se il task padre è chiuso o annullato, o se la nuova scadenza supera la data "Ripeti fino al".'
+
+// Testo breve sempre visibile sotto la scelta
+export const RECURRENCE_SHORT =
+  'Quando chiudi questo sub-task (stato "Completato") ne verrà creato in automatico uno nuovo nello stesso task, con le date spostate in avanti di un intervallo.'
 
 function addMonthsUTC(date: Date, months: number): Date {
   const y = date.getUTCFullYear()

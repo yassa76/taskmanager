@@ -14,6 +14,8 @@ import CommentsPanel from './CommentsPanel'
 import Combobox from './Combobox'
 import { EditIcon, DeleteIcon } from './icons'
 import ReadOnlyGuard from './ReadOnlyGuard'
+import RecurrenceFields from './RecurrenceFields'
+import { RECURRENCE_HELP, recurrenceLabel } from '@/lib/recurrenceShared'
 
 export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) {
   const router = useRouter()
@@ -31,6 +33,8 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [closedAt, setClosedAt] = useState('')
+  const [recurrence, setRecurrence] = useState('')
+  const [recurrenceEnd, setRecurrenceEnd] = useState('')
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -54,6 +58,8 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
       setStartDate(data.startDate.slice(0, 10))
       setEndDate(data.endDate ? data.endDate.slice(0, 10) : '')
       setClosedAt(data.closedAt ? data.closedAt.slice(0, 10) : '')
+      setRecurrence(data.recurrence || '')
+      setRecurrenceEnd(data.recurrenceEndDate ? data.recurrenceEndDate.slice(0, 10) : '')
       setTeam(teamRes.ok ? await teamRes.json() : [])
     } catch (e: any) {
       setError(`Errore imprevisto: ${e?.message || e}`)
@@ -95,7 +101,9 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
         ownerId,
         startDate: startDate || null,
         endDate: endDate || null,
-        closedAt: closedAt || null
+        closedAt: closedAt || null,
+        recurrence: recurrence || '',
+        recurrenceEndDate: recurrence && recurrenceEnd ? recurrenceEnd : null
       })
     })
     setSaving(false)
@@ -184,6 +192,40 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
               )}{' '}
               il {formatDate(subtask.createdAt)}
             </p>
+            {subtask.recurrence && (
+              <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+                <span
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 font-medium cursor-help"
+                  title={RECURRENCE_HELP}
+                >
+                  🔁 Ricorrente · {recurrenceLabel(subtask.recurrence)}
+                  {subtask.recurrenceEndDate ? ` fino al ${formatDate(subtask.recurrenceEndDate)}` : ''}
+                </span>
+                {subtask.recurrenceSourceId && (
+                  <Link href={`/subtasks/${subtask.recurrenceSourceId}`} className="text-brand-600 hover:underline">
+                    ← Sub-task precedente
+                  </Link>
+                )}
+                {subtask.recurrenceNextId ? (
+                  <Link href={`/subtasks/${subtask.recurrenceNextId}`} className="text-brand-600 hover:underline">
+                    Sub-task successivo →
+                  </Link>
+                ) : (
+                  <span className="text-slate-400">
+                    {subtask.status === 'completato'
+                      ? 'Serie conclusa: non ci sono altri sub-task da creare'
+                      : 'Il successivo verrà creato quando questo sarà completato'}
+                  </span>
+                )}
+              </div>
+            )}
+            {!subtask.recurrence && subtask.recurrenceSourceId && (
+              <p className="mt-2 text-xs">
+                <Link href={`/subtasks/${subtask.recurrenceSourceId}`} className="text-brand-600 hover:underline">
+                  ← Sub-task precedente
+                </Link>
+              </p>
+            )}
           </div>
           <ReadOnlyGuard className="flex gap-2 shrink-0">
             {subtask.status === 'da_avviare' && (
@@ -332,6 +374,14 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
                   />
                 </div>
               </div>
+              <RecurrenceFields
+                recurrence={recurrence}
+                recurrenceEnd={recurrenceEnd}
+                onChange={(r, e) => {
+                  setRecurrence(r)
+                  setRecurrenceEnd(e)
+                }}
+              />
             </div>
             <div className="flex justify-end gap-2 mt-6">
               <button

@@ -5,7 +5,6 @@ import { prisma } from '@/lib/prisma'
 import { deriveTaskStatus } from '@/lib/taskStatus'
 import { canCreate } from '@/lib/permissions'
 import { logActivity } from '@/lib/activityLog'
-import { isRecurrence } from '@/lib/recurrenceShared'
 import type { TaskDTO } from '@/types'
 
 function toTaskDTO(task: any): TaskDTO {
@@ -28,10 +27,6 @@ function toTaskDTO(task: any): TaskDTO {
     projectId: task.projectId,
     closedManually: task.closedManually,
     statusOverride: task.statusOverride,
-    recurrence: task.recurrence ?? null,
-    recurrenceEndDate: task.recurrenceEndDate ? task.recurrenceEndDate.toISOString() : null,
-    recurrenceSourceId: task.recurrenceSourceId ?? null,
-    recurrenceNextId: task.recurrenceNext?.id ?? null,
     status: derived.status,
     pendingClosure: derived.pendingClosure,
     progress: derived.progress,
@@ -46,6 +41,9 @@ function toTaskDTO(task: any): TaskDTO {
       owner: { id: s.owner.id, name: s.owner.name, email: s.owner.email },
       createdBy: s.createdBy ? { id: s.createdBy.id, name: s.createdBy.name, email: s.createdBy.email } : null,
       taskId: s.taskId,
+      recurrence: s.recurrence ?? null,
+      recurrenceEndDate: s.recurrenceEndDate ? s.recurrenceEndDate.toISOString() : null,
+      recurrenceSourceId: s.recurrenceSourceId ?? null,
       createdAt: s.createdAt.toISOString(),
       updatedAt: s.updatedAt.toISOString()
     })),
@@ -86,7 +84,6 @@ export async function GET(req: NextRequest) {
       createdBy: true,
       client: true,
       project: true,
-      recurrenceNext: { select: { id: true } },
       subtasks: { include: { owner: true, createdBy: true } }
     },
     orderBy: { updatedAt: 'desc' }
@@ -107,17 +104,13 @@ export async function POST(req: NextRequest) {
   if (!canCreate(session)) return NextResponse.json({ error: 'Utente in sola lettura' }, { status: 403 })
 
   const body = await req.json()
-  const { title, description, startDate, endDate, ownerId, clientId, projectId, subtasks, recurrence, recurrenceEndDate } = body
+  const { title, description, startDate, endDate, ownerId, clientId, projectId, subtasks } = body
 
   if (!title || !ownerId) {
     return NextResponse.json({ error: 'Titolo e owner sono obbligatori' }, { status: 400 })
   }
   if (!endDate) {
     return NextResponse.json({ error: 'La data di scadenza è obbligatoria' }, { status: 400 })
-  }
-
-  if (recurrence && !isRecurrence(recurrence)) {
-    return NextResponse.json({ error: 'Ricorrenza non valida' }, { status: 400 })
   }
 
   const task = await prisma.task.create({
@@ -129,8 +122,6 @@ export async function POST(req: NextRequest) {
       ownerId,
       clientId: clientId || null,
       projectId: projectId || null,
-      recurrence: recurrence || null,
-      recurrenceEndDate: recurrence && recurrenceEndDate ? new Date(recurrenceEndDate) : null,
       createdById: (session.user as any).id,
       subtasks: {
         create: (subtasks || []).map((s: any) => ({
