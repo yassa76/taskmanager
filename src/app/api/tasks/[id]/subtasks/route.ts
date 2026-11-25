@@ -1,3 +1,4 @@
+import { notifyUser, actorName, assignedMessage } from '@/lib/notify'
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
@@ -58,6 +59,18 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     entityLabel: subtask.title,
     userId: (session.user as any).id
   })
+
+  const creatorId = (session.user as any).id
+  if (subtask.ownerId !== creatorId) {
+    await notifyUser({
+      userId: subtask.ownerId,
+      actorId: creatorId,
+      reason: 'assegnato',
+      entityType: 'subtask',
+      entityId: subtask.id,
+      message: assignedMessage(await actorName(creatorId), 'subtask', subtask.title)
+    })
+  }
 
   return NextResponse.json(subtask, { status: 201 })
 }

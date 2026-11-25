@@ -12,7 +12,11 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json().catch(() => ({}))
   const where: any = { userId, readAt: null }
-  if (!body.all) {
+  if (body.all) {
+    // "tutti" puo' riguardare solo un gruppo (menzioni o altro)
+    if (body.kind === 'menzioni') where.reason = 'menzione'
+    else if (body.kind === 'altro') where.reason = { not: 'menzione' }
+  } else {
     const ids = Array.isArray(body.ids) ? body.ids.filter((x: unknown) => typeof x === 'string') : []
     if (ids.length === 0) return NextResponse.json({ error: 'Nessun avviso indicato' }, { status: 400 })
     where.id = { in: ids }

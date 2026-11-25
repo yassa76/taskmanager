@@ -1,3 +1,4 @@
+import { notifyUser, actorName, assignedMessage, deadlineChangedMessage } from '@/lib/notify'
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
@@ -134,6 +135,35 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       detail: `${existing.owner.name || existing.owner.email} → ${subtask.owner.name || subtask.owner.email}`,
       userId: actorId
     })
+  }
+
+  // Avvisi: nuovo owner e cambio di scadenza (fatti da un altro)
+  const subOwnerChanged = ownerId !== undefined && ownerId !== existing.ownerId
+  const subNewEnd = endDate !== undefined ? (endDate ? new Date(endDate) : null) : undefined
+  const subEndChanged =
+    subNewEnd !== undefined && (subNewEnd?.getTime() ?? null) !== (existing.endDate?.getTime() ?? null)
+  if (subOwnerChanged || subEndChanged) {
+    const who = await actorName(actorId)
+    if (subOwnerChanged) {
+      await notifyUser({
+        userId: subtask.ownerId,
+        actorId,
+        reason: 'assegnato',
+        entityType: 'subtask',
+        entityId: subtask.id,
+        message: assignedMessage(who, 'subtask', subtask.title)
+      })
+    } else {
+      await notifyUser({
+        userId: subtask.ownerId,
+        actorId,
+        reason: 'scadenza_cambiata',
+        entityType: 'subtask',
+        entityId: subtask.id,
+        message: deadlineChangedMessage(who, 'subtask', subtask.title, existing.endDate, subNewEnd ?? null),
+        mergeRecent: true
+      })
+    }
   }
 
   // Se il sub-task ricorrente risulta chiuso, crea il successivo (stesso task, da avviare).

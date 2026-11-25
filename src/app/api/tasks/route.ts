@@ -1,3 +1,5 @@
+import { notifyUser, actorName, assignedMessage } from '@/lib/notify'
+import { isRecurrence } from '@/lib/recurrenceShared'
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
@@ -129,6 +131,9 @@ export async function POST(req: NextRequest) {
           ownerId: s.ownerId || ownerId,
           status: s.status || 'da_avviare',
           endDate: s.endDate ? new Date(s.endDate) : null,
+          recurrence: s.recurrence && isRecurrence(s.recurrence) ? s.recurrence : null,
+          recurrenceEndDate:
+            s.recurrence && isRecurrence(s.recurrence) && s.recurrenceEndDate ? new Date(s.recurrenceEndDate) : null,
           createdById: (session.user as any).id
         }))
       }
@@ -156,6 +161,28 @@ export async function POST(req: NextRequest) {
       action: 'creato',
       entityLabel: s.title,
       userId: (session.user as any).id
+    })
+  }
+
+  const creatorId = (session.user as any).id
+  const creatorName = await actorName(creatorId)
+  await notifyUser({
+    userId: task.ownerId,
+    actorId: creatorId,
+    reason: 'assegnato',
+    entityType: 'task',
+    entityId: task.id,
+    message: assignedMessage(creatorName, 'task', task.title)
+  })
+  for (const s of task.subtasks) {
+    if (s.ownerId === task.ownerId) continue // chi e' gia' avvisato per il task non riceve un secondo avviso
+    await notifyUser({
+      userId: s.ownerId,
+      actorId: creatorId,
+      reason: 'assegnato',
+      entityType: 'subtask',
+      entityId: s.id,
+      message: assignedMessage(creatorName, 'subtask', s.title)
     })
   }
 
