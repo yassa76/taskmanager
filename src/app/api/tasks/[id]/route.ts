@@ -5,8 +5,6 @@ import { prisma } from '@/lib/prisma'
 import { deriveTaskStatus } from '@/lib/taskStatus'
 import { canEditRecord } from '@/lib/permissions'
 import { logActivity } from '@/lib/activityLog'
-import { isRecurrence } from '@/lib/recurrenceShared'
-import { spawnNextRecurrence } from '@/lib/recurrence'
 import type { TaskDTO } from '@/types'
 
 function toTaskDTO(task: any): TaskDTO {
@@ -29,10 +27,6 @@ function toTaskDTO(task: any): TaskDTO {
     projectId: task.projectId,
     closedManually: task.closedManually,
     statusOverride: task.statusOverride,
-    recurrence: task.recurrence ?? null,
-    recurrenceEndDate: task.recurrenceEndDate ? task.recurrenceEndDate.toISOString() : null,
-    recurrenceSourceId: task.recurrenceSourceId ?? null,
-    recurrenceNextId: task.recurrenceNext?.id ?? null,
     status: derived.status,
     pendingClosure: derived.pendingClosure,
     progress: derived.progress,
@@ -47,6 +41,9 @@ function toTaskDTO(task: any): TaskDTO {
       owner: { id: s.owner.id, name: s.owner.name, email: s.owner.email },
       createdBy: s.createdBy ? { id: s.createdBy.id, name: s.createdBy.name, email: s.createdBy.email } : null,
       taskId: s.taskId,
+      recurrence: s.recurrence ?? null,
+      recurrenceEndDate: s.recurrenceEndDate ? s.recurrenceEndDate.toISOString() : null,
+      recurrenceSourceId: s.recurrenceSourceId ?? null,
       createdAt: s.createdAt.toISOString(),
       updatedAt: s.updatedAt.toISOString()
     })),
@@ -66,7 +63,6 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
       createdBy: true,
       client: true,
       project: true,
-      recurrenceNext: { select: { id: true } },
       subtasks: { include: { owner: true, createdBy: true }, orderBy: { createdAt: 'asc' } }
     }
   })
@@ -86,16 +82,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   }
 
   const body = await req.json()
-  const { title, description, startDate, endDate, ownerId, clientId, projectId, status, recurrence, recurrenceEndDate } = body
-
-  // Ricorrenza: '' / null = task singolo. Serve una data di scadenza da cui ripartire.
-  if (recurrence !== undefined && recurrence && !isRecurrence(recurrence)) {
-    return NextResponse.json({ error: 'Ricorrenza non valida' }, { status: 400 })
-  }
-  const resultingEnd = endDate !== undefined ? endDate : existing.endDate
-  if (recurrence && !resultingEnd) {
-    return NextResponse.json({ error: 'Per un task ricorrente serve la data di scadenza' }, { status: 400 })
-  }
+  const { title, description, startDate, endDate, ownerId, clientId, projectId, status } = body
 
   const task = await prisma.task.update({
     where: { id: params.id },
@@ -109,20 +96,13 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       ...(projectId !== undefined ? { projectId: projectId || null } : {}),
       // status: 'auto' (o vuoto) rimuove il forzaggio manuale e torna alla
       // derivazione automatica in base ai sotto-task.
-      ...(status !== undefined ? { statusOverride: status && status !== 'auto' ? status : null } : {}),
-      ...(recurrence !== undefined
-        ? {
-            recurrence: recurrence || null,
-            recurrenceEndDate: recurrence && recurrenceEndDate ? new Date(recurrenceEndDate) : null
-          }
-        : {})
+      ...(status !== undefined ? { statusOverride: status && status !== 'auto' ? status : null } : {})
     },
     include: {
       owner: true,
       createdBy: true,
       client: true,
       project: true,
-      recurrenceNext: { select: { id: true } },
       subtasks: { include: { owner: true, createdBy: true }, orderBy: { createdAt: 'asc' } }
     }
   })
@@ -151,11 +131,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     })
   }
 
-  // Se con questa modifica il task ricorrente risulta chiuso, crea il successivo
-  const next = await spawnNextRecurrence(task.id, actorId)
-  const dto = toTaskDTO(task)
-  if (next) dto.recurrenceNextId = next.id
-  return NextResponse.json(dto)
+  return NextResponse.json(toTaskDTO(task))
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {

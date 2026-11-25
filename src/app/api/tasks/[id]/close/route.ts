@@ -3,7 +3,6 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { logActivity } from '@/lib/activityLog'
-import { spawnNextRecurrence } from '@/lib/recurrence'
 
 // Chiamato quando l'utente conferma "Sì, chiudi anche il task padre"
 // dopo che tutti i sotto-task sono stati completati.
@@ -44,7 +43,5 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     })
   }
 
-  // Chiudere il task padre puo' far nascere il successivo, se e' ricorrente
-  const next = confirm ? await spawnNextRecurrence(task.id, (session.user as any).id) : null
-  return NextResponse.json({ ...updated, nextRecurrence: next ? { id: next.id } : null })
+  return NextResponse.json(updated)
 }
