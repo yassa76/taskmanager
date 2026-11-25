@@ -213,6 +213,7 @@ export default function ReportsView() {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <KpiCard label="Task totali (tutti gli stati)" value={data.kpi.totalTasks} />
+        <KpiCard label="Task attivi" value={data.kpi.inProgress + data.kpi.notStarted} />
         <KpiCard label="% completamento" value={`${data.kpi.completionRate}%`} accent="text-emerald-600" />
         <KpiCard label="In corso" value={data.kpi.inProgress} accent="text-amber-600" />
         <KpiCard label="In ritardo" value={data.kpi.overdue} accent="text-red-600" />
