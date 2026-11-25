@@ -75,10 +75,10 @@ export async function GET(req: NextRequest) {
   // Distribuzione stati (per grafico a torta) — questa mostra sempre tutti gli
   // stati, incluso completati/annullati, perche' e' proprio il suo scopo.
   const statusDistribution = [
-    { name: 'Da avviare', value: notStarted },
-    { name: 'In corso', value: inProgress },
-    { name: 'Completato', value: completed },
-    { name: 'Annullato', value: cancelled }
+    { name: 'Da avviare', status: 'da_avviare', value: notStarted },
+    { name: 'In corso', status: 'in_corso', value: inProgress },
+    { name: 'Completato', status: 'completato', value: completed },
+    { name: 'Annullato', status: 'annullato', value: cancelled }
   ]
 
   // Da qui in poi, per i grafici "operativi" (per owner, per cliente, carico
@@ -90,12 +90,18 @@ export async function GET(req: NextRequest) {
   }
 
   // Task per owner
-  const byOwnerMap = new Map<string, { id: string; name: string; total: number; completati: number }>()
+  const byOwnerMap = new Map<
+    string,
+    { id: string; name: string; total: number; da_avviare: number; in_corso: number; completato: number; annullato: number }
+  >()
   for (const t of enriched) {
     const key = t.owner.id
-    const cur = byOwnerMap.get(key) || { id: t.owner.id, name: t.owner.name || t.owner.email, total: 0, completati: 0 }
+    const cur =
+      byOwnerMap.get(key) ||
+      { id: t.owner.id, name: t.owner.name || t.owner.email, total: 0, da_avviare: 0, in_corso: 0, completato: 0, annullato: 0 }
     cur.total += 1
-    if (t.derived.status === 'completato') cur.completati += 1
+    const st = t.derived.status
+    if (st === 'da_avviare' || st === 'in_corso' || st === 'completato' || st === 'annullato') cur[st] += 1
     byOwnerMap.set(key, cur)
   }
   const byOwner = Array.from(byOwnerMap.values())

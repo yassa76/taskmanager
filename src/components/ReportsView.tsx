@@ -32,7 +32,15 @@ interface ReportData {
     completedSubtasks: number
     subtaskCompletionRate: number
   }
-  byOwner: { id: string; name: string; total: number; completati: number }[]
+  byOwner: {
+    id: string
+    name: string
+    total: number
+    da_avviare: number
+    in_corso: number
+    completato: number
+    annullato: number
+  }[]
   byOwnerStatus: {
     id: string
     name: string
@@ -43,7 +51,7 @@ interface ReportData {
   }[]
   byClient: { name: string; total: number }[]
   byClientTruncated: boolean
-  statusDistribution: { name: string; value: number }[]
+  statusDistribution: { name: string; status: string; value: number }[]
 }
 
 const COLORS = ['#94a3b8', '#f59e0b', '#10b981', '#64748b']
@@ -242,7 +250,9 @@ export default function ReportsView() {
 
       <div className="grid md:grid-cols-2 gap-6">
         <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-          <h2 className="text-sm font-semibold text-slate-600 mb-4">Distribuzione stati task</h2>
+          <h2 className="text-sm font-semibold text-slate-600 mb-4">
+            Distribuzione stati task <span className="font-normal text-slate-400">(clicca una fetta per la lista)</span>
+          </h2>
           <ResponsiveContainer width="100%" height={260}>
             <PieChart>
               <Pie
@@ -253,6 +263,11 @@ export default function ReportsView() {
                 cy="50%"
                 outerRadius={90}
                 label
+                cursor="pointer"
+                onClick={(d: any) => {
+                  const status = d?.status ?? d?.payload?.status
+                  if (status) router.push(tasksHref(`status=${status}`))
+                }}
               >
                 {data.statusDistribution.map((_, i) => (
                   <Cell key={i} fill={COLORS[i % COLORS.length]} />
@@ -266,7 +281,8 @@ export default function ReportsView() {
 
         <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
           <h2 className="text-sm font-semibold text-slate-600 mb-4">
-            Task per owner <span className="font-normal text-slate-400">(clicca una barra per il dettaglio)</span>
+            Task per owner{' '}
+            <span className="font-normal text-slate-400">(per stato — clicca una barra per il dettaglio)</span>
           </h2>
           <ResponsiveContainer width="100%" height={260}>
             <BarChart data={data.byOwner}>
@@ -275,21 +291,41 @@ export default function ReportsView() {
               <Tooltip />
               <Legend />
               <Bar
-                dataKey="total"
-                name="Totali"
-                fill="#3b5bdb"
-                radius={[4, 4, 0, 0]}
+                dataKey="da_avviare"
+                name="Da avviare"
+                stackId="owner"
+                fill="#94a3b8"
                 cursor="pointer"
                 onClick={(d: any) => d?.id && router.push(`/owners/${d.id}`)}
               />
               <Bar
-                dataKey="completati"
-                name="Completati"
-                fill="#10b981"
-                radius={[4, 4, 0, 0]}
+                dataKey="in_corso"
+                name="In corso"
+                stackId="owner"
+                fill="#f59e0b"
                 cursor="pointer"
                 onClick={(d: any) => d?.id && router.push(`/owners/${d.id}`)}
               />
+              {includeClosed && (
+                <Bar
+                  dataKey="completato"
+                  name="Completato"
+                  stackId="owner"
+                  fill="#10b981"
+                  cursor="pointer"
+                  onClick={(d: any) => d?.id && router.push(`/owners/${d.id}`)}
+                />
+              )}
+              {includeClosed && (
+                <Bar
+                  dataKey="annullato"
+                  name="Annullato"
+                  stackId="owner"
+                  fill="#64748b"
+                  cursor="pointer"
+                  onClick={(d: any) => d?.id && router.push(`/owners/${d.id}`)}
+                />
+              )}
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -323,23 +359,27 @@ export default function ReportsView() {
                 cursor="pointer"
                 onClick={(d: any) => d?.id && router.push(`/owners/${d.id}`)}
               />
-              <Bar
-                dataKey="completato"
-                name="Completato"
-                stackId="workload"
-                fill="#10b981"
-                cursor="pointer"
-                onClick={(d: any) => d?.id && router.push(`/owners/${d.id}`)}
-              />
-              <Bar
-                dataKey="annullato"
-                name="Annullato"
-                stackId="workload"
-                fill="#64748b"
-                radius={[4, 4, 0, 0]}
-                cursor="pointer"
-                onClick={(d: any) => d?.id && router.push(`/owners/${d.id}`)}
-              />
+              {includeClosed && (
+                <Bar
+                  dataKey="completato"
+                  name="Completato"
+                  stackId="workload"
+                  fill="#10b981"
+                  cursor="pointer"
+                  onClick={(d: any) => d?.id && router.push(`/owners/${d.id}`)}
+                />
+              )}
+              {includeClosed && (
+                <Bar
+                  dataKey="annullato"
+                  name="Annullato"
+                  stackId="workload"
+                  fill="#64748b"
+                  radius={[4, 4, 0, 0]}
+                  cursor="pointer"
+                  onClick={(d: any) => d?.id && router.push(`/owners/${d.id}`)}
+                />
+              )}
             </BarChart>
           </ResponsiveContainer>
         </div>
