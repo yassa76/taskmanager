@@ -21,41 +21,21 @@ export async function getEntityInfo(entityType: CommentEntityType, entityId: str
 }
 
 /**
- * Crea gli avvisi per un commento. Destinatari:
- *  - utenti menzionati (motivo "menzione")
- *  - owner del record (e del task padre per un sub-task) -> "owner"
- *  - chi ha gia' commentato in questo record -> "thread"
- * L'autore non riceve mai avvisi; ognuno ne riceve al massimo uno (la menzione ha la priorita').
- * Con `onlyMentionIds` (modifica di un commento) si avvisano solo le nuove menzioni.
+ * Crea gli avvisi (campanella) per le menzioni di un commento: uno per ogni persona menzionata.
+ * Chi scrive non avvisa mai se stesso. Commentare il task di cui si e' owner NON genera avvisi:
+ * la campanella e' solo per le menzioni. In modifica si passano solo le menzioni nuove.
  */
 export async function createNotifications(params: {
   commentId: string
   authorId: string
-  entityType: CommentEntityType
-  entityId: string
   mentionIds: string[]
-  ownerIds: string[]
-  onlyMentions?: boolean
 }) {
-  const reasons = new Map<string, string>()
-  const valid = params.mentionIds.length
-    ? await prisma.user.findMany({ where: { id: { in: params.mentionIds } }, select: { id: true } })
-    : []
-  for (const u of valid) reasons.set(u.id, 'menzione')
-
-  if (!params.onlyMentions) {
-    for (const id of params.ownerIds) if (!reasons.has(id)) reasons.set(id, 'owner')
-    const prior = await prisma.comment.findMany({
-      where: { entityType: params.entityType, entityId: params.entityId },
-      select: { authorId: true },
-      distinct: ['authorId']
-    })
-    for (const c of prior) if (!reasons.has(c.authorId)) reasons.set(c.authorId, 'thread')
-  }
-  reasons.delete(params.authorId)
-  if (reasons.size === 0) return
+  const ids = Array.from(new Set(params.mentionIds)).filter((id) => id !== params.authorId)
+  if (ids.length === 0) return
+  const valid = await prisma.user.findMany({ where: { id: { in: ids } }, select: { id: true } })
+  if (valid.length === 0) return
   await prisma.notification.createMany({
-    data: Array.from(reasons, ([userId, reason]) => ({ userId, commentId: params.commentId, reason }))
+    data: valid.map((u) => ({ userId: u.id, commentId: params.commentId, reason: 'menzione' }))
   })
 }
 

@@ -12,9 +12,9 @@ export async function GET() {
   const userId = getUserId(session)
 
   const [unread, items] = await Promise.all([
-    prisma.notification.count({ where: { userId, readAt: null } }),
+    prisma.notification.count({ where: { userId, readAt: null, reason: 'menzione' } }),
     prisma.notification.findMany({
-      where: { userId },
+      where: { userId, reason: 'menzione' }, // solo menzioni (eventuali avvisi vecchi di altro tipo si ignorano)
       include: { comment: { include: { author: { select: { id: true, name: true, email: true } } } } },
       orderBy: { createdAt: 'desc' },
       take: 30

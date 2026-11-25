@@ -55,10 +55,7 @@ export async function POST(req: NextRequest) {
     await createNotifications({
       commentId: created.id,
       authorId,
-      entityType,
-      entityId,
-      mentionIds: extractMentionIds(text),
-      ownerIds: info.ownerIds
+      mentionIds: extractMentionIds(text)
     })
   } catch (e) {
     // gli avvisi non devono impedire di salvare il commento
