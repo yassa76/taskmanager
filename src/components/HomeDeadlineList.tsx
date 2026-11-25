@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import clsx from 'clsx'
+import RecurrenceBadge from './RecurrenceBadge'
 
 export interface DeadlineRow {
   id: string
@@ -13,6 +14,7 @@ export interface DeadlineRow {
   subHref?: string | null
   ownerId?: string
   ownerName?: string
+  recurrence?: string | null
   endDate: string | null
   status: 'da_avviare' | 'in_corso' | 'completato' | 'annullato'
   overdue: boolean
@@ -214,9 +216,12 @@ export default function HomeDeadlineList({
                   <div className="flex items-center gap-2 min-w-0">
                     <span className={clsx('w-2 h-2 rounded-full shrink-0', dot.cls)} title={dot.label} />
                     <div className="min-w-0">
-                      <Link href={r.href} className="block truncate text-brand-600 font-medium hover:underline" title={r.title}>
-                        {r.title}
-                      </Link>
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Link href={r.href} className="block truncate text-brand-600 font-medium hover:underline" title={r.title}>
+                          {r.title}
+                        </Link>
+                        <RecurrenceBadge recurrence={r.recurrence} />
+                      </div>
                       {r.sub && (
                         <div className="truncate text-[11px] text-slate-400" title={`${subColLabel}: ${r.sub}`}>
                           {r.subHref ? (

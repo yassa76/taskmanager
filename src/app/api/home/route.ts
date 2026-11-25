@@ -71,6 +71,7 @@ export async function GET(req: NextRequest) {
       ownerName: s.owner.name || s.owner.email,
       endDate: s.endDate ? s.endDate.toISOString() : null,
       status: s.status,
+      recurrence: s.recurrence ?? null,
       overdue: !!s.endDate && s.endDate < now
     }))
     .filter((s) => s.endDate)
@@ -103,6 +104,7 @@ export async function GET(req: NextRequest) {
       .map((s) => ({
         id: s.id,
         type: 'subtask' as const,
+        recurrence: s.recurrence ?? null,
         title: s.title,
         date: s.endDate!.toISOString().slice(0, 10),
         clientName: s.task.client?.name ?? null,

@@ -6,12 +6,13 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import * as XLSX from 'xlsx'
 import clsx from 'clsx'
-import { STATUS_COLORS, STATUS_LABELS } from '@/lib/taskStatus'
+import { STATUS_COLORS, STATUS_LABELS, countActiveSubtasks } from '@/lib/taskStatus'
 import type { TaskDTO, TeamMemberDTO, ClientDTO } from '@/types'
 import TaskFormModal from './TaskFormModal'
 import Filters, { FilterState } from './Filters'
 import Breadcrumbs from './Breadcrumbs'
 import TasksKanban from './TasksKanban'
+import SubtaskCount from './SubtaskCount'
 import { EditIcon, DeleteIcon } from './icons'
 
 type SortKey = 'title' | 'clientName' | 'owner' | 'startDate' | 'endDate' | 'status'
@@ -203,6 +204,7 @@ export default function TasksView() {
         'Data scadenza': t.endDate ? t.endDate.slice(0, 10) : '',
         Stato: STATUS_LABELS[t.status],
         'Avanzamento %': t.progress,
+        'Sub-task attivi': countActiveSubtasks(t.subtasks.map((s) => s.status)),
         'Sub-task totali': t.subtasks.length,
         'Sub-task completati': t.subtasks.filter((s) => s.status === 'completato').length
       }))
@@ -302,7 +304,7 @@ export default function TasksView() {
               <SortHeader label="Data avvio" k="startDate" />
               <SortHeader label="Scadenza" k="endDate" />
               <SortHeader label="Stato" k="status" />
-              <th className="px-3 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Avanz.</th>
+              <th className="px-3 py-2 text-left text-xs font-semibold text-slate-500 uppercase" title="Sub-task ancora da fare (da avviare o in corso)">Sub-task attivi</th>
               <th className="px-3 py-2 text-right text-xs font-semibold text-slate-500 uppercase">Azioni</th>
             </tr>
           </thead>
@@ -368,11 +370,8 @@ export default function TasksView() {
                     {STATUS_LABELS[t.status]}
                   </span>
                 </td>
-                <td className="px-3 py-2 w-32">
-                  <div className="w-full bg-slate-100 rounded-full h-2">
-                    <div className="bg-brand-500 h-2 rounded-full" style={{ width: `${t.progress}%` }} />
-                  </div>
-                  <span className="text-xs text-slate-400">{t.progress}%</span>
+                <td className="px-3 py-2 text-center">
+                  <SubtaskCount active={countActiveSubtasks(t.subtasks.map((s) => s.status))} total={t.subtasks.length} />
                 </td>
                 <td className="px-3 py-2 text-right whitespace-nowrap">
                   <button

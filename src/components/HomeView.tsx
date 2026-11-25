@@ -30,6 +30,7 @@ interface UpcomingSubtask {
   ownerName?: string
   endDate: string | null
   status: 'da_avviare' | 'in_corso' | 'completato'
+  recurrence?: string | null
   overdue: boolean
 }
 
@@ -196,6 +197,7 @@ export default function HomeView({ userName }: { userName: string }) {
                   ownerName: s.ownerName,
                   endDate: s.endDate,
                   status: s.status,
+                  recurrence: s.recurrence,
                   overdue: s.overdue
                 }))}
               />
