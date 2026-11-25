@@ -130,11 +130,18 @@ export async function GET(req: NextRequest) {
 
   // Task per cliente: solo i primi 10 per numero di task, ordinati
   // decrescente, altrimenti con molti clienti il grafico diventa illeggibile.
-  const byClientMap = new Map<string, { name: string; total: number }>()
+  const byClientMap = new Map<
+    string,
+    { id: string | null; name: string; total: number; da_avviare: number; in_corso: number; completato: number; annullato: number }
+  >()
   for (const t of enriched) {
-    const key = t.client?.name || 'Senza cliente'
-    const cur = byClientMap.get(key) || { name: key, total: 0 }
+    const key = t.client?.id || 'none'
+    const cur =
+      byClientMap.get(key) ||
+      { id: t.client?.id ?? null, name: t.client?.name || 'Senza cliente', total: 0, da_avviare: 0, in_corso: 0, completato: 0, annullato: 0 }
     cur.total += 1
+    const st = t.derived.status
+    if (st === 'da_avviare' || st === 'in_corso' || st === 'completato' || st === 'annullato') cur[st] += 1
     byClientMap.set(key, cur)
   }
   const byClientAll = Array.from(byClientMap.values()).sort((a, b) => b.total - a.total)

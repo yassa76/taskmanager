@@ -49,7 +49,15 @@ interface ReportData {
     completato: number
     annullato: number
   }[]
-  byClient: { name: string; total: number }[]
+  byClient: {
+    id: string | null
+    name: string
+    total: number
+    da_avviare: number
+    in_corso: number
+    completato: number
+    annullato: number
+  }[]
   byClientTruncated: boolean
   statusDistribution: { name: string; status: string; value: number }[]
 }
@@ -174,6 +182,10 @@ export default function ReportsView() {
     const params = new URLSearchParams(extra)
     if (scope === 'mine') params.set('view', 'mine')
     return `/tasks?${params.toString()}`
+  }
+
+  function openClient(d: any) {
+    if (d?.id) router.push(`/clients/${d.id}`)
   }
 
   if (!data) return <p className="text-slate-400">Caricamento report...</p>
@@ -388,7 +400,7 @@ export default function ReportsView() {
           <h2 className="text-sm font-semibold text-slate-600 mb-4">
             Task per cliente{' '}
             <span className="font-normal text-slate-400">
-              {data.byClientTruncated ? '(top 10 per numero di task)' : ''}
+              (per stato{data.byClientTruncated ? ', top 10 per numero di task' : ''} — clicca una barra per il cliente)
             </span>
           </h2>
           <ResponsiveContainer width="100%" height={Math.max(260, data.byClient.length * 36)}>
@@ -396,7 +408,15 @@ export default function ReportsView() {
               <XAxis type="number" allowDecimals={false} />
               <YAxis type="category" dataKey="name" width={140} tick={{ fontSize: 12 }} />
               <Tooltip />
-              <Bar dataKey="total" name="Task" fill="#3b5bdb" radius={[0, 4, 4, 0]} />
+              <Legend />
+              <Bar dataKey="da_avviare" name="Da avviare" stackId="client" fill="#94a3b8" cursor="pointer" onClick={openClient} />
+              <Bar dataKey="in_corso" name="In corso" stackId="client" fill="#f59e0b" cursor="pointer" onClick={openClient} />
+              {includeClosed && (
+                <Bar dataKey="completato" name="Completato" stackId="client" fill="#10b981" cursor="pointer" onClick={openClient} />
+              )}
+              {includeClosed && (
+                <Bar dataKey="annullato" name="Annullato" stackId="client" fill="#64748b" cursor="pointer" onClick={openClient} />
+              )}
             </BarChart>
           </ResponsiveContainer>
         </div>
