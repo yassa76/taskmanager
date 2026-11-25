@@ -147,11 +147,11 @@ export default function HomeView({ userName }: { userName: string }) {
 
       {!loading && data && (
         <>
-          <div className="grid lg:grid-cols-5 gap-4 mb-4 items-start">
-            <div className="lg:col-span-2">
+          <div className="grid lg:grid-cols-[280px_1fr] gap-3 mb-4 items-stretch">
+            <div className="lg:h-[200px]">
               <DeadlineCalendar items={data.calendarItems} />
             </div>
-            <div className="lg:col-span-3 grid grid-cols-2 sm:grid-cols-3 auto-rows-fr gap-2 lg:h-[220px]">
+            <div className="grid grid-cols-2 sm:grid-cols-3 auto-rows-fr gap-2 lg:h-[200px]">
               <KpiCard label={scope === 'mine' ? 'I miei task' : 'Task del team'} value={data.kpi.totalTasks} href={tasksHref('')} />
               <KpiCard label="In corso" value={data.kpi.inProgress} accent="text-amber-600" href={tasksHref('status=in_corso')} />
               <KpiCard label="Da avviare" value={data.kpi.notStarted} href={tasksHref('status=da_avviare')} />
@@ -190,7 +190,7 @@ export default function HomeView({ userName }: { userName: string }) {
                   id: s.id,
                   href: `/subtasks/${s.id}`,
                   title: s.title,
-                  sub: s.taskTitle,
+                  sub: [s.clientName, s.taskTitle].filter(Boolean).join(' · '),
                   subHref: `/tasks/${s.taskId}`,
                   ownerId: s.ownerId,
                   ownerName: s.ownerName,
