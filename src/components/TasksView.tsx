@@ -12,6 +12,7 @@ import TaskFormModal from './TaskFormModal'
 import Filters, { FilterState } from './Filters'
 import Breadcrumbs from './Breadcrumbs'
 import TasksKanban from './TasksKanban'
+import { recurrenceLabel } from '@/lib/recurrenceShared'
 import { EditIcon, DeleteIcon } from './icons'
 
 type SortKey = 'title' | 'clientName' | 'owner' | 'startDate' | 'endDate' | 'status'
@@ -328,8 +329,9 @@ export default function TasksView() {
                   <Link
                     href={`/tasks/${t.id}`}
                     className="block truncate text-brand-600 font-semibold hover:underline"
-                    title={t.title}
+                    title={t.recurrence ? `${t.title} — ricorrente (${recurrenceLabel(t.recurrence).toLowerCase()})` : t.title}
                   >
+                    {t.recurrence ? '🔁 ' : ''}
                     {t.title}
                   </Link>
                 </td>

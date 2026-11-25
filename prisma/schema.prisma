@@ -137,6 +137,14 @@ model Task {
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
+  // Ricorrenza: null = task singolo. Quando un task ricorrente viene chiuso
+  // ("Completato") ne nasce uno nuovo, con le date spostate di un intervallo.
+  recurrence         String?   // "weekly" | "biweekly" | "monthly" | "quarterly" | "semiannual" | "yearly"
+  recurrenceEndDate  DateTime? // facoltativa: oltre questa data la serie si ferma
+  recurrenceSourceId String?   @unique // task da cui questo e' stato generato
+  recurrenceSource   Task?     @relation("TaskRecurrence", fields: [recurrenceSourceId], references: [id], onDelete: SetNull)
+  recurrenceNext     Task?     @relation("TaskRecurrence")
+
   subtasks Subtask[]
 }
 

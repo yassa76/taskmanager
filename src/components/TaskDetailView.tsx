@@ -14,6 +14,7 @@ import Breadcrumbs from './Breadcrumbs'
 import ActivityLogPanel from './ActivityLogPanel'
 import { EditIcon, DeleteIcon } from './icons'
 import ReadOnlyGuard from './ReadOnlyGuard'
+import { RECURRENCE_HELP, recurrenceLabel } from '@/lib/recurrenceShared'
 import { formatDate } from '@/lib/formatDate'
 
 export default function TaskDetailView({ taskId }: { taskId: string }) {
@@ -241,6 +242,40 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
               )}{' '}
               il {formatDate(task.createdAt)}
             </p>
+            {task.recurrence && (
+              <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+                <span
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 font-medium cursor-help"
+                  title={RECURRENCE_HELP}
+                >
+                  🔁 Ricorrente · {recurrenceLabel(task.recurrence)}
+                  {task.recurrenceEndDate ? ` fino al ${formatDate(task.recurrenceEndDate)}` : ''}
+                </span>
+                {task.recurrenceSourceId && (
+                  <Link href={`/tasks/${task.recurrenceSourceId}`} className="text-brand-600 hover:underline">
+                    ← Task precedente
+                  </Link>
+                )}
+                {task.recurrenceNextId ? (
+                  <Link href={`/tasks/${task.recurrenceNextId}`} className="text-brand-600 hover:underline">
+                    Task successivo →
+                  </Link>
+                ) : (
+                  <span className="text-slate-400">
+                    {task.status === 'completato'
+                      ? 'Serie conclusa: non ci sono altri task da creare'
+                      : 'Il successivo verrà creato quando questo sarà completato'}
+                  </span>
+                )}
+              </div>
+            )}
+            {!task.recurrence && task.recurrenceSourceId && (
+              <p className="mt-2 text-xs">
+                <Link href={`/tasks/${task.recurrenceSourceId}`} className="text-brand-600 hover:underline">
+                  ← Task precedente
+                </Link>
+              </p>
+            )}
             {task.description && <p className="text-slate-500 text-sm mt-2">{task.description}</p>}
           </div>
           <div className="flex gap-2 shrink-0">
