@@ -19,7 +19,8 @@ interface OwnerTask {
   endDate: string | null
   status: 'da_avviare' | 'in_corso' | 'completato' | 'annullato'
   progress: number
-  activeSubtasks: number
+  activeSubtasks: number // sub-task attivi assegnati a questa persona
+  activeSubtasksAll: number // sub-task attivi del task, di chiunque
   totalSubtasks: number
   overdue: boolean
 }
@@ -158,7 +159,7 @@ export default function OwnerDetailView({ ownerId }: { ownerId: string }) {
 
   const { owner, tasks, subtasks } = data
   const kpi = {
-    total: tasks.length,
+    active: tasks.filter((t) => t.status === 'da_avviare' || t.status === 'in_corso').length,
     inProgress: tasks.filter((t) => t.status === 'in_corso').length,
     notStarted: tasks.filter((t) => t.status === 'da_avviare').length,
     overdueTasks: tasks.filter((t) => t.overdue).length,
@@ -190,7 +191,7 @@ export default function OwnerDetailView({ ownerId }: { ownerId: string }) {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-        <KpiCard label="Task assegnati" value={kpi.total} />
+        <KpiCard label="Task attivi" value={kpi.active} />
         <KpiCard label="In corso" value={kpi.inProgress} accent="text-amber-600" />
         <KpiCard label="Da avviare" value={kpi.notStarted} />
         <KpiCard label="Task in ritardo" value={kpi.overdueTasks} accent="text-red-600" />
@@ -257,7 +258,7 @@ export default function OwnerDetailView({ ownerId }: { ownerId: string }) {
               <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Cliente</th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Scadenza</th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Stato</th>
-              <th className="px-4 py-2 text-center text-xs font-semibold text-slate-500 uppercase" title="Sub-task ancora da fare (da avviare o in corso)">Sub-task attivi</th>
+              <th className="px-4 py-2 text-center text-xs font-semibold text-slate-500 uppercase" title="Sub-task ancora da fare (da avviare o in corso) assegnati a questa persona">Sub-task attivi</th>
             </tr>
           </thead>
           <tbody>
@@ -292,7 +293,11 @@ export default function OwnerDetailView({ ownerId }: { ownerId: string }) {
                   </span>
                 </td>
                 <td className="px-4 py-2 text-center">
-                  <SubtaskCount active={t.activeSubtasks} total={t.totalSubtasks} />
+                  <SubtaskCount
+                    active={t.activeSubtasks}
+                    total={t.totalSubtasks}
+                    tooltip={`${t.activeSubtasks} attivi assegnati a ${owner.name || owner.email} · ${t.activeSubtasksAll} attivi in totale nel task (${t.totalSubtasks} sub-task)`}
+                  />
                 </td>
               </tr>
             ))}
