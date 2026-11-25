@@ -10,6 +10,7 @@ import { getInitials } from '@/lib/initials'
 import type { SubtaskDetailDTO, TeamMemberDTO } from '@/types'
 import Breadcrumbs from './Breadcrumbs'
 import ActivityLogPanel from './ActivityLogPanel'
+import CommentsPanel from './CommentsPanel'
 import Combobox from './Combobox'
 import { EditIcon, DeleteIcon } from './icons'
 import ReadOnlyGuard from './ReadOnlyGuard'
@@ -351,6 +352,7 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
         </div>
       )}
 
+      <CommentsPanel entityType="subtask" entityId={subtaskId} />
       <ActivityLogPanel entityType="subtask" entityId={subtaskId} />
     </div>
   )
