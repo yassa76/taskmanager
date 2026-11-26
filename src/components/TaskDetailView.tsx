@@ -11,6 +11,7 @@ import TaskFormModal from './TaskFormModal'
 import Combobox from './Combobox'
 import CloseParentModal from './CloseParentModal'
 import Breadcrumbs from './Breadcrumbs'
+import DataTable, { type Column } from './DataTable'
 import ActivityLogPanel from './ActivityLogPanel'
 import CommentsPanel from './CommentsPanel'
 import { EditIcon, DeleteIcon } from './icons'
@@ -211,6 +212,65 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
   const subTotalPages = Math.max(1, Math.ceil(visibleSubtasks.length / SUB_PAGE_SIZE))
   const pagedSubtasks = visibleSubtasks.slice((subPage - 1) * SUB_PAGE_SIZE, subPage * SUB_PAGE_SIZE)
 
+  const subColumns: Column<(typeof task.subtasks)[number]>[] = [
+    {
+      id: 'title',
+      label: 'Nome',
+      primary: true,
+      tdClassName: 'max-w-xs',
+      render: (s) => (
+        <div className="flex items-center gap-2 min-w-0">
+          <Link href={`/subtasks/${s.id}`} className="block truncate text-brand-600 font-medium hover:underline" title={s.title}>
+            {s.title}
+          </Link>
+          <RecurrenceBadge recurrence={s.recurrence} />
+        </div>
+      )
+    },
+    {
+      id: 'owner',
+      label: 'Owner',
+      render: (s) => (
+        <Link href={`/owners/${s.owner.id}`} className="text-brand-600 hover:underline">
+          {s.owner.name || s.owner.email}
+        </Link>
+      )
+    },
+    { id: 'startDate', label: 'Data inizio', render: (s) => (s.startDate ? formatDate(s.startDate) : '—') },
+    {
+      id: 'endDate',
+      label: 'Data scadenza',
+      render: (s) => {
+        const overdue = s.endDate && new Date(s.endDate) < new Date() && s.status !== 'completato' && s.status !== 'annullato'
+        return <span className={clsx(overdue ? 'text-red-600 font-semibold' : 'text-slate-700')}>{s.endDate ? formatDate(s.endDate) : '—'}</span>
+      }
+    },
+    {
+      id: 'status',
+      label: 'Stato',
+      render: (s) => (
+        <span className={clsx('px-2 py-1 rounded-full text-xs font-medium', STATUS_COLORS[s.status])}>{STATUS_LABELS[s.status]}</span>
+      )
+    },
+    {
+      id: 'actions',
+      label: 'Azioni',
+      fixed: true,
+      align: 'right',
+      tdClassName: 'whitespace-nowrap',
+      render: (s) => (
+        <ReadOnlyGuard className="inline-flex">
+          <button onClick={() => openEditSubtask(s)} className="inline-flex text-slate-400 hover:text-brand-600 mr-3 align-middle" title="Modifica">
+            <EditIcon />
+          </button>
+          <button onClick={() => deleteSubtask(s.id)} className="inline-flex text-slate-400 hover:text-red-600 align-middle" title="Elimina">
+            <DeleteIcon />
+          </button>
+        </ReadOnlyGuard>
+      )
+    }
+  ]
+
   return (
     <div>
       <Breadcrumbs
@@ -392,82 +452,14 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
           />
         </div>
 
-        <table className="w-full text-sm">
-          <thead className="bg-slate-50 border-b border-slate-200">
-            <tr>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Nome</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Owner</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Data inizio</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Data scadenza</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Stato</th>
-              <th className="px-4 py-2 text-right text-xs font-semibold text-slate-500 uppercase">Azioni</th>
-            </tr>
-          </thead>
-          <tbody>
-            {pagedSubtasks.map((s) => {
-              const overdue = s.endDate && new Date(s.endDate) < new Date() && s.status !== 'completato' && s.status !== 'annullato'
-              return (
-                <tr key={s.id} className="border-b border-slate-100 hover:bg-slate-50">
-                  <td className="px-4 py-2 max-w-xs">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <Link
-                        href={`/subtasks/${s.id}`}
-                        className="block truncate text-brand-600 font-medium hover:underline"
-                        title={s.title}
-                      >
-                        {s.title}
-                      </Link>
-                      <RecurrenceBadge recurrence={s.recurrence} />
-                    </div>
-                  </td>
-                  <td className="px-4 py-2 text-slate-700">
-                    <Link href={`/owners/${s.owner.id}`} className="text-brand-600 hover:underline">
-                      {s.owner.name || s.owner.email}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-2 text-slate-700">{s.startDate ? formatDate(s.startDate) : '—'}</td>
-                  <td className="px-4 py-2">
-                    <span className={clsx(overdue ? 'text-red-600 font-semibold' : 'text-slate-700')}>
-                      {s.endDate ? formatDate(s.endDate) : '—'}
-                    </span>
-                  </td>
-                  <td className="px-4 py-2">
-                    <span className={clsx('px-2 py-1 rounded-full text-xs font-medium', STATUS_COLORS[s.status])}>
-                      {STATUS_LABELS[s.status]}
-                    </span>
-                  </td>
-                  <td className="px-4 py-2 text-right whitespace-nowrap">
-                    <ReadOnlyGuard className="inline-flex">
-                      <button
-                        onClick={() => openEditSubtask(s)}
-                        className="inline-flex text-slate-400 hover:text-brand-600 mr-3 align-middle"
-                        title="Modifica"
-                      >
-                        <EditIcon />
-                      </button>
-                      <button
-                        onClick={() => deleteSubtask(s.id)}
-                        className="inline-flex text-slate-400 hover:text-red-600 align-middle"
-                        title="Elimina"
-                      >
-                        <DeleteIcon />
-                      </button>
-                    </ReadOnlyGuard>
-                  </td>
-                </tr>
-              )
-            })}
-            {visibleSubtasks.length === 0 && (
-              <tr>
-                <td colSpan={6} className="text-center py-6 text-slate-400">
-                  {task.subtasks.length === 0
-                    ? 'Nessun sub-task ancora.'
-                    : 'Nessun sub-task trovato con questi filtri.'}
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+        <DataTable
+          bare
+          tableId="task-subtasks"
+          columns={subColumns}
+          rows={pagedSubtasks}
+          rowKey={(s) => s.id}
+          emptyText={task.subtasks.length === 0 ? 'Nessun sub-task ancora.' : 'Nessun sub-task trovato con questi filtri.'}
+        />
 
         {visibleSubtasks.length > SUB_PAGE_SIZE && (
           <div className="flex items-center justify-between px-4 py-2 border-t border-slate-100 text-xs text-slate-500">
@@ -574,7 +566,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
                   className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-medium text-slate-500">Owner</label>
                   <Combobox
@@ -599,7 +591,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
                   </select>
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="text-xs font-medium text-slate-500">Data inizio</label>
                   <input

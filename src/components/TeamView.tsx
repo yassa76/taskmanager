@@ -6,6 +6,7 @@ import { useSession } from 'next-auth/react'
 import clsx from 'clsx'
 import type { TeamMemberDTO } from '@/types'
 import Breadcrumbs from './Breadcrumbs'
+import DataTable, { type Column } from './DataTable'
 import { EditIcon, DeleteIcon } from './icons'
 
 const ROLE_LABELS: Record<string, string> = {
@@ -214,6 +215,68 @@ export default function TeamView() {
     load()
   }
 
+  const columns: Column<TeamMemberDTO>[] = [
+    {
+      id: 'name',
+      label: 'Nome e cognome',
+      sortKey: 'name',
+      primary: true,
+      render: (m) =>
+        m.matchedUser ? (
+          <Link
+            href={`/owners/${m.matchedUser.id}`}
+            className="px-2 py-1 rounded-full text-xs font-medium bg-brand-50 text-brand-700 hover:bg-brand-100 transition"
+            title="Campo condiviso con il profilo personale dell'utente — clicca per vedere i suoi task"
+          >
+            {m.matchedUser.name || '—'}
+          </Link>
+        ) : (
+          <span className="px-2 py-1 rounded-full text-xs font-medium bg-brand-50 text-brand-700" title="Campo condiviso con il profilo personale dell'utente">
+            —
+          </span>
+        )
+    },
+    { id: 'email', label: 'Email', sortKey: 'email', render: (m) => <span className="break-all">{m.email}</span> },
+    {
+      id: 'status',
+      label: 'Stato',
+      sortKey: 'status',
+      render: (m) => (
+        <span className={clsx('px-2 py-1 rounded-full text-xs font-medium', STATUS_COLORS[m.status])}>{STATUS_LABELS[m.status]}</span>
+      )
+    },
+    {
+      id: 'role',
+      label: 'Ruolo',
+      sortKey: 'role',
+      render: (m) => (
+        <span className={clsx('px-2 py-1 rounded-full text-xs font-medium', ROLE_COLORS[m.matchedUser?.role || 'normal'])}>
+          {ROLE_LABELS[m.matchedUser?.role || 'normal']}
+        </span>
+      )
+    },
+    {
+      id: 'actions',
+      label: 'Azioni',
+      fixed: true,
+      align: 'right',
+      tdClassName: 'whitespace-nowrap',
+      render: (m) =>
+        isAdmin ? (
+          <>
+            <button onClick={() => openEdit(m)} className="inline-flex text-slate-400 hover:text-brand-600 mr-3 align-middle" title="Modifica">
+              <EditIcon />
+            </button>
+            <button onClick={() => deleteMember(m)} className="inline-flex text-slate-400 hover:text-red-600 align-middle" title="Elimina">
+              <DeleteIcon />
+            </button>
+          </>
+        ) : (
+          <span className="text-slate-300 text-xs">—</span>
+        )
+    }
+  ]
+
   return (
     <div>
       <Breadcrumbs items={[{ label: 'Team' }]} />
@@ -307,111 +370,18 @@ export default function TeamView() {
         />
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-        <table className="w-full text-sm">
-          <thead className="bg-slate-50 border-b border-slate-200">
-            <tr>
-              <th
-                onClick={() => toggleSort('name')}
-                className="cursor-pointer px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase hover:text-brand-600"
-              >
-                Nome e cognome {sortKey === 'name' ? (sortDir === 'asc' ? '▲' : '▼') : ''}
-              </th>
-              <th
-                onClick={() => toggleSort('email')}
-                className="cursor-pointer px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase hover:text-brand-600"
-              >
-                Email {sortKey === 'email' ? (sortDir === 'asc' ? '▲' : '▼') : ''}
-              </th>
-              <th
-                onClick={() => toggleSort('status')}
-                className="cursor-pointer px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase hover:text-brand-600"
-              >
-                Stato {sortKey === 'status' ? (sortDir === 'asc' ? '▲' : '▼') : ''}
-              </th>
-              <th
-                onClick={() => toggleSort('role')}
-                className="cursor-pointer px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase hover:text-brand-600"
-              >
-                Ruolo {sortKey === 'role' ? (sortDir === 'asc' ? '▲' : '▼') : ''}
-              </th>
-              <th className="px-4 py-2 text-right text-xs font-semibold text-slate-500 uppercase">Azioni</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading && (
-              <tr>
-                <td colSpan={5} className="text-center py-6 text-slate-400">
-                  Caricamento...
-                </td>
-              </tr>
-            )}
-            {!loading &&
-              pagedMembers.map((m) => (
-                <tr key={m.id} className={clsx('border-b border-slate-100', m.status === 'inactive' && 'opacity-50')}>
-                  <td className="px-4 py-2">
-                    {m.matchedUser ? (
-                      <Link
-                        href={`/owners/${m.matchedUser.id}`}
-                        className="px-2 py-1 rounded-full text-xs font-medium bg-brand-50 text-brand-700 hover:bg-brand-100 transition"
-                        title="Campo condiviso con il profilo personale dell'utente — clicca per vedere i suoi task"
-                      >
-                        {m.matchedUser.name || '—'}
-                      </Link>
-                    ) : (
-                      <span
-                        className="px-2 py-1 rounded-full text-xs font-medium bg-brand-50 text-brand-700"
-                        title="Campo condiviso con il profilo personale dell'utente"
-                      >
-                        —
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-4 py-2">{m.email}</td>
-                  <td className="px-4 py-2">
-                    <span className={clsx('px-2 py-1 rounded-full text-xs font-medium', STATUS_COLORS[m.status])}>
-                      {STATUS_LABELS[m.status]}
-                    </span>
-                  </td>
-                  <td className="px-4 py-2">
-                    <span className={clsx('px-2 py-1 rounded-full text-xs font-medium', ROLE_COLORS[m.matchedUser?.role || 'normal'])}>
-                      {ROLE_LABELS[m.matchedUser?.role || 'normal']}
-                    </span>
-                  </td>
-                  <td className="px-4 py-2 text-right whitespace-nowrap">
-                    {isAdmin ? (
-                      <>
-                        <button
-                          onClick={() => openEdit(m)}
-                          className="inline-flex text-slate-400 hover:text-brand-600 mr-3 align-middle"
-                          title="Modifica"
-                        >
-                          <EditIcon />
-                        </button>
-                        <button
-                          onClick={() => deleteMember(m)}
-                          className="inline-flex text-slate-400 hover:text-red-600 align-middle"
-                          title="Elimina"
-                        >
-                          <DeleteIcon />
-                        </button>
-                      </>
-                    ) : (
-                      <span className="text-slate-300 text-xs">—</span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            {!loading && sortedMembers.length === 0 && (
-              <tr>
-                <td colSpan={5} className="text-center py-6 text-slate-400">
-                  {members.length === 0 ? 'Nessuna persona nel team ancora.' : 'Nessuna persona trovata con questa ricerca.'}
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      <DataTable
+        tableId="team"
+        columns={columns}
+        rows={pagedMembers}
+        rowKey={(m) => m.id}
+        sortKey={sortKey}
+        sortDir={sortDir}
+        onSort={(k) => toggleSort(k as typeof sortKey)}
+        loading={loading}
+        rowClassName={(m) => (m.status === 'inactive' ? 'opacity-50' : undefined)}
+        emptyText={members.length === 0 ? 'Nessuna persona nel team ancora.' : 'Nessuna persona trovata con questa ricerca.'}
+      />
 
       {sortedMembers.length > PAGE_SIZE && (
         <div className="flex items-center justify-between mt-3 text-sm text-slate-500">
@@ -445,7 +415,7 @@ export default function TeamView() {
               Nome e cognome sono gli stessi campi visibili nel profilo personale dell&apos;utente.
             </p>
             <div className="space-y-3">
-              <div className="bg-brand-50 border border-brand-100 rounded-lg p-3 grid grid-cols-2 gap-3">
+              <div className="bg-brand-50 border border-brand-100 rounded-lg p-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-medium text-brand-700">Nome</label>
                   <input
@@ -471,7 +441,7 @@ export default function TeamView() {
                   className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1 bg-slate-50 text-slate-400"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-medium text-slate-500">Ruolo</label>
                   <select

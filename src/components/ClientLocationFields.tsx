@@ -180,7 +180,7 @@ export default function ClientLocationFields({
         {message && <p className="text-xs text-amber-600 mt-1">{message}</p>}
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="text-xs font-medium text-slate-500">Country</label>
           <select

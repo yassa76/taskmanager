@@ -7,6 +7,7 @@ import type { ClientDTO, TaskDTO, TeamMemberDTO } from '@/types'
 import { STATUS_COLORS, STATUS_LABELS, countActiveSubtasks } from '@/lib/taskStatus'
 import { getInitials } from '@/lib/initials'
 import Breadcrumbs from './Breadcrumbs'
+import DataTable, { type Column } from './DataTable'
 import ActivityLogPanel from './ActivityLogPanel'
 import { EditIcon, DeleteIcon } from './icons'
 import TaskFormModal from './TaskFormModal'
@@ -158,6 +159,82 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
 
   const totalPages = Math.max(1, Math.ceil(visibleTasks.length / PAGE_SIZE))
   const pagedTasks = visibleTasks.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+
+  const taskColumns: Column<TaskDTO>[] = [
+    {
+      id: 'title',
+      label: 'Task',
+      primary: true,
+      tdClassName: 'max-w-xs',
+      render: (t) => (
+        <Link href={`/tasks/${t.id}`} className="block truncate text-brand-600 font-semibold hover:underline" title={t.title}>
+          {t.title}
+        </Link>
+      )
+    },
+    {
+      id: 'owner',
+      label: 'Owner',
+      render: (t) => (
+        <Link href={`/owners/${t.owner.id}`} className="text-brand-600 hover:underline">
+          {t.owner.name || t.owner.email}
+        </Link>
+      )
+    },
+    {
+      id: 'endDate',
+      label: 'Scadenza',
+      render: (t) => (
+        <span
+          className={clsx(
+            t.endDate && new Date(t.endDate) < new Date() && t.status !== 'completato' && t.status !== 'annullato'
+              ? 'text-red-600 font-semibold'
+              : ''
+          )}
+        >
+          {t.endDate ? formatDate(t.endDate) : '—'}
+        </span>
+      )
+    },
+    {
+      id: 'status',
+      label: 'Stato',
+      render: (t) => (
+        <span className={clsx('px-2 py-1 rounded-full text-xs font-medium', STATUS_COLORS[t.status])}>{STATUS_LABELS[t.status]}</span>
+      )
+    },
+    {
+      id: 'subtasks',
+      label: 'Sub-task attivi',
+      title: 'Sub-task ancora da fare (da avviare o in corso)',
+      align: 'center',
+      render: (t) => <SubtaskCount active={countActiveSubtasks(t.subtasks.map((s) => s.status))} total={t.subtasks.length} />
+    },
+    {
+      id: 'actions',
+      label: 'Azioni',
+      fixed: true,
+      align: 'right',
+      tdClassName: 'whitespace-nowrap',
+      render: (t) => (
+        <ReadOnlyGuard className="inline-flex">
+          <button
+            onClick={() => {
+              setEditingTask(t)
+              setShowTaskForm(true)
+            }}
+            className="inline-flex text-slate-400 hover:text-brand-600 mr-3 align-middle"
+            title="Modifica"
+          >
+            <EditIcon />
+          </button>
+          <button onClick={() => deleteTask(t)} className="inline-flex text-slate-400 hover:text-red-600 align-middle" title="Elimina">
+            <DeleteIcon />
+          </button>
+        </ReadOnlyGuard>
+      )
+    }
+  ]
 
   return (
     <div>
@@ -314,87 +391,14 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
           />
         </div>
 
-        <table className="w-full text-sm">
-          <thead className="bg-slate-50 border-b border-slate-200">
-            <tr>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Task</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Owner</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Scadenza</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Stato</th>
-              <th className="px-4 py-2 text-center text-xs font-semibold text-slate-500 uppercase" title="Sub-task ancora da fare (da avviare o in corso)">Sub-task attivi</th>
-              <th className="px-4 py-2 text-right text-xs font-semibold text-slate-500 uppercase">Azioni</th>
-            </tr>
-          </thead>
-          <tbody>
-            {pagedTasks.map((t) => (
-              <tr key={t.id} className="border-b border-slate-100 hover:bg-slate-50">
-                <td className="px-4 py-2 max-w-xs">
-                  <Link
-                    href={`/tasks/${t.id}`}
-                    className="block truncate text-brand-600 font-semibold hover:underline"
-                    title={t.title}
-                  >
-                    {t.title}
-                  </Link>
-                </td>
-                <td className="px-4 py-2">
-                  <Link href={`/owners/${t.owner.id}`} className="text-brand-600 hover:underline">
-                    {t.owner.name || t.owner.email}
-                  </Link>
-                </td>
-                <td className="px-4 py-2">
-                  <span
-                    className={clsx(
-                      t.endDate && new Date(t.endDate) < new Date() && t.status !== 'completato' && t.status !== 'annullato'
-                        ? 'text-red-600 font-semibold'
-                        : ''
-                    )}
-                  >
-                    {t.endDate ? formatDate(t.endDate) : '—'}
-                  </span>
-                </td>
-                <td className="px-4 py-2">
-                  <span className={clsx('px-2 py-1 rounded-full text-xs font-medium', STATUS_COLORS[t.status])}>
-                    {STATUS_LABELS[t.status]}
-                  </span>
-                </td>
-                <td className="px-4 py-2 text-center">
-                  <SubtaskCount active={countActiveSubtasks(t.subtasks.map((s) => s.status))} total={t.subtasks.length} />
-                </td>
-                <td className="px-4 py-2 text-right whitespace-nowrap">
-                  <ReadOnlyGuard className="inline-flex">
-                    <button
-                      onClick={() => {
-                        setEditingTask(t)
-                        setShowTaskForm(true)
-                      }}
-                      className="inline-flex text-slate-400 hover:text-brand-600 mr-3 align-middle"
-                      title="Modifica"
-                    >
-                      <EditIcon />
-                    </button>
-                    <button
-                      onClick={() => deleteTask(t)}
-                      className="inline-flex text-slate-400 hover:text-red-600 align-middle"
-                      title="Elimina"
-                    >
-                      <DeleteIcon />
-                    </button>
-                  </ReadOnlyGuard>
-                </td>
-              </tr>
-            ))}
-            {visibleTasks.length === 0 && (
-              <tr>
-                <td colSpan={6} className="text-center py-6 text-slate-400">
-                  {tasks.length === 0
-                    ? 'Nessun task associato a questo cliente.'
-                    : 'Nessun task trovato con questi filtri.'}
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+        <DataTable
+          bare
+          tableId="client-tasks"
+          columns={taskColumns}
+          rows={pagedTasks}
+          rowKey={(t) => t.id}
+          emptyText={tasks.length === 0 ? 'Nessun task associato a questo cliente.' : 'Nessun task trovato con questi filtri.'}
+        />
 
         {visibleTasks.length > PAGE_SIZE && (
           <div className="flex items-center justify-between px-4 py-2 border-t border-slate-100 text-xs text-slate-500">
@@ -447,7 +451,7 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
                 value={{ address: form.address, country: form.country, province: form.province, city: form.city }}
                 onChange={(loc) => setForm((f) => ({ ...f, ...loc }))}
               />
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-medium text-slate-500">Industry</label>
                   <select

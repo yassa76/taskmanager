@@ -7,6 +7,7 @@ import Combobox from './Combobox'
 import { STATUS_COLORS, STATUS_LABELS } from '@/lib/taskStatus'
 import { formatDate } from '@/lib/formatDate'
 import Breadcrumbs from './Breadcrumbs'
+import DataTable, { type Column } from './DataTable'
 import SubtaskCount from './SubtaskCount'
 import RecurrenceBadge from './RecurrenceBadge'
 
@@ -158,6 +159,108 @@ export default function OwnerDetailView({ ownerId }: { ownerId: string }) {
   if (!data) return <p className="text-slate-400">Persona non trovata.</p>
 
   const { owner, tasks, subtasks } = data
+
+  const taskColumns: Column<OwnerTask>[] = [
+    {
+      id: 'title',
+      label: 'Task',
+      primary: true,
+      tdClassName: 'max-w-xs',
+      render: (t) => (
+        <Link href={`/tasks/${t.id}`} className="block truncate text-brand-600 font-medium hover:underline" title={t.title}>
+          {t.title}
+        </Link>
+      )
+    },
+    {
+      id: 'client',
+      label: 'Cliente',
+      render: (t) =>
+        t.clientId ? (
+          <Link href={`/clients/${t.clientId}`} className="text-brand-600 hover:underline">
+            {t.clientName}
+          </Link>
+        ) : (
+          <span className="text-slate-400">—</span>
+        )
+    },
+    {
+      id: 'endDate',
+      label: 'Scadenza',
+      render: (t) => <span className={clsx(t.overdue ? 'text-red-600 font-semibold' : 'text-slate-700')}>{formatDate(t.endDate)}</span>
+    },
+    {
+      id: 'status',
+      label: 'Stato',
+      render: (t) => (
+        <span className={clsx('px-2 py-1 rounded-full text-xs font-medium', STATUS_COLORS[t.status])}>{STATUS_LABELS[t.status]}</span>
+      )
+    },
+    {
+      id: 'subtasks',
+      label: 'Sub-task attivi',
+      title: 'Sub-task ancora da fare (da avviare o in corso) assegnati a questa persona',
+      align: 'center',
+      render: (t) => (
+        <SubtaskCount
+          active={t.activeSubtasks}
+          total={t.totalSubtasks}
+          tooltip={`${t.activeSubtasks} attivi assegnati a ${owner.name || owner.email} · ${t.activeSubtasksAll} attivi in totale nel task (${t.totalSubtasks} sub-task)`}
+        />
+      )
+    }
+  ]
+
+  const subColumns: Column<OwnerSubtask>[] = [
+    {
+      id: 'title',
+      label: 'Sub-task',
+      primary: true,
+      tdClassName: 'max-w-xs',
+      render: (s) => (
+        <div className="flex items-center gap-2 min-w-0">
+          <Link href={`/subtasks/${s.id}`} className="block truncate text-brand-600 font-medium hover:underline" title={s.title}>
+            {s.title}
+          </Link>
+          <RecurrenceBadge recurrence={s.recurrence} />
+        </div>
+      )
+    },
+    {
+      id: 'task',
+      label: 'Task',
+      tdClassName: 'max-w-[160px] truncate',
+      render: (s) => (
+        <Link href={`/tasks/${s.taskId}`} className="text-slate-600 hover:underline" title={s.taskTitle}>
+          {s.taskTitle}
+        </Link>
+      )
+    },
+    {
+      id: 'client',
+      label: 'Cliente',
+      render: (s) =>
+        s.clientId ? (
+          <Link href={`/clients/${s.clientId}`} className="text-brand-600 hover:underline">
+            {s.clientName}
+          </Link>
+        ) : (
+          <span className="text-slate-400">—</span>
+        )
+    },
+    {
+      id: 'endDate',
+      label: 'Scadenza',
+      render: (s) => <span className={clsx(s.overdue ? 'text-red-600 font-semibold' : 'text-slate-700')}>{formatDate(s.endDate)}</span>
+    },
+    {
+      id: 'status',
+      label: 'Stato',
+      render: (s) => (
+        <span className={clsx('px-2 py-1 rounded-full text-xs font-medium', STATUS_COLORS[s.status])}>{STATUS_LABELS[s.status]}</span>
+      )
+    }
+  ]
   const kpi = {
     active: tasks.filter((t) => t.status === 'da_avviare' || t.status === 'in_corso').length,
     inProgress: tasks.filter((t) => t.status === 'in_corso').length,
@@ -251,66 +354,14 @@ export default function OwnerDetailView({ ownerId }: { ownerId: string }) {
           />
         </div>
 
-        <table className="w-full text-sm">
-          <thead className="bg-slate-50 border-b border-slate-200">
-            <tr>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Task</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Cliente</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Scadenza</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Stato</th>
-              <th className="px-4 py-2 text-center text-xs font-semibold text-slate-500 uppercase" title="Sub-task ancora da fare (da avviare o in corso) assegnati a questa persona">Sub-task attivi</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredTasks.map((t) => (
-              <tr key={t.id} className="border-b border-slate-100 hover:bg-slate-50">
-                <td className="px-4 py-2 max-w-xs">
-                  <Link
-                    href={`/tasks/${t.id}`}
-                    className="block truncate text-brand-600 font-medium hover:underline"
-                    title={t.title}
-                  >
-                    {t.title}
-                  </Link>
-                </td>
-                <td className="px-4 py-2">
-                  {t.clientId ? (
-                    <Link href={`/clients/${t.clientId}`} className="text-brand-600 hover:underline">
-                      {t.clientName}
-                    </Link>
-                  ) : (
-                    <span className="text-slate-400">—</span>
-                  )}
-                </td>
-                <td className="px-4 py-2">
-                  <span className={clsx(t.overdue ? 'text-red-600 font-semibold' : 'text-slate-700')}>
-                    {formatDate(t.endDate)}
-                  </span>
-                </td>
-                <td className="px-4 py-2">
-                  <span className={clsx('px-2 py-1 rounded-full text-xs font-medium', STATUS_COLORS[t.status])}>
-                    {STATUS_LABELS[t.status]}
-                  </span>
-                </td>
-                <td className="px-4 py-2 text-center">
-                  <SubtaskCount
-                    active={t.activeSubtasks}
-                    total={t.totalSubtasks}
-                    tooltip={`${t.activeSubtasks} attivi assegnati a ${owner.name || owner.email} · ${t.activeSubtasksAll} attivi in totale nel task (${t.totalSubtasks} sub-task)`}
-                  />
-                </td>
-              </tr>
-            ))}
-            {filteredTasks.length === 0 && (
-              <tr>
-                <td colSpan={5} className="text-center py-6 text-slate-400">
-                  Nessun task trovato con questi filtri. (I completati/annullati sono nascosti per
-                  default: selezionali dal filtro Stato per vederli.)
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+        <DataTable
+          bare
+          tableId="owner-tasks"
+          columns={taskColumns}
+          rows={filteredTasks}
+          rowKey={(t) => t.id}
+          emptyText="Nessun task trovato con questi filtri. (I completati/annullati sono nascosti per default: selezionali dal filtro Stato per vederli.)"
+        />
       </div>
 
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
@@ -367,67 +418,14 @@ export default function OwnerDetailView({ ownerId }: { ownerId: string }) {
             className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm flex-1 min-w-[160px]"
           />
         </div>
-        <table className="w-full text-sm">
-          <thead className="bg-slate-50 border-b border-slate-200">
-            <tr>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Sub-task</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Task</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Cliente</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Scadenza</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Stato</th>
-            </tr>
-          </thead>
-          <tbody>
-            {visibleSubtasks.map((s) => (
-              <tr key={s.id} className="border-b border-slate-100 hover:bg-slate-50">
-                <td className="px-4 py-2 max-w-xs">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <Link
-                      href={`/subtasks/${s.id}`}
-                      className="block truncate text-brand-600 font-medium hover:underline"
-                      title={s.title}
-                    >
-                      {s.title}
-                    </Link>
-                    <RecurrenceBadge recurrence={s.recurrence} />
-                  </div>
-                </td>
-                <td className="px-4 py-2 max-w-[160px] truncate" title={s.taskTitle}>
-                  <Link href={`/tasks/${s.taskId}`} className="text-slate-600 hover:underline">
-                    {s.taskTitle}
-                  </Link>
-                </td>
-                <td className="px-4 py-2">
-                  {s.clientId ? (
-                    <Link href={`/clients/${s.clientId}`} className="text-brand-600 hover:underline">
-                      {s.clientName}
-                    </Link>
-                  ) : (
-                    <span className="text-slate-400">—</span>
-                  )}
-                </td>
-                <td className="px-4 py-2">
-                  <span className={clsx(s.overdue ? 'text-red-600 font-semibold' : 'text-slate-700')}>
-                    {formatDate(s.endDate)}
-                  </span>
-                </td>
-                <td className="px-4 py-2">
-                  <span className={clsx('px-2 py-1 rounded-full text-xs font-medium', STATUS_COLORS[s.status])}>
-                    {STATUS_LABELS[s.status]}
-                  </span>
-                </td>
-              </tr>
-            ))}
-            {visibleSubtasks.length === 0 && (
-              <tr>
-                <td colSpan={5} className="text-center py-6 text-slate-400">
-                  Nessun sub-task trovato con questi filtri. (I completati/annullati sono
-                  nascosti per default: selezionali dal filtro Stato per vederli.)
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+        <DataTable
+          bare
+          tableId="owner-subtasks"
+          columns={subColumns}
+          rows={visibleSubtasks}
+          rowKey={(s) => s.id}
+          emptyText="Nessun sub-task trovato con questi filtri. (I completati/annullati sono nascosti per default: selezionali dal filtro Stato per vederli.)"
+        />
       </div>
     </div>
   )

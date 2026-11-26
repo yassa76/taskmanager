@@ -12,6 +12,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-11-26-mobile-colonne',
+    date: '2026-11-26',
+    title: 'Uso da telefono e tablet, colonne personalizzabili',
+    description:
+      'La piattaforma ora si usa meglio da telefono e tablet: menu a tendina, modali a tutto schermo e, su telefono, le tabelle diventano schede. Nelle tabelle principali puoi scegliere quali colonne vedere e in che ordine (trascinando le intestazioni o dal pulsante "⚙ Colonne"): la scelta è tua e ti segue su ogni dispositivo.',
+    tag: 'miglioramento'
+  },
+  {
     id: '2026-11-25-approvazione-accessi',
     date: '2026-11-25',
     title: 'Approvazione dei nuovi accessi',

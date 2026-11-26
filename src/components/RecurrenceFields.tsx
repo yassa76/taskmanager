@@ -28,7 +28,7 @@ export default function RecurrenceFields({
           i
         </span>
       </div>
-      <div className="grid grid-cols-2 gap-3 mt-1">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-1">
         <select
           value={recurrence ? 'ricorrente' : 'singolo'}
           onChange={(e) => onChange(e.target.value === 'ricorrente' ? 'monthly' : '', recurrenceEnd)}

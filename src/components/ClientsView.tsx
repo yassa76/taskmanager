@@ -5,6 +5,7 @@ import clsx from 'clsx'
 import Link from 'next/link'
 import type { ClientDTO, TeamMemberDTO } from '@/types'
 import Breadcrumbs from './Breadcrumbs'
+import DataTable, { type Column } from './DataTable'
 import { EditIcon, DeleteIcon } from './icons'
 import Combobox from './Combobox'
 import ClientLocationFields from './ClientLocationFields'
@@ -321,14 +322,76 @@ export default function ClientsView() {
     load()
   }
 
-  const SortHeader = ({ label, k }: { label: string; k: SortKey }) => (
-    <th
-      onClick={() => toggleSort(k)}
-      className="cursor-pointer px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide hover:text-brand-600"
-    >
-      {label} {sortKey === k ? (sortDir === 'asc' ? '▲' : '▼') : ''}
-    </th>
-  )
+  const columns: Column<ClientDTO>[] = [
+    {
+      id: 'name',
+      label: 'Nome',
+      sortKey: 'name',
+      primary: true,
+      render: (c) => (
+        <Link href={`/clients/${c.id}`} className="text-brand-600 font-semibold hover:underline">
+          {c.name}
+        </Link>
+      )
+    },
+    {
+      id: 'industry',
+      label: 'Industry',
+      sortKey: 'industry',
+      render: (c) =>
+        c.industry ? (
+          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-brand-50 text-brand-700">{c.industry}</span>
+        ) : (
+          <span className="text-slate-300">—</span>
+        )
+    },
+    {
+      id: 'status',
+      label: 'Stato',
+      render: (c) => (
+        <span
+          className={
+            c.status === 'inattivo'
+              ? 'px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700'
+              : 'px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700'
+          }
+        >
+          {c.status === 'inattivo' ? 'Inattivo' : 'Attivo'}
+        </span>
+      )
+    },
+    {
+      id: 'country',
+      label: 'Country',
+      sortKey: 'country',
+      render: (c) => (c.country ? countryLabel(c.country) : <span className="text-slate-300">—</span>)
+    },
+    { id: 'region', label: 'Regione', sortKey: 'region', render: (c) => clientRegion(c) || <span className="text-slate-300">—</span> },
+    { id: 'city', label: 'Città', render: (c) => c.city || <span className="text-slate-300">—</span> },
+    {
+      id: 'activeTasks',
+      label: 'Task attivi',
+      render: (c) => <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">{c.activeTasksCount}</span>
+    },
+    {
+      id: 'actions',
+      label: 'Azioni',
+      fixed: true,
+      align: 'right',
+      tdClassName: 'whitespace-nowrap',
+      render: (c) => (
+        <>
+          <button onClick={() => openEditForm(c)} className="inline-flex text-slate-400 hover:text-brand-600 mr-3 align-middle" title="Modifica">
+            <EditIcon />
+          </button>
+          <button onClick={() => deleteClient(c)} className="inline-flex text-slate-400 hover:text-red-600 align-middle" title="Elimina">
+            <DeleteIcon />
+          </button>
+        </>
+      )
+    }
+  ]
+
 
   return (
     <div>
@@ -459,93 +522,21 @@ export default function ClientsView() {
 
       {view === 'table' && (
       <>
-      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-        <table className="w-full text-sm">
-          <thead className="bg-slate-50 border-b border-slate-200">
-            <tr>
-              <SortHeader label="Nome" k="name" />
-              <SortHeader label="Industry" k="industry" />
-              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Stato</th>
-              <SortHeader label="Country" k="country" />
-              <SortHeader label="Regione" k="region" />
-              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Città</th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Task attivi</th>
-              <th className="px-4 py-2 text-right text-xs font-semibold text-slate-500 uppercase">Azioni</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading && (
-              <tr>
-                <td colSpan={8} className="text-center py-8 text-slate-400">
-                  Caricamento...
-                </td>
-              </tr>
-            )}
-            {!loading &&
-              pagedClients.map((c) => (
-                <tr key={c.id} className="border-b border-slate-100 hover:bg-slate-50">
-                  <td className="px-4 py-2">
-                    <Link href={`/clients/${c.id}`} className="text-brand-600 font-semibold hover:underline">
-                      {c.name}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-2">
-                    {c.industry && (
-                      <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-brand-50 text-brand-700">
-                        {c.industry}
-                      </span>
-                    )}
-                    {!c.industry && <span className="text-slate-300">—</span>}
-                  </td>
-                  <td className="px-4 py-2">
-                    <span
-                      className={
-                        c.status === 'inattivo'
-                          ? 'px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700'
-                          : 'px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700'
-                      }
-                    >
-                      {c.status === 'inattivo' ? 'Inattivo' : 'Attivo'}
-                    </span>
-                  </td>
-                  <td className="px-4 py-2">{c.country ? countryLabel(c.country) : <span className="text-slate-300">—</span>}</td>
-                  <td className="px-4 py-2">{clientRegion(c) || <span className="text-slate-300">—</span>}</td>
-                  <td className="px-4 py-2">{c.city || <span className="text-slate-300">—</span>}</td>
-                  <td className="px-4 py-2">
-                    <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
-                      {c.activeTasksCount}
-                    </span>
-                  </td>
-                  <td className="px-4 py-2 text-right whitespace-nowrap">
-                    <button
-                      onClick={() => openEditForm(c)}
-                      className="inline-flex text-slate-400 hover:text-brand-600 mr-3 align-middle"
-                      title="Modifica"
-                    >
-                      <EditIcon />
-                    </button>
-                    <button
-                      onClick={() => deleteClient(c)}
-                      className="inline-flex text-slate-400 hover:text-red-600 align-middle"
-                      title="Elimina"
-                    >
-                      <DeleteIcon />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            {!loading && sortedClients.length === 0 && (
-              <tr>
-                <td colSpan={8} className="text-center py-8 text-slate-400">
-                  {clients.length === 0
-                    ? 'Nessun cliente ancora. Aggiungine uno con il pulsante sopra.'
-                    : 'Nessun cliente trovato con questi filtri.'}
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      <DataTable
+        tableId="clients"
+        columns={columns}
+        rows={pagedClients}
+        rowKey={(c) => c.id}
+        sortKey={sortKey}
+        sortDir={sortDir}
+        onSort={(k) => toggleSort(k as SortKey)}
+        loading={loading}
+        emptyText={
+          clients.length === 0
+            ? 'Nessun cliente ancora. Aggiungine uno con il pulsante sopra.'
+            : 'Nessun cliente trovato con questi filtri.'
+        }
+      />
 
       {sortedClients.length > PAGE_SIZE && (
         <div className="flex items-center justify-between mt-3 text-sm text-slate-500">
@@ -601,7 +592,7 @@ export default function ClientsView() {
                 value={{ address: form.address, country: form.country, province: form.province, city: form.city }}
                 onChange={(loc) => setForm((f) => ({ ...f, ...loc }))}
               />
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-medium text-slate-500">Industry</label>
                   <select
