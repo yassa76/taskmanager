@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { unreadChangelogCount } from '@/data/changelog'
 
 // Link "Novità" nella barra, con un pallino quando ci sono voci non ancora lette.
-export default function ChangelogLink() {
+export default function ChangelogLink({ mobile = false }: { mobile?: boolean }) {
   const [unread, setUnread] = useState(0)
 
   const load = useCallback(() => {
@@ -20,6 +20,14 @@ export default function ChangelogLink() {
     window.addEventListener('changelog-seen', load)
     return () => window.removeEventListener('changelog-seen', load)
   }, [load])
+
+  if (mobile) {
+    return (
+      <Link href="/changelog" className="px-3 py-3 rounded-lg text-base font-medium text-slate-700 hover:bg-white/60">
+        Novità {unread > 0 && <span className="inline-block w-2 h-2 rounded-full bg-red-500 align-middle ml-1" />}
+      </Link>
+    )
+  }
 
   return (
     <Link
