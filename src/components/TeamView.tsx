@@ -9,6 +9,7 @@ import Breadcrumbs from './Breadcrumbs'
 import DataTable, { type Column } from './DataTable'
 import { EditIcon, DeleteIcon } from './icons'
 import { useRoles } from '@/lib/useRoles'
+import { useOrgRoles } from '@/lib/useOrgRoles'
 import { scopeIn } from '@/lib/permissionsShared'
 
 const CUSTOM_ROLE_COLOR = 'bg-teal-100 text-teal-800'
@@ -51,13 +52,15 @@ export default function TeamView() {
   const [editFirstName, setEditFirstName] = useState('')
   const [editLastName, setEditLastName] = useState('')
   const [editRole, setEditRole] = useState('normal')
-  const { roles, labelOf } = useRoles()
+  const { roles, labelOf, descriptionOf } = useRoles()
+  const { orgRoles } = useOrgRoles()
+  const [editOrgRole, setEditOrgRole] = useState('')
   const [editStatus, setEditStatus] = useState('new')
   const [savingEdit, setSavingEdit] = useState(false)
   const [page, setPage] = useState(1)
   const PAGE_SIZE = 20
   const [search, setSearch] = useState('')
-  const [sortKey, setSortKey] = useState<'name' | 'email' | 'status' | 'role'>('name')
+  const [sortKey, setSortKey] = useState<'name' | 'email' | 'status' | 'role' | 'orgRole'>('name')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
 
   async function load() {
@@ -109,6 +112,10 @@ export default function TeamView() {
         case 'role':
           av = a.matchedUser?.role || 'normal'
           bv = b.matchedUser?.role || 'normal'
+          break
+        case 'orgRole':
+          av = a.matchedUser?.orgRoleName || ''
+          bv = b.matchedUser?.orgRoleName || ''
           break
       }
       if (av < bv) return sortDir === 'asc' ? -1 : 1
@@ -178,6 +185,7 @@ export default function TeamView() {
     setEditFirstName(m.matchedUser?.firstName || '')
     setEditLastName(m.matchedUser?.lastName || '')
     setEditRole(m.matchedUser?.role || 'normal')
+    setEditOrgRole(m.matchedUser?.orgRoleId || '')
     setEditStatus(m.status)
   }
 
@@ -191,6 +199,7 @@ export default function TeamView() {
         firstName: editFirstName.trim(),
         lastName: editLastName.trim() || null,
         role: editRole,
+        orgRoleId: editOrgRole || null,
         status: editStatus
       })
     })
@@ -252,10 +261,25 @@ export default function TeamView() {
       label: 'Profilo',
       sortKey: 'role',
       render: (m) => (
-        <span className={clsx('px-2 py-1 rounded-full text-xs font-medium', (ROLE_COLORS[m.matchedUser?.role || 'normal'] ?? CUSTOM_ROLE_COLOR))}>
+        <span
+          title={descriptionOf(m.matchedUser?.role || 'normal')}
+          className={clsx('px-2 py-1 rounded-full text-xs font-medium cursor-help', (ROLE_COLORS[m.matchedUser?.role || 'normal'] ?? CUSTOM_ROLE_COLOR))}
+        >
           {labelOf(m.matchedUser?.role || 'normal')}
         </span>
       )
+    },
+    {
+      id: 'orgRole',
+      exportValue: (r) => r.matchedUser?.orgRoleName ?? '',
+      label: 'Ruolo',
+      sortKey: 'orgRole',
+      render: (m) =>
+        m.matchedUser?.orgRoleName ? (
+          <span className="text-slate-700">{m.matchedUser.orgRoleName}</span>
+        ) : (
+          <span className="text-slate-300">—</span>
+        )
     },
     {
       id: 'actions',
@@ -455,6 +479,22 @@ export default function TeamView() {
                   >
                     {roles.map((r) => (
                       <option key={r.key} value={r.key}>
+                        {r.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="text-xs font-medium text-slate-500">Ruolo (gerarchia: decide chi vede cosa)</label>
+                  <select
+                    value={editOrgRole}
+                    onChange={(e) => setEditOrgRole(e.target.value)}
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1"
+                  >
+                    <option value="">Nessun ruolo</option>
+                    {orgRoles.map((r) => (
+                      <option key={r.id} value={r.id}>
+                        {'— '.repeat(r.depth)}
                         {r.name}
                       </option>
                     ))}

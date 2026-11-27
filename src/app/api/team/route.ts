@@ -10,7 +10,7 @@ export async function GET() {
   if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
 
   const members = await prisma.teamMember.findMany({
-    include: { user: true },
+    include: { user: { include: { orgRole: true } } },
     orderBy: { invitedAt: 'asc' }
   })
 
@@ -27,7 +27,9 @@ export async function GET() {
           lastName: m.user.lastName,
           email: m.user.email,
           image: m.user.image,
-          role: m.user.role
+          role: m.user.role,
+          orgRoleId: m.user.orgRoleId,
+          orgRoleName: m.user.orgRole?.name ?? null
         }
       : null
   }))

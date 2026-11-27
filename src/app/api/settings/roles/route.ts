@@ -8,7 +8,8 @@ import {
   permissionsFor,
   sanitizePermissions,
   SYSTEM_ROLE_DEFAULTS,
-  SYSTEM_ROLE_NAMES
+  SYSTEM_ROLE_NAMES,
+  SYSTEM_ROLE_DESCRIPTIONS
 } from '@/lib/permissionsShared'
 
 // Profili: l'elenco (chiave, nome) lo leggono tutti (serve per le etichette nel Team);
@@ -37,7 +38,8 @@ export async function GET(req: NextRequest) {
       const base = {
         key: r.key as string,
         name: (r.name as string) || SYSTEM_ROLE_NAMES[r.key] || r.key,
-        isSystem
+        isSystem,
+        description: (r.description as string | null | undefined) ?? SYSTEM_ROLE_DESCRIPTIONS[r.key] ?? null
       }
       if (!full) return base
       let perms = permissionsFor(r.key)

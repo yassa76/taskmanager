@@ -108,6 +108,12 @@ export const SYSTEM_ROLE_DEFAULTS: Record<string, PermissionMap> = {
   }
 }
 
+export const SYSTEM_ROLE_DESCRIPTIONS: Record<string, string> = {
+  admin: 'Accesso completo e gestione del sistema',
+  normal: 'Crea; modifica ed elimina solo i propri record',
+  read_only: 'Solo consultazione (può commentare)'
+}
+
 export const SYSTEM_ROLE_NAMES: Record<string, string> = {
   admin: 'Admin',
   normal: 'Normale',

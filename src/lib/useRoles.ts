@@ -6,6 +6,7 @@ export interface RoleOption {
   key: string
   name: string
   isSystem: boolean
+  description?: string | null
 }
 
 const FALLBACK: RoleOption[] = [
@@ -31,8 +32,9 @@ export function useRoles() {
       })
       .catch(() => {})
   }, [])
+  const descriptionOf = (key: string | null | undefined) => roles.find((r) => r.key === key)?.description ?? undefined
   const labelOf = (key: string | null | undefined) => roles.find((r) => r.key === key)?.name ?? key ?? 'Normale'
-  return { roles, labelOf }
+  return { roles, labelOf, descriptionOf }
 }
 
 export function clearRolesCache() {

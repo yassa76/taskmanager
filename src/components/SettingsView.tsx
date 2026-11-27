@@ -10,6 +10,7 @@ import CountriesSettings from './CountriesSettings'
 import ActivityLogSettings from './ActivityLogSettings'
 import AccessLogSettings from './AccessLogSettings'
 import RolesSettings from './RolesSettings'
+import OrgRolesSettings from './OrgRolesSettings'
 
 interface GeocodeSettings {
   dailyLimit: number
@@ -196,6 +197,7 @@ function GeocodeSettingsPanel() {
 // Sezioni delle impostazioni: per aggiungerne una basta una riga qui sotto.
 const ALL_TABS = [
   { id: 'profili', label: 'Profili e permessi', perm: 'profiles' as const, render: () => <RolesSettings /> },
+  { id: 'ruoli', label: 'Ruoli e visibilità', perm: 'profiles' as const, render: () => <OrgRolesSettings /> },
   { id: 'paesi', perm: 'settings' as const, label: 'Paesi dei clienti', render: () => <CountriesSettings /> },
   { id: 'indirizzi', perm: 'settings' as const, label: 'Verifica indirizzi', render: () => <GeocodeSettingsPanel /> },
   { id: 'registro', perm: 'settings' as const, label: 'Registro modifiche', render: () => <ActivityLogSettings /> },

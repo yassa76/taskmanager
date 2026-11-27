@@ -85,5 +85,7 @@ export interface TeamMemberDTO {
     email: string
     image: string | null
     role: string
+    orgRoleId?: string | null
+    orgRoleName?: string | null
   } | null
 }
