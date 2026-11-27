@@ -23,7 +23,7 @@ export default function ChangelogLink({ mobile = false }: { mobile?: boolean }) 
 
   if (mobile) {
     return (
-      <Link href="/changelog" className="px-3 py-3 rounded-lg text-base font-medium text-slate-700 hover:bg-white/60">
+      <Link href="/changelog" className="px-3 py-3 rounded-lg text-base font-medium text-slate-700 hover:bg-slate-100">
         Novità {unread > 0 && <span className="inline-block w-2 h-2 rounded-full bg-red-500 align-middle ml-1" />}
       </Link>
     )

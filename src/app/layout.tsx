@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { cookies } from 'next/headers'
+import { Inter } from 'next/font/google'
 import './globals.css'
 import Providers from '@/components/Providers'
 
@@ -12,6 +13,8 @@ const TOKEN_BY_THEME: Record<string, string> = {
   teal: 't6',
   pink: 't7'
 }
+
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
 
 export async function generateMetadata(): Promise<Metadata> {
   const cookieStore = cookies()
@@ -29,7 +32,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="it">
-      <body>
+      <body className={inter.variable}>
         <Providers>{children}</Providers>
       </body>
     </html>
