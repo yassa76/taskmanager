@@ -1,9 +1,11 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useCan } from '@/lib/useCan'
 
 // Selettore "conserva per N giorni" di un registro; il cambio vale subito per le pulizie successive.
 export default function RetentionSelect({ kind }: { kind: 'access' | 'activity' }) {
+  const canEdit = useCan(kind === 'access' ? 'accesslog' : 'activitylog', 'update')
   const [days, setDays] = useState<number | null>(null)
   const [options, setOptions] = useState<number[]>([])
   const [error, setError] = useState<string | null>(null)
@@ -35,6 +37,7 @@ export default function RetentionSelect({ kind }: { kind: 'access' | 'activity' 
       Conserva per{' '}
       <select
         value={days}
+        disabled={!canEdit}
         onChange={(e) => change(Number(e.target.value))}
         className="border border-slate-300 rounded px-2 py-0.5 text-sm bg-white"
       >

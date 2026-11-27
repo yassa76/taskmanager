@@ -3,7 +3,9 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { useSession } from 'next-auth/react'
+import ScopeSelect from './ScopeSelect'
+import { useScopePref, useScopes } from '@/lib/useScopes'
+import type { ViewScope } from '@/lib/scopesShared'
 import clsx from 'clsx'
 import {
   BarChart,
@@ -111,12 +113,10 @@ function OwnerTick(props: any) {
 
 export default function ReportsView() {
   const router = useRouter()
-  const { data: session } = useSession()
-  // l'interruttore "I miei / Tutto il team" compare a chi, per profilo e ruolo, vede anche i record di altri
-  const isAdmin = !!(session?.user as any)?.canSeeTeam
-
   const [data, setData] = useState<ReportData | null>(null)
-  const [scope, setScope] = useState<'mine' | 'team'>('mine')
+  const { scope: savedScope, setScope: changeScope, ready: scopeReady } = useScopePref()
+  const scopes = useScopes(true)
+  const scope: ViewScope = scopes.includes(savedScope) ? savedScope : scopes[scopes.length - 1]
   const [period, setPeriod] = useState('all')
   const [includeClosed, setIncludeClosed] = useState(false)
   // I filtri salvati vanno letti PRIMA del primo caricamento, altrimenti parte una richiesta con
@@ -127,19 +127,12 @@ export default function ReportsView() {
   // navigando su altre pagine e tornando qui (stesso meccanismo della Home).
   useEffect(() => {
     if (typeof window === 'undefined') return
-    const savedScope = localStorage.getItem('reportsScope')
-    if (savedScope === 'team' || savedScope === 'mine') setScope(savedScope)
     const savedPeriod = localStorage.getItem('reportsPeriod')
     if (savedPeriod && PERIOD_OPTIONS.some((p) => p.value === savedPeriod)) setPeriod(savedPeriod)
     const savedIncludeClosed = localStorage.getItem('reportsIncludeClosed')
     if (savedIncludeClosed === 'true') setIncludeClosed(true)
     setReady(true)
   }, [])
-
-  function changeScope(v: 'mine' | 'team') {
-    setScope(v)
-    if (typeof window !== 'undefined') localStorage.setItem('reportsScope', v)
-  }
 
   function changePeriod(v: string) {
     setPeriod(v)
@@ -152,7 +145,7 @@ export default function ReportsView() {
   }
 
   const load = useCallback(() => {
-    if (!ready) return
+    if (!ready || !scopeReady) return
     let stale = false
     const params = new URLSearchParams()
     params.set('scope', scope)
@@ -171,7 +164,7 @@ export default function ReportsView() {
     return () => {
       stale = true
     }
-  }, [scope, period, includeClosed, ready])
+  }, [scope, period, includeClosed, ready, scopeReady])
 
   useEffect(() => {
     return load()
@@ -181,7 +174,7 @@ export default function ReportsView() {
   // nella lista, che mostra i task per stato senza limite di date.
   function tasksHref(extra: string) {
     const params = new URLSearchParams(extra)
-    if (scope === 'mine') params.set('view', 'mine')
+    params.set('scope', scope)
     return `/tasks?${params.toString()}`
   }
 
@@ -197,22 +190,7 @@ export default function ReportsView() {
       <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
         <h1 className="text-xl font-bold text-slate-800">Report & KPI</h1>
         <div className="flex items-center gap-2">
-          {isAdmin && (
-            <div className="flex bg-slate-100 rounded-lg p-1">
-              {(['mine', 'team'] as const).map((v) => (
-                <button
-                  key={v}
-                  onClick={() => changeScope(v)}
-                  className={clsx(
-                    'px-3 py-1.5 rounded-md text-sm font-medium transition',
-                    scope === v ? 'bg-white shadow text-brand-700' : 'text-slate-500'
-                  )}
-                >
-                  {v === 'mine' ? 'I miei dati' : 'Tutto il team'}
-                </button>
-              ))}
-            </div>
-          )}
+          <ScopeSelect value={scope} onChange={changeScope} />
           <button
             onClick={load}
             className="px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-medium text-slate-700 hover:bg-slate-100"

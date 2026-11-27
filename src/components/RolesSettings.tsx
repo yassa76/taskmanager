@@ -14,6 +14,7 @@ import {
   type PermissionMap,
   type Scope
 } from '@/lib/permissionsShared'
+import { useCan } from '@/lib/useCan'
 import { clearRolesCache } from '@/lib/useRoles'
 
 interface RoleFull {
@@ -29,6 +30,9 @@ interface RoleFull {
 
 
 export default function RolesSettings() {
+  const canCreate = useCan('profiles', 'create')
+  const canUpdate = useCan('profiles', 'update')
+  const canDelete = useCan('profiles', 'delete')
   const [roles, setRoles] = useState<RoleFull[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -160,7 +164,8 @@ export default function RolesSettings() {
   }
 
   if (loading) return <p className="text-slate-400">Caricamento...</p>
-  const locked = sel?.key === 'admin'
+  const adminLocked = sel?.key === 'admin'
+  const locked = adminLocked || !canUpdate
 
   return (
     <div className="grid lg:grid-cols-[260px_1fr] gap-4 items-start">
@@ -219,9 +224,11 @@ export default function RolesSettings() {
             </div>
           </div>
         ) : (
-          <button onClick={() => setCreating(true)} className="mt-3 text-sm text-brand-600 hover:underline px-3">
-            + Nuovo profilo
-          </button>
+          canCreate && (
+            <button onClick={() => setCreating(true)} className="mt-3 text-sm text-brand-600 hover:underline px-3">
+              + Nuovo profilo
+            </button>
+          )
         )}
       </div>
 
@@ -237,7 +244,8 @@ export default function RolesSettings() {
                   setDirty(true)
                 }}
                 maxLength={40}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1 text-sm text-slate-800"
+                disabled={!canUpdate}
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1 text-sm text-slate-800 disabled:bg-slate-50"
               />
             </label>
             <label className="text-xs font-medium text-slate-500">
@@ -249,7 +257,8 @@ export default function RolesSettings() {
                   setDirty(true)
                 }}
                 maxLength={200}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1 text-sm text-slate-800"
+                disabled={!canUpdate}
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1 text-sm text-slate-800 disabled:bg-slate-50"
               />
             </label>
           </div>
@@ -347,11 +356,11 @@ export default function RolesSettings() {
             />
             Predefinito per i nuovi utenti
           </label>
-          {locked && <p className="text-xs text-slate-500 mt-3">Il profilo Admin ha sempre tutti i permessi: puoi cambiarne solo il nome e la descrizione.</p>}
+          {adminLocked && <p className="text-xs text-slate-500 mt-3">Il profilo Admin ha sempre tutti i permessi: puoi cambiarne solo il nome e la descrizione.</p>}
           {error && <p className="text-sm text-red-600 mt-3">{error}</p>}
 
           <div className="flex items-center gap-3 mt-4">
-            {(
+            {canUpdate && (
               <button
                 onClick={save}
                 disabled={!dirty || saving}
@@ -361,7 +370,7 @@ export default function RolesSettings() {
               </button>
             )}
             {saved && <span className="text-sm text-emerald-600">Salvato ✓</span>}
-            {!sel.isSystem && (
+            {!sel.isSystem && canDelete && (
               <button onClick={remove} className="ml-auto text-sm text-red-600 hover:underline">
                 Elimina profilo
               </button>

@@ -3,9 +3,10 @@
 import clsx from 'clsx'
 import type { ClientDTO } from '@/types'
 import Combobox from './Combobox'
+import type { ViewScope } from '@/lib/scopesShared'
 
 export interface FilterState {
-  view: 'all' | 'mine'
+  view: ViewScope
   clientId: string
   ownerId: string
   status: string
@@ -27,21 +28,6 @@ export default function Filters({
 }) {
   return (
     <div className="bg-white border border-slate-200 rounded-xl p-3 flex flex-wrap items-center gap-2">
-      <div className="flex bg-slate-100 rounded-lg p-1 w-full sm:w-auto">
-        {(['all', 'mine'] as const).map((v) => (
-          <button
-            key={v}
-            onClick={() => onChange({ ...filters, view: v })}
-            className={clsx(
-              'px-3 py-1.5 rounded-md text-sm font-medium transition',
-              filters.view === v ? 'bg-white shadow text-brand-700' : 'text-slate-500'
-            )}
-          >
-            {v === 'all' ? 'Tutti i task' : 'I miei task'}
-          </button>
-        ))}
-      </div>
-
       <Combobox
         value={filters.clientId}
         onChange={(id) => onChange({ ...filters, clientId: id })}

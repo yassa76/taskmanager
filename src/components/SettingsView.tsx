@@ -11,6 +11,7 @@ import ActivityLogSettings from './ActivityLogSettings'
 import AccessLogSettings from './AccessLogSettings'
 import RolesSettings from './RolesSettings'
 import OrgRolesSettings from './OrgRolesSettings'
+import { useCan } from '@/lib/useCan'
 
 interface GeocodeSettings {
   dailyLimit: number
@@ -42,6 +43,7 @@ function UsageBar({ label, used, limit }: { label: string; used: number; limit: 
 }
 
 function GeocodeSettingsPanel() {
+  const canEdit = useCan('geocode', 'update')
   const [data, setData] = useState<GeocodeSettings | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -108,7 +110,7 @@ function GeocodeSettingsPanel() {
 
   return (
     <div>
-      <div className="bg-white border border-slate-200 rounded-xl p-5 max-w-2xl">
+      <fieldset disabled={!canEdit} className="bg-white border border-slate-200 rounded-xl p-5 max-w-2xl m-0 min-w-0 disabled:opacity-90">
         <div className="flex items-center gap-2 mb-1 flex-wrap">
           <h2 className="font-semibold text-slate-800">Verifica indirizzi (Google Maps)</h2>
           <span className="relative group">
@@ -189,7 +191,7 @@ function GeocodeSettingsPanel() {
             {saving ? 'Salvataggio...' : 'Salva'}
           </button>
         </div>
-      </div>
+      </fieldset>
     </div>
   )
 }

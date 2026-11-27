@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { useCan } from '@/lib/useCan'
 import clsx from 'clsx'
 import {
   CLIENT_VISIBILITY_LABELS,
@@ -11,6 +12,9 @@ import {
 import { clearOrgRolesCache, orderTree, type OrgRoleOption } from '@/lib/useOrgRoles'
 
 export default function OrgRolesSettings() {
+  const canCreate = useCan('orgroles', 'create')
+  const canUpdate = useCan('orgroles', 'update')
+  const canDelete = useCan('orgroles', 'delete')
   const [roles, setRoles] = useState<OrgRoleOption[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -197,14 +201,16 @@ export default function OrgRolesSettings() {
               </div>
             </div>
           ) : (
-            <button onClick={() => setCreating(true)} className="mt-3 text-sm text-brand-600 hover:underline px-3">
-              + Nuovo ruolo
-            </button>
+            canCreate && (
+              <button onClick={() => setCreating(true)} className="mt-3 text-sm text-brand-600 hover:underline px-3">
+                + Nuovo ruolo
+              </button>
+            )
           )}
         </div>
 
         {sel && (
-          <div className="bg-white border border-slate-200 rounded-xl p-5 min-w-0 space-y-4">
+          <fieldset disabled={!canUpdate} className="bg-white border border-slate-200 rounded-xl p-5 min-w-0 m-0 space-y-4 disabled:opacity-90">
             <div className="grid sm:grid-cols-2 gap-3">
               <label className="text-xs font-medium text-slate-500">
                 Nome
@@ -308,22 +314,24 @@ export default function OrgRolesSettings() {
 
             {error && <p className="text-sm text-red-600">{error}</p>}
             <div className="flex items-center gap-3">
-              <button
+              {canUpdate && <button
                 onClick={save}
                 disabled={!dirty || saving}
                 className="px-4 py-2 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700 disabled:opacity-50"
               >
                 {saving ? 'Salvataggio...' : 'Salva'}
-              </button>
+              </button>}
               {saved && <span className="text-sm text-emerald-600">Salvato ✓</span>}
-              <button onClick={remove} className="ml-auto text-sm text-red-600 hover:underline">
-                Elimina ruolo
-              </button>
+              {canDelete && (
+                <button onClick={remove} className="ml-auto text-sm text-red-600 hover:underline">
+                  Elimina ruolo
+                </button>
+              )}
             </div>
             <p className="text-xs text-slate-400">
               {sel.users} {sel.users === 1 ? 'persona ha' : 'persone hanno'} questo ruolo. Il ruolo di una persona si cambia da Team.
             </p>
-          </div>
+          </fieldset>
         )}
       </div>
     </div>

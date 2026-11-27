@@ -72,12 +72,12 @@ export const OBJECT_DEFS: {
     hint: 'Creare = invitare; Modificare = profilo, ruolo, stato, approvazioni',
     actions: { read: YN, create: YN, update: YN, delete: YN }
   },
-  { key: 'countries', group: 'admin', label: 'Paesi dei clienti', actions: { read: YN, update: YN } },
-  { key: 'geocode', group: 'admin', label: 'Verifica indirizzi', actions: { read: YN, update: YN } },
-  { key: 'activitylog', group: 'admin', label: 'Registro modifiche', hint: 'Modificare = durata di conservazione', actions: { read: YN, update: YN } },
-  { key: 'accesslog', group: 'admin', label: 'Registro accessi', hint: 'Modificare = durata di conservazione', actions: { read: YN, update: YN } },
-  { key: 'profiles', group: 'admin', label: 'Profili e permessi', actions: { read: YN, create: YN, update: YN, delete: YN } },
-  { key: 'orgroles', group: 'admin', label: 'Ruoli e visibilità', actions: { read: YN, create: YN, update: YN, delete: YN } }
+  { key: 'countries', group: 'admin', label: 'Paesi dei clienti', hint: 'Modificare = aggiungere o togliere paesi', actions: { read: YN, update: YN } },
+  { key: 'geocode', group: 'admin', label: 'Verifica indirizzi', hint: 'Modificare = cambiare i limiti di utilizzo', actions: { read: YN, update: YN } },
+  { key: 'activitylog', group: 'admin', label: 'Registro modifiche', hint: 'Modificare = cambiare per quanto tempo si conserva (le voci più vecchie si cancellano da sole)', actions: { read: YN, update: YN } },
+  { key: 'accesslog', group: 'admin', label: 'Registro accessi', hint: 'Modificare = cambiare per quanto tempo si conserva (le voci più vecchie si cancellano da sole)', actions: { read: YN, update: YN } },
+  { key: 'profiles', group: 'admin', label: 'Profili e permessi', hint: 'Modificare = anche scegliere il profilo predefinito', actions: { read: YN, create: YN, update: YN, delete: YN } },
+  { key: 'orgroles', group: 'admin', label: 'Ruoli e visibilità', hint: 'Modificare = anche scegliere il ruolo predefinito', actions: { read: YN, create: YN, update: YN, delete: YN } }
 ]
 
 export const SCOPE_LABELS: Record<Scope, string> = { none: 'No', own: 'Solo i miei', all: 'Tutti' }

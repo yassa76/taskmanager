@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { SCOPE_LABELS, type ViewScope } from '@/lib/scopesShared'
 
 interface View<T> {
   id: string
@@ -9,17 +10,24 @@ interface View<T> {
 }
 
 /**
- * Viste salvate per utente: scegli una vista dall'elenco per riapplicare filtri e ordinamento,
- * salva quella attuale con un nome, elimina quelle che non servono.
+ * Menu delle viste: in alto quelle standard (miei record, del mio team, tutti, secondo il ruolo),
+ * poi quelle personalizzate dell'utente. Scegliendone una si riapplicano filtri e ordinamento;
+ * si puo' salvare la vista attuale con un nome ed eliminare quelle che non servono.
  */
 export default function SavedViews<T>({
   page,
   current,
-  onApply
+  onApply,
+  scopes,
+  scope,
+  onScope
 }: {
   page: string
   current: T
   onApply: (data: T) => void
+  scopes?: ViewScope[]
+  scope?: ViewScope
+  onScope?: (v: ViewScope) => void
 }) {
   const [views, setViews] = useState<View<T>[]>([])
   const [activeId, setActiveId] = useState('')
@@ -63,21 +71,40 @@ export default function SavedViews<T>({
   return (
     <div className="flex flex-wrap items-center gap-2 mb-2 text-sm">
       <select
-        value={activeId}
+        value={activeId || (scope ? `std:${scope}` : '')}
         onChange={(e) => {
-          setActiveId(e.target.value)
-          const v = views.find((x) => x.id === e.target.value)
+          const val = e.target.value
+          if (val.startsWith('std:')) {
+            setActiveId('')
+            onScope?.(val.slice(4) as ViewScope)
+            return
+          }
+          setActiveId(val)
+          const v = views.find((x) => x.id === val)
           if (v) onApply(v.data)
         }}
         className="border border-slate-300 rounded-lg px-2 py-1.5 bg-white text-slate-700"
-        aria-label="Viste salvate"
+        aria-label="Viste"
       >
-        <option value="">Viste salvate{views.length ? ` (${views.length})` : ''}</option>
-        {views.map((v) => (
-          <option key={v.id} value={v.id}>
-            {v.name}
-          </option>
-        ))}
+        {scopes && scopes.length > 0 && (
+          <optgroup label="Standard">
+            {scopes.map((sc) => (
+              <option key={sc} value={`std:${sc}`}>
+                {SCOPE_LABELS[sc]}
+              </option>
+            ))}
+          </optgroup>
+        )}
+        {views.length > 0 && (
+          <optgroup label="Le mie viste">
+            {views.map((v) => (
+              <option key={v.id} value={v.id}>
+                {v.name}
+              </option>
+            ))}
+          </optgroup>
+        )}
+        {!scopes && <option value="">Viste salvate{views.length ? ` (${views.length})` : ''}</option>}
       </select>
       {active && (
         <button
