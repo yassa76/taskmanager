@@ -2,10 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import clsx from 'clsx'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { scopeIn } from '@/lib/permissionsShared'
-import Breadcrumbs from './Breadcrumbs'
 import CountriesSettings from './CountriesSettings'
 import ActivityLogSettings from './ActivityLogSettings'
 import AccessLogSettings from './AccessLogSettings'
@@ -207,7 +206,6 @@ const ALL_TABS = [
 ]
 
 export default function SettingsView() {
-  const router = useRouter()
   const params = useSearchParams()
   const { data: session } = useSession()
   const perms = (session?.user as any)?.permissions
@@ -216,28 +214,9 @@ export default function SettingsView() {
   const current = TABS.find((t) => t.id === params?.get('tab')) ?? TABS[0]
   if (!current) return <p className="text-slate-400">Caricamento...</p>
 
+  // le sottovoci stanno nella barra sotto il menu principale (vedi lib/subnav.ts)
   return (
     <div>
-      <Breadcrumbs items={[{ label: 'Admin' }]} />
-      <h1 className="text-xl font-bold text-slate-800 mb-4">Admin</h1>
-
-      <div className="flex gap-1 border-b border-slate-200 mb-5 overflow-x-auto">
-        {TABS.map((t) => (
-          <button
-            key={t.id}
-            onClick={() => router.replace(`/settings?tab=${t.id}`)}
-            className={clsx(
-              'px-4 py-2 text-sm font-medium -mb-px border-b-2 whitespace-nowrap',
-              t.id === current.id
-                ? 'border-brand-600 text-brand-700'
-                : 'border-transparent text-slate-500 hover:text-slate-700'
-            )}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
-
       {current.render()}
 
       <p className="text-[11px] text-slate-400 mt-8">

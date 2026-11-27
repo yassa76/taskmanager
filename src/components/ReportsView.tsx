@@ -19,7 +19,6 @@ import {
   Cell,
   Legend
 } from 'recharts'
-import Breadcrumbs from './Breadcrumbs'
 
 interface ReportData {
   kpi: {
@@ -186,9 +185,8 @@ export default function ReportsView() {
 
   return (
     <div>
-      <Breadcrumbs items={[{ label: 'Report & KPI' }]} />
-      <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-        <h1 className="text-xl font-bold text-slate-800">Report & KPI</h1>
+      <div className="flex items-center justify-between mb-3 flex-wrap gap-3">
+        <h1 className="text-lg font-semibold text-slate-800">Report & KPI</h1>
         <div className="flex items-center gap-2">
           <ScopeSelect value={scope} onChange={changeScope} />
           <button

@@ -11,7 +11,7 @@ export default async function OwnerDetailPage({ params }: { params: { id: string
   return (
     <div>
       <NavBar />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
         <OwnerDetailView ownerId={params.id} />
       </main>
     </div>

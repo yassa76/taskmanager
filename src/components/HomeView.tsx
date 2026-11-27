@@ -6,7 +6,6 @@ import ScopeSelect from './ScopeSelect'
 import { useScopePref, useScopes } from '@/lib/useScopes'
 import type { ViewScope } from '@/lib/scopesShared'
 import clsx from 'clsx'
-import Breadcrumbs from './Breadcrumbs'
 import DeadlineCalendar, { CalendarItem } from './DeadlineCalendar'
 import HomeDeadlineList from './HomeDeadlineList'
 import { useColumnPrefs } from '@/lib/useColumnPrefs'
@@ -143,9 +142,8 @@ export default function HomeView({ userName }: { userName: string }) {
 
   return (
     <div>
-      <Breadcrumbs items={[{ label: 'Home' }]} />
-      <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-        <h1 className="text-xl font-bold text-slate-800">Ciao, {userName.split(' ')[0] || userName} 👋</h1>
+      <div className="flex items-center justify-between mb-3 flex-wrap gap-3">
+        <h1 className="text-lg font-semibold text-slate-800">Ciao, {userName.split(' ')[0] || userName} 👋</h1>
         <div className="flex items-center gap-2">
           <ScopeSelect value={scope} onChange={changeScope} />
           <button

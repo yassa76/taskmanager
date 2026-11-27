@@ -12,6 +12,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-11-27-sottoviste',
+    date: '2026-11-27',
+    title: 'Sottoviste sotto il menu e più spazio',
+    description:
+      'Sotto il menu principale compare la barra delle sottoviste: in Admin le sezioni (Profili, Ruoli, Paesi, registri…), nei Task le due viste Task e Sub-task. Nuova lista Sub-task con miei, del mio team, tutti e le tue viste salvate. Tolti il titolo grande e le briciole dalle pagine principali per far partire subito il contenuto.',
+    tag: 'novità'
+  },
+  {
     id: '2026-11-27-elimina-persona',
     date: '2026-11-27',
     title: 'Eliminare una persona dal Team la rimuove davvero',

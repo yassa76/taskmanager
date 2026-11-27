@@ -11,7 +11,7 @@ export default async function ProfilePage() {
   return (
     <div>
       <NavBar />
-      <main className="max-w-2xl mx-auto px-4 sm:px-6 py-6">
+      <main className="max-w-2xl mx-auto px-4 sm:px-6 py-4">
         <ProfileView />
       </main>
     </div>
