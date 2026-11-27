@@ -64,7 +64,20 @@ html, body {
 }
 
 body {
-  @apply bg-slate-50 text-slate-900;
+  @apply bg-slate-50 text-slate-900 antialiased;
+  font-family: var(--font-inter), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-feature-settings: 'cv11', 'ss01';
+}
+
+/* focus ben visibile da tastiera, nel colore del tema scelto */
+:focus-visible {
+  outline: 2px solid rgb(var(--brand-500));
+  outline-offset: 2px;
+}
+
+/* numeri allineati nelle tabelle */
+table {
+  font-variant-numeric: tabular-nums;
 }
 
 table th {
@@ -79,6 +92,10 @@ body {
   overflow-x: hidden;
 }
 @media (max-width: 1023px) {
+  /* spazio per la barra di navigazione in basso */
+  main {
+    padding-bottom: calc(5rem + env(safe-area-inset-bottom));
+  }
   /* 16px nei campi: evita lo zoom automatico di iOS quando si tocca un campo */
   input:not([type='checkbox']):not([type='radio']),
   select,

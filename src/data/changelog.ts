@@ -12,6 +12,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-11-27-nuovo-aspetto',
+    date: '2026-11-27',
+    title: 'Nuovo aspetto e barra in basso su telefono',
+    description:
+      'Carattere, spazi e ombre più curati, barra in alto bianca con il colore del tuo tema come accento. Su telefono e tablet c\'è una barra in basso con Home, Task, Clienti, Report e Altro. Il tema colore si sceglie sempre dal profilo.',
+    tag: 'miglioramento'
+  },
+  {
     id: '2026-11-27-esporta',
     date: '2026-11-27',
     title: 'Menu Opzioni delle tabelle: colonne ed esportazione',
