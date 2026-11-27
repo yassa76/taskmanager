@@ -4,4 +4,4 @@ export function filterSelectClass(value: string): string {
 }
 
 // Menu delle viste (miei / team / tutti / personalizzate): stessa misura in tutta l'app.
-export const VIEW_SELECT = 'border border-slate-300 rounded-lg px-2 h-9 bg-white text-sm text-slate-700 w-48 max-w-full'
+export const VIEW_SELECT = 'border border-slate-300 rounded-lg px-2 h-9 bg-white text-sm text-slate-700 w-48 shrink-0 max-w-full'
