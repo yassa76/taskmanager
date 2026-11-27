@@ -12,6 +12,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-11-27-elimina-persona',
+    date: '2026-11-27',
+    title: 'Eliminare una persona dal Team la rimuove davvero',
+    description:
+      'Eliminando una persona dal Team si cancella anche il suo account. Se è ancora owner di task, sub-task o clienti, o ha scritto commenti, l\'eliminazione si blocca e ti dice cosa riassegnare. I record che ha solo creato restano, senza il nome del creatore.',
+    tag: 'miglioramento'
+  },
+  {
     id: '2026-11-27-viste-icone-accessi',
     date: '2026-11-27',
     title: 'Viste con icone e accesso più sicuro',

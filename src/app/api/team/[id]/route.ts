@@ -76,12 +76,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   return NextResponse.json({ ok: true })
 }
 
-// Rimuove la persona dal Team. Se aveva un account collegato senza alcun
-// task/sub-task/cliente posseduto o creato (es. un segnaposto mai usato, o
-// un duplicato ormai vuoto dopo aver spostato tutto altrove), cancella
-// anche quell'account, cosi' non restano righe orfane nel database. Se
-// invece l'account ha ancora qualcosa collegato, lo lasciamo intatto per
-// non perdere dati: resta semplicemente "sganciato" dal Team.
+// Elimina la persona dal Team e dal database (anche l'account collegato, con sessioni e notifiche).
+// Se e' ancora owner di task, sub-task o clienti, o ha scritto commenti, si blocca: prima vanno riassegnati.
+// I record che ha solo creato restano, senza piu' il nome del creatore.
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
@@ -95,37 +92,39 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
 
   const linkedUserId = member.user?.id
 
-  // Scollega prima l'utente dal team member, cosi' la cancellazione del
-  // team member stesso non incontra vincoli di riferimento.
   if (linkedUserId) {
-    await prisma.user.update({ where: { id: linkedUserId }, data: { teamMemberId: null } })
-  }
-
-  await prisma.teamMember.delete({ where: { id: params.id } })
-
-  if (linkedUserId) {
-    const [ownedTasks, ownedSubtasks, ownedClients, createdTasks, createdSubtasks, createdClients] =
-      await Promise.all([
-        prisma.task.count({ where: { ownerId: linkedUserId } }),
-        prisma.subtask.count({ where: { ownerId: linkedUserId } }),
-        prisma.client.count({ where: { ownerId: linkedUserId } }),
-        prisma.task.count({ where: { createdById: linkedUserId } }),
-        prisma.subtask.count({ where: { createdById: linkedUserId } }),
-        prisma.client.count({ where: { createdById: linkedUserId } })
-      ])
-
-    const isEmpty =
-      ownedTasks === 0 &&
-      ownedSubtasks === 0 &&
-      ownedClients === 0 &&
-      createdTasks === 0 &&
-      createdSubtasks === 0 &&
-      createdClients === 0
-
-    if (isEmpty) {
-      await prisma.user.delete({ where: { id: linkedUserId } })
+    const [tasks, subtasks, clients, comments] = await Promise.all([
+      prisma.task.count({ where: { ownerId: linkedUserId } }),
+      prisma.subtask.count({ where: { ownerId: linkedUserId } }),
+      prisma.client.count({ where: { ownerId: linkedUserId } }),
+      prisma.comment.count({ where: { authorId: linkedUserId } })
+    ])
+    const parts = [
+      tasks && `${tasks} task`,
+      subtasks && `${subtasks} sub-task`,
+      clients && `${clients} clienti`,
+      comments && `${comments} commenti`
+    ].filter(Boolean)
+    if (parts.length > 0) {
+      return NextResponse.json(
+        { error: `Non si può eliminare: ha ancora ${parts.join(', ')}. Riassegna prima i record a un'altra persona.` },
+        { status: 409 }
+      )
     }
   }
+
+  await prisma.$transaction(async (tx) => {
+    if (linkedUserId) {
+      // chi ha solo creato i record non li blocca: restano, senza creatore
+      await tx.task.updateMany({ where: { createdById: linkedUserId }, data: { createdById: null } })
+      await tx.subtask.updateMany({ where: { createdById: linkedUserId }, data: { createdById: null } })
+      await tx.client.updateMany({ where: { createdById: linkedUserId }, data: { createdById: null } })
+      await tx.activityLog.updateMany({ where: { userId: linkedUserId }, data: { userId: null } })
+      await tx.user.update({ where: { id: linkedUserId }, data: { teamMemberId: null } })
+      await tx.user.delete({ where: { id: linkedUserId } })
+    }
+    await tx.teamMember.delete({ where: { id: params.id } })
+  })
 
   return NextResponse.json({ ok: true })
 }
