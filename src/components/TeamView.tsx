@@ -394,7 +394,7 @@ export default function TeamView() {
           <input
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="persona@azienda.com"
+            placeholder="nome@gmail.com"
             className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1"
           />
         </div>
