@@ -1,6 +1,6 @@
 'use client'
 
-import { CheckboxIcon, ArrowLeftIcon, ArrowRightIcon, RefreshIcon} from './icons'
+import { CheckboxIcon, ArrowLeftIcon, ArrowRightIcon, RefreshIcon, EditIcon, DeleteIcon, IconSelectWrap, UserIcon, CalendarIcon, RepeatIcon, PlayIcon, CheckIcon, SubArrowIcon, WarningIcon } from './icons'
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -15,12 +15,10 @@ import Breadcrumbs from './Breadcrumbs'
 import DataTable, { type Column } from './DataTable'
 import ActivityLogPanel from './ActivityLogPanel'
 import CommentsPanel from './CommentsPanel'
-import { EditIcon, DeleteIcon } from './icons'
 import ReadOnlyGuard from './ReadOnlyGuard'
 import RecurrenceFields from './RecurrenceFields'
 import RecurrenceBadge from './RecurrenceBadge'
 import StatusPath from './StatusPath'
-import { IconSelectWrap, UserIcon, CalendarIcon, RepeatIcon, PlayIcon, CheckIcon, SubArrowIcon, WarningIcon } from './icons'
 import { formatDate } from '@/lib/formatDate'
 
 export default function TaskDetailView({ taskId }: { taskId: string }) {

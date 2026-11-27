@@ -12,11 +12,10 @@ import Breadcrumbs from './Breadcrumbs'
 import ActivityLogPanel from './ActivityLogPanel'
 import CommentsPanel from './CommentsPanel'
 import Combobox from './Combobox'
-import { EditIcon, DeleteIcon, ArrowLeftIcon, ArrowRightIcon, RepeatIcon} from './icons'
+import { EditIcon, DeleteIcon, ArrowLeftIcon, ArrowRightIcon, RepeatIcon, IconSelectWrap, UserIcon, CalendarIcon, PlayIcon, CheckIcon, SubArrowIcon, WarningIcon } from './icons'
 import ReadOnlyGuard from './ReadOnlyGuard'
 import RecurrenceFields from './RecurrenceFields'
 import StatusPath from './StatusPath'
-import { IconSelectWrap, UserIcon, CalendarIcon, RepeatIcon, PlayIcon, CheckIcon, SubArrowIcon, WarningIcon } from './icons'
 import { RECURRENCE_HELP, recurrenceLabel } from '@/lib/recurrenceShared'
 
 export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) {
