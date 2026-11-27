@@ -19,18 +19,16 @@ const ROLE_COLORS: Record<string, string> = {
   read_only: 'bg-slate-200 text-slate-600'
 }
 
-// Colori dei ruoli aziendali: diversi da quelli dei profili e distinti tra loro (si assegnano in ordine di creazione).
+// Colori dei ruoli aziendali: toni caldi con bordo, lontani da quelli dei profili (viola, blu, grigio, verde acqua) e distinti tra loro (in ordine di creazione).
 const ORG_ROLE_COLORS = [
-  'bg-indigo-100 text-indigo-800',
-  'bg-amber-100 text-amber-800',
-  'bg-rose-100 text-rose-800',
-  'bg-emerald-100 text-emerald-800',
-  'bg-cyan-100 text-cyan-800',
-  'bg-orange-100 text-orange-800',
-  'bg-fuchsia-100 text-fuchsia-800',
-  'bg-lime-100 text-lime-800',
-  'bg-sky-100 text-sky-800',
-  'bg-pink-100 text-pink-800'
+  'bg-amber-100 text-amber-800 ring-1 ring-inset ring-amber-300',
+  'bg-rose-100 text-rose-800 ring-1 ring-inset ring-rose-300',
+  'bg-orange-100 text-orange-800 ring-1 ring-inset ring-orange-300',
+  'bg-lime-100 text-lime-800 ring-1 ring-inset ring-lime-300',
+  'bg-yellow-100 text-yellow-800 ring-1 ring-inset ring-yellow-300',
+  'bg-red-100 text-red-800 ring-1 ring-inset ring-red-300',
+  'bg-emerald-100 text-emerald-800 ring-1 ring-inset ring-emerald-300',
+  'bg-stone-100 text-stone-700 ring-1 ring-inset ring-stone-300'
 ]
 
 const STATUS_LABELS: Record<string, string> = {
