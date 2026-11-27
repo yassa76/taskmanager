@@ -34,17 +34,19 @@ export default function StatusPath({
           const done = !cancelled && i < idx
           const current = !cancelled && i === idx
           const first = i === 0
-          const last = i === STEPS.length - 1
-          const clip = `polygon(${first ? '0 0' : '14px 0'}, calc(100% - ${last ? '0px' : '14px'}) 0, ${last ? '100% 0, 100% 100%' : '100% 50%, calc(100% - 14px) 100%'}, ${first ? '0 100%' : '14px 100%, 0 50%'}${first ? '' : ''})`
+          // punta a destra su tutti i passaggi; dal secondo in poi c'e' l'incavo a sinistra in cui si incastra la punta del precedente
+          const clip = first
+            ? 'polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%)'
+            : 'polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%, 14px 50%)'
           return (
-            <li key={s.key} className={clsx('flex-1', !first && '-ml-2.5')}>
+            <li key={s.key} className={clsx('flex-1', !first && '-ml-[12px]')}>
               <button
                 type="button"
                 disabled={disabled || !onChange || s.key === status}
                 onClick={() => onChange?.(s.key)}
                 style={{ clipPath: clip }}
                 className={clsx(
-                  'w-full h-9 px-5 text-center transition-colors inline-flex items-center justify-center gap-1',
+                  'w-full h-9 pl-6 pr-5 text-center transition-colors inline-flex items-center justify-center gap-1',
                   current && 'bg-brand-600 text-white',
                   done && 'bg-brand-100 text-brand-700',
                   !current && !done && 'bg-slate-100 text-slate-500',

@@ -16,7 +16,7 @@ export const CHANGELOG: ChangelogEntry[] = [
     date: '2026-11-27',
     title: 'Icone nel colore del tema, margini ridotti, stati a frecce',
     description:
-      'Al posto dei quadratini bianchi ci sono vere icone (owner, scadenza, notifiche, pulsanti) nel colore del tema scelto nel profilo. Lo spazio ai lati delle pagine è ridotto: i contenuti usano tutta la larghezza, come in Salesforce. Il percorso degli stati ora è a frecce contigue. I pulsanti di creazione si chiamano tutti "+ Nuovo" (il tooltip dice cosa creano).',
+      'Al posto dei quadratini bianchi ci sono vere icone (owner, scadenza, notifiche, pulsanti) nel colore del tema scelto nel profilo. Lo spazio ai lati delle pagine è ridotto: i contenuti usano tutta la larghezza, come in Salesforce. Il percorso degli stati ora è a frecce contigue. I pulsanti di creazione si chiamano tutti "+ Nuovo" (il tooltip dice cosa creano). Sui pulsanti e sui campi cliccabili il cursore diventa una manina.',
     tag: 'miglioramento'
   },
   {
@@ -24,7 +24,7 @@ export const CHANGELOG: ChangelogEntry[] = [
     date: '2026-11-27',
     title: 'Visualizzazione larga o stretta',
     description:
-      'In Il mio account > Preferenze personali puoi scegliere la visualizzazione: Larga (quella di sempre) oppure Stretta, con righe più compatte e tutta la larghezza dello schermo. Vale da computer; sul telefono resta com\'è. Le Novità ora sono divise in pagine.',
+      'In Il mio account > Preferenze personali puoi scegliere la visualizzazione: Estesa (quella di sempre) oppure Compatta, con righe e riquadri più stretti (Home inclusa). Vale da computer; sul telefono resta com\'è. Le Novità ora sono divise in pagine.',
     tag: 'novità'
   },
   {

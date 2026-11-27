@@ -109,7 +109,7 @@ body {
   }
 }
 
-/* Visualizzazione "stretta" (preferenza del profilo): solo da schermo largo, sul telefono le schede sono gia' compatte */
+/* Visualizzazione "compatta" (preferenza del profilo): solo da schermo largo, sul telefono le schede sono gia' compatte */
 @media (min-width: 1024px) {
   [data-density='narrow'] .never-used {
     max-width: none;
@@ -128,10 +128,49 @@ body {
   [data-density='narrow'] .h-9 {
     height: 2rem;
   }
+  /* Home e riquadri: meno spazio tra e dentro le schede */
+  [data-density='narrow'] main .mb-4 {
+    margin-bottom: 0.5rem;
+  }
+  [data-density='narrow'] main .p-4 {
+    padding: 0.625rem;
+  }
+  [data-density='narrow'] main .px-4.py-2\.5 {
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+  }
+  [data-density='narrow'] main .lg\:h-\[200px\] {
+    height: 150px;
+  }
+  [data-density='narrow'] main .py-1\.5 {
+    padding-top: 0.125rem;
+    padding-bottom: 0.125rem;
+  }
+  [data-density='narrow'] main .gap-4 {
+    gap: 0.5rem;
+  }
 }
 @media (max-width: 1023px) {
   /* bersagli piu' comodi da toccare anche per i controlli ad altezza fissa */
   .h-9 {
     min-height: 40px;
   }
+}
+
+/* Il cursore diventa una manina su tutto cio' che e' cliccabile (Tailwind lo lascia a freccia sui pulsanti) */
+button:not(:disabled),
+[role='button']:not([aria-disabled='true']),
+select:not(:disabled),
+summary,
+label[for],
+input[type='checkbox']:not(:disabled),
+input[type='radio']:not(:disabled),
+input[type='date']:not(:disabled),
+input[type='file']:not(:disabled) {
+  cursor: pointer;
+}
+button:disabled,
+select:disabled,
+input:disabled {
+  cursor: not-allowed;
 }
