@@ -113,9 +113,13 @@ export default function SavedViews<T>({
             await put({ deleteId: active.id })
             setActiveId('')
           }}
-          className="text-xs text-slate-500 hover:text-red-600"
+          title="Elimina questa vista"
+          aria-label="Elimina questa vista"
+          className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-slate-100"
         >
-          Elimina vista
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v5M14 11v5" />
+          </svg>
         </button>
       )}
       {saving ? (
@@ -137,8 +141,16 @@ export default function SavedViews<T>({
           </button>
         </span>
       ) : (
-        <button onClick={() => setSaving(true)} className="text-xs text-brand-600 hover:underline">
-          + Salva vista attuale
+        <button
+          onClick={() => setSaving(true)}
+          title="Salva la vista attuale (filtri e ordinamento)"
+          aria-label="Salva la vista attuale"
+          className="p-1.5 rounded-lg text-slate-400 hover:text-brand-600 hover:bg-slate-100"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M6 3h12v18l-6-4-6 4V3z" />
+            <path d="M12 7v6M9 10h6" />
+          </svg>
         </button>
       )}
       {error && <span className="text-xs text-red-600">{error}</span>}

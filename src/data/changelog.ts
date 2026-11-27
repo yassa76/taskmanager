@@ -12,6 +12,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-11-27-viste-icone-accessi',
+    date: '2026-11-27',
+    title: 'Viste con icone e accesso più sicuro',
+    description:
+      'Salvare ed eliminare una vista ora si fa con due icone (con il suggerimento al passaggio del mouse). Una persona rimossa dal Team che aveva ancora dati collegati non può più rientrare da sola: tornando ad accedere compare come richiesta in attesa da approvare.',
+    tag: 'miglioramento'
+  },
+  {
     id: '2026-11-27-viste-clienti',
     date: '2026-11-27',
     title: 'Viste anche nei Clienti, ruoli colorati nel Team',
