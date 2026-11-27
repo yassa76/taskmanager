@@ -42,6 +42,8 @@ interface Props<T> {
   exportRows?: T[]
   /** nome base del file esportato */
   exportName?: string
+  /** voci aggiuntive nel menu delle opzioni (es. esportazioni speciali) */
+  extraItems?: { label: string; onClick: () => void | Promise<void>; disabled?: boolean }[]
 }
 
 const ALIGN = { left: 'text-left', center: 'text-center', right: 'text-right' }
@@ -62,7 +64,8 @@ export default function DataTable<T>({
   noCustomize,
   bare,
   exportRows,
-  exportName
+  exportName,
+  extraItems
 }: Props<T>) {
   const { pref, save, reset } = useColumnPrefs(tableId)
   // Personalizzare le colonne (riordino, nascondi, mostra) si puo' solo da desktop (>= 1024px):
@@ -138,15 +141,21 @@ export default function DataTable<T>({
           <button
             ref={btnRef}
             onClick={() => setOptMenu((v) => !v)}
-            className="text-xs text-slate-600 hover:text-brand-600 px-2.5 py-1 rounded-lg border border-slate-200 hover:bg-slate-50"
-            title="Colonne ed esportazione"
+            className="w-8 h-8 inline-flex items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:text-brand-600 hover:bg-slate-50"
+            title="Opzioni della tabella: colonne ed esportazione"
+            aria-label="Opzioni della tabella"
+            aria-haspopup="menu"
           >
-            Opzioni ▾
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+              <circle cx="5" cy="12" r="2" />
+              <circle cx="12" cy="12" r="2" />
+              <circle cx="19" cy="12" r="2" />
+            </svg>
           </button>
           {optMenu && (
             <>
               <div className="fixed inset-0 z-30" onClick={() => setOptMenu(false)} />
-              <div className={clsx('absolute right-0 top-full mt-1 w-48 bg-white border border-slate-200 rounded-lg shadow-lg py-1 text-sm z-40', bare && 'right-3')}>
+              <div className={clsx('absolute right-0 top-full mt-1 w-64 bg-white border border-slate-200 rounded-lg shadow-lg py-1 text-sm z-40', bare && 'right-3')}>
                 <button
                   onClick={() => {
                     const r = btnRef.current?.getBoundingClientRect()
@@ -166,6 +175,19 @@ export default function DataTable<T>({
                 >
                   Esporta…
                 </button>
+                {extraItems?.map((it) => (
+                  <button
+                    key={it.label}
+                    disabled={it.disabled}
+                    onClick={() => {
+                      setOptMenu(false)
+                      void it.onClick()
+                    }}
+                    className="w-full text-left px-3 py-2 hover:bg-slate-50 disabled:text-slate-300"
+                  >
+                    {it.label}
+                  </button>
+                ))}
               </div>
             </>
           )}
