@@ -108,3 +108,30 @@ body {
     min-height: 40px;
   }
 }
+
+/* Visualizzazione "stretta" (preferenza del profilo): solo da schermo largo, sul telefono le schede sono gia' compatte */
+@media (min-width: 1024px) {
+  [data-density='narrow'] .max-w-7xl {
+    max-width: none;
+  }
+  [data-density='narrow'] table {
+    font-size: 0.8125rem;
+  }
+  [data-density='narrow'] table td,
+  [data-density='narrow'] table th {
+    padding-top: 0.3rem;
+    padding-bottom: 0.3rem;
+  }
+  [data-density='narrow'] main {
+    padding-top: 0.5rem;
+  }
+  [data-density='narrow'] .h-9 {
+    height: 2rem;
+  }
+}
+@media (max-width: 1023px) {
+  /* bersagli piu' comodi da toccare anche per i controlli ad altezza fissa */
+  .h-9 {
+    min-height: 40px;
+  }
+}

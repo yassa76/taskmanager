@@ -6,6 +6,7 @@ import { useSession } from 'next-auth/react'
 import clsx from 'clsx'
 import { useSearchParams } from 'next/navigation'
 import NotificationsView from './NotificationsView'
+import { applyDensity } from './DensityApplier'
 
 const THEMES: { key: string; label: string; swatch: string }[] = [
   { key: 'blue', label: 'Blu', swatch: '#2f49b3' },
@@ -27,6 +28,7 @@ function PreferencesPanel() {
   const [lastName, setLastName] = useState('')
   const [email, setEmail] = useState('')
   const [themeColor, setThemeColor] = useState('blue')
+  const [density, setDensity] = useState<'wide' | 'narrow'>('wide')
 
   useEffect(() => {
     fetch('/api/profile')
@@ -38,7 +40,22 @@ function PreferencesPanel() {
         setThemeColor(data.themeColor || 'blue')
         setLoading(false)
       })
+    fetch('/api/profile/display')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => d && setDensity(d.density === 'narrow' ? 'narrow' : 'wide'))
+      .catch(() => {})
   }, [])
+
+  // la densita' si applica e si salva subito, senza bisogno di "Salva modifiche"
+  async function changeDensity(v: 'wide' | 'narrow') {
+    setDensity(v)
+    applyDensity(v)
+    await fetch('/api/profile/display', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ density: v })
+    }).catch(() => {})
+  }
 
   useEffect(() => {
     if (loading) return
@@ -111,6 +128,30 @@ function PreferencesPanel() {
               >
                 <span className="w-8 h-8 rounded-full" style={{ backgroundColor: t.swatch }} />
                 <span className="text-xs text-slate-500">{t.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="hidden lg:block">
+          <label className="text-xs font-medium text-slate-500 block mb-2">Visualizzazione</label>
+          <div className="flex flex-wrap gap-3">
+            {(
+              [
+                { k: 'wide', label: 'Larga', hint: 'Più aria tra le righe, come ora' },
+                { k: 'narrow', label: 'Stretta', hint: 'Righe più compatte e tutta la larghezza dello schermo' }
+              ] as const
+            ).map((o) => (
+              <button
+                key={o.k}
+                onClick={() => changeDensity(o.k)}
+                className={clsx(
+                  'text-left px-3 py-2 rounded-lg border-2 transition max-w-xs',
+                  density === o.k ? 'border-slate-700' : 'border-slate-200 hover:border-slate-300'
+                )}
+              >
+                <span className="block text-sm font-medium text-slate-800">{o.label}</span>
+                <span className="block text-xs text-slate-500">{o.hint}</span>
               </button>
             ))}
           </div>

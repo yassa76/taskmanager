@@ -30,8 +30,9 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const density = cookies().get('density')?.value === 'narrow' ? 'narrow' : undefined
   return (
-    <html lang="it">
+    <html lang="it" data-density={density}>
       <body className={inter.variable}>
         <Providers>{children}</Providers>
       </body>

@@ -12,6 +12,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-11-27-visualizzazione-stretta',
+    date: '2026-11-27',
+    title: 'Visualizzazione larga o stretta',
+    description:
+      'In Il mio account > Preferenze personali puoi scegliere la visualizzazione: Larga (quella di sempre) oppure Stretta, con righe più compatte e tutta la larghezza dello schermo. Vale da computer; sul telefono resta com\'è. Le Novità ora sono divise in pagine.',
+    tag: 'novità'
+  },
+  {
     id: '2026-11-27-allineamento-accessi',
     date: '2026-11-27',
     title: 'Controlli della stessa altezza e accessi più chiari',
