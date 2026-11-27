@@ -53,6 +53,7 @@ export async function POST(req: NextRequest) {
   const email = (body.email || '').trim().toLowerCase()
   if (!email) return NextResponse.json({ error: 'Email obbligatoria' }, { status: 400 })
   if (!firstName) return NextResponse.json({ error: 'Nome obbligatorio' }, { status: 400 })
+  if (!lastName || !String(lastName).trim()) return NextResponse.json({ error: 'Cognome obbligatorio' }, { status: 400 })
 
   const member = await prisma.teamMember.upsert({
     where: { email },
