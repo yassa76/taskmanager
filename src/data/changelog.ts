@@ -12,6 +12,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-11-27-profilo-totale-notifiche',
+    date: '2026-11-27',
+    title: 'Profilo: totale notifiche sempre visibile',
+    description:
+      'Nel profilo il tab Notifiche mostra tra parentesi il totale di menzioni e altro insieme, e un marcatore rosso quando ce ne sono di nuove, anche senza aprirlo.',
+    tag: 'miglioramento'
+  },
+  {
     id: '2026-11-27-dettagli-pannello-laterale',
     date: '2026-11-27',
     title: 'Dettagli: pannello laterale e modifica rapida sui sub-task',

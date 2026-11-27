@@ -24,6 +24,8 @@ export default function NotificationsView() {
     setPageSize(d.pageSize)
     setUnread({ menzioni: d.unreadMentions, altro: d.unreadOther })
     setTotals({ menzioni: d.totalMentions, altro: d.totalOther })
+    // avvisa il profilo (etichetta del tab) che i conteggi possono essere cambiati
+    window.dispatchEvent(new Event('notifications-changed'))
   }, [kind, page])
 
   useEffect(() => {
