@@ -14,7 +14,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   const task = await prisma.task.findUnique({ where: { id: params.id } })
   if (!task) return NextResponse.json({ error: 'Task non trovato' }, { status: 404 })
-  if (!canCreate(session)) {
+  if (!canCreate(session, 'subtask')) {
     return NextResponse.json({ error: 'Utente in sola lettura: non puoi aggiungere sub-task' }, { status: 403 })
   }
 

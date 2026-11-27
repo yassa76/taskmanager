@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { canEditRecord } from '@/lib/permissions'
+import { canEditRecord, canDeleteRecord } from '@/lib/permissions'
 import { deriveTaskStatus } from '@/lib/taskStatus'
 import { logActivity } from '@/lib/activityLog'
 import { pickLocation } from '@/lib/geo'
@@ -66,7 +66,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
   const existing = await prisma.client.findUnique({ where: { id: params.id }, include: { owner: true } })
   if (!existing) return NextResponse.json({ error: 'Cliente non trovato' }, { status: 404 })
-  if (!canEditRecord(session, existing.ownerId)) {
+  if (!canEditRecord(session, existing.ownerId, 'client')) {
     return NextResponse.json({ error: 'Non hai i permessi per modificare questo cliente' }, { status: 403 })
   }
 
@@ -124,7 +124,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
 
   const existing = await prisma.client.findUnique({ where: { id: params.id } })
   if (!existing) return NextResponse.json({ error: 'Cliente non trovato' }, { status: 404 })
-  if (!canEditRecord(session, existing.ownerId)) {
+  if (!canDeleteRecord(session, existing.ownerId, 'client')) {
     return NextResponse.json({ error: 'Non hai i permessi per eliminare questo cliente' }, { status: 403 })
   }
 

@@ -246,3 +246,14 @@ model Notification {
 
   @@index([userId, readAt, createdAt])
 }
+
+// Ruoli con permessi per oggetto. User.role contiene la "key" del ruolo.
+model Role {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  name        String
+  description String?
+  isSystem    Boolean  @default(false)
+  permissions String   @default("{}") // JSON: { task: { create, update, delete }, ... } con valori none|own|all
+  createdAt   DateTime @default(now())
+}

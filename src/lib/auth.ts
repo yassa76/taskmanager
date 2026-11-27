@@ -3,6 +3,7 @@ import type { NextAuthOptions } from 'next-auth'
 import GoogleProvider from 'next-auth/providers/google'
 import { prisma } from './prisma'
 import { runCleanupIfDue } from './retention'
+import { getRolePermissions } from './rolePermissions'
 import { notifyAdminsAccessRequest } from './notify'
 
 // La ricerca "utente esistente per email" della libreria di autenticazione è
@@ -66,7 +67,9 @@ export const authOptions: NextAuthOptions = {
     async session({ session, user }) {
       if (session.user) {
         ;(session.user as any).id = user.id
-        ;(session.user as any).role = (user as any).role ?? 'normal'
+        const roleKey = (user as any).role ?? 'normal'
+        ;(session.user as any).role = roleKey
+        ;(session.user as any).permissions = await getRolePermissions(roleKey)
         ;(session.user as any).themeColor = (user as any).themeColor ?? 'blue'
         ;(session.user as any).firstName = (user as any).firstName ?? null
         ;(session.user as any).lastName = (user as any).lastName ?? null

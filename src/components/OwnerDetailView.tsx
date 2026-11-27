@@ -1,5 +1,6 @@
 'use client'
 
+import { useRoles } from '@/lib/useRoles'
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import clsx from 'clsx'
@@ -45,12 +46,6 @@ interface OwnerData {
   subtasks: OwnerSubtask[]
 }
 
-const ROLE_LABELS: Record<string, string> = {
-  admin: 'Admin',
-  normal: 'Normale',
-  read_only: 'Sola lettura'
-}
-
 function KpiCard({ label, value, accent }: { label: string; value: number; accent?: string }) {
   return (
     <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
@@ -61,6 +56,7 @@ function KpiCard({ label, value, accent }: { label: string; value: number; accen
 }
 
 export default function OwnerDetailView({ ownerId }: { ownerId: string }) {
+  const { labelOf } = useRoles()
   const [data, setData] = useState<OwnerData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -296,7 +292,7 @@ export default function OwnerDetailView({ ownerId }: { ownerId: string }) {
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-bold text-slate-800">{owner.name || owner.email}</h1>
             <span className="px-2 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
-              {ROLE_LABELS[owner.role] || owner.role}
+              {labelOf(owner.role)}
             </span>
           </div>
           <p className="text-sm text-slate-500">{owner.email}</p>

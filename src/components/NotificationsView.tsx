@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
+import { scopeIn } from '@/lib/permissionsShared'
 import clsx from 'clsx'
 import NotificationPrefsPanel from './NotificationPrefsPanel'
 import NotificationRow, { notificationHref, type NotificationItem } from './NotificationRow'
@@ -10,7 +11,7 @@ import NotificationRow, { notificationHref, type NotificationItem } from './Noti
 export default function NotificationsView() {
   const router = useRouter()
   const { data: session } = useSession()
-  const isAdmin = (session?.user as any)?.role === 'admin'
+  const canDeleteNotifications = scopeIn((session?.user as any)?.permissions, 'notification', 'delete') !== 'none'
   const [kind, setKind] = useState<'menzioni' | 'altro'>('menzioni')
   const [page, setPage] = useState(1)
   const [items, setItems] = useState<NotificationItem[] | null>(null)
@@ -189,7 +190,7 @@ export default function NotificationsView() {
           >
             Segna come lette
           </button>
-          {isAdmin && (
+          {canDeleteNotifications && (
           <button
             disabled={selected.size === 0}
             onClick={deleteSelected}

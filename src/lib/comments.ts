@@ -1,5 +1,5 @@
 import { prisma } from './prisma'
-import { getRole, getUserId } from './permissions'
+import { getUserId, scopeOf } from './permissions'
 
 export type CommentEntityType = 'task' | 'subtask'
 
@@ -53,7 +53,7 @@ export function toCommentDTO(
     authorName: c.author.name || c.author.email,
     createdAt: c.createdAt.toISOString(),
     editedAt: c.editedAt ? c.editedAt.toISOString() : null,
-    canEdit: c.authorId === me,
-    canDelete: c.authorId === me || getRole(session) === 'admin'
+    canEdit: scopeOf(session, 'comment', 'update') !== 'none' && c.authorId === me,
+    canDelete: scopeOf(session, 'comment', 'delete') === 'all' || (scopeOf(session, 'comment', 'delete') === 'own' && c.authorId === me)
   }
 }
