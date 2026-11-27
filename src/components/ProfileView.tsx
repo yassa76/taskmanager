@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import clsx from 'clsx'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -147,6 +147,22 @@ export default function ProfileView() {
   const params = useSearchParams()
   const current = TABS.find((t) => t.id === params?.get('tab'))?.id ?? 'preferenze'
 
+  // Somma di tutte le notifiche (menzioni + altro) e quante sono da leggere, sempre visibili nel tab
+  const [notif, setNotif] = useState({ total: 0, unread: 0 })
+  const loadCounts = useCallback(() => {
+    fetch('/api/notifications?kind=menzioni&page=1&pageSize=1')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (d) setNotif({ total: d.totalMentions + d.totalOther, unread: d.unreadMentions + d.unreadOther })
+      })
+      .catch(() => {})
+  }, [])
+  useEffect(() => {
+    loadCounts()
+    window.addEventListener('notifications-changed', loadCounts)
+    return () => window.removeEventListener('notifications-changed', loadCounts)
+  }, [loadCounts])
+
   return (
     <div>
       <Breadcrumbs items={[{ label: 'Profilo' }]} />
@@ -162,7 +178,18 @@ export default function ProfileView() {
               t.id === current ? 'border-brand-600 text-brand-700' : 'border-transparent text-slate-500 hover:text-slate-700'
             )}
           >
-            {t.label}
+            <span className={t.id === 'notifiche' && notif.unread > 0 ? 'font-bold' : undefined}>
+              {t.label}
+              {t.id === 'notifiche' ? ` (${notif.total})` : ''}
+            </span>
+            {t.id === 'notifiche' && notif.unread > 0 && (
+              <span
+                className="ml-1.5 px-1.5 py-0.5 rounded-full bg-red-500 text-white text-[10px] font-semibold align-middle"
+                title={`${notif.unread} non lette`}
+              >
+                {notif.unread} {notif.unread === 1 ? 'nuova' : 'nuove'}
+              </span>
+            )}
           </button>
         ))}
       </div>
