@@ -63,7 +63,7 @@ export default function Filters({
       <button
         onClick={() => onChange({ ...filters, overdue: !filters.overdue })}
         className={clsx(
-          'px-3 py-1.5 rounded-lg text-sm font-medium border transition',
+          'px-3 h-9 rounded-lg text-sm font-medium border transition',
           filters.overdue
             ? 'bg-red-50 border-red-200 text-red-700'
             : 'border-slate-200 text-slate-500 hover:bg-slate-50'
@@ -76,7 +76,7 @@ export default function Filters({
         onClick={() => onChange({ ...filters, includeClosed: !filters.includeClosed })}
         title="Per default i task completati e annullati sono nascosti"
         className={clsx(
-          'px-3 py-1.5 rounded-lg text-sm font-medium border transition',
+          'px-3 h-9 rounded-lg text-sm font-medium border transition',
           filters.includeClosed
             ? 'bg-slate-100 border-slate-300 text-slate-700'
             : 'border-slate-200 text-slate-500 hover:bg-slate-50'
@@ -89,7 +89,7 @@ export default function Filters({
         value={filters.search}
         onChange={(e) => onChange({ ...filters, search: e.target.value })}
         placeholder="Cerca per titolo o descrizione..."
-        className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm flex-1 min-w-[180px]"
+        className="border border-slate-200 rounded-lg px-3 h-9 text-sm flex-1 min-w-[180px]"
       />
     </div>
   )

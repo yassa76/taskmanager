@@ -413,7 +413,7 @@ export default function TeamView() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Cerca per nome o email..."
-          className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm flex-1 min-w-[200px]"
+          className="border border-slate-200 rounded-lg px-3 h-9 text-sm flex-1 min-w-[200px]"
         />
       </div>
 
@@ -441,14 +441,14 @@ export default function TeamView() {
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="px-3 py-1.5 rounded-lg border border-slate-300 disabled:opacity-40 hover:bg-slate-100"
+              className="px-3 h-9 rounded-lg border border-slate-300 disabled:opacity-40 hover:bg-slate-100"
             >
               ← Precedente
             </button>
             <button
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
-              className="px-3 py-1.5 rounded-lg border border-slate-300 disabled:opacity-40 hover:bg-slate-100"
+              className="px-3 h-9 rounded-lg border border-slate-300 disabled:opacity-40 hover:bg-slate-100"
             >
               Successiva →
             </button>

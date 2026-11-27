@@ -12,6 +12,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-11-27-allineamento-accessi',
+    date: '2026-11-27',
+    title: 'Controlli della stessa altezza e accessi più chiari',
+    description:
+      'Pulsanti, menu, filtri e interruttori hanno ora tutti la stessa altezza, così passando da una vista all\'altra (Task, Sub-task, Clienti…) restano allineati. In Admin il Registro accessi mostra solo la tabella per persona (ultimo accesso e ultima attività), senza l\'elenco di ogni singolo login.',
+    tag: 'miglioramento'
+  },
+  {
     id: '2026-11-27-frecce-icone',
     date: '2026-11-27',
     title: 'Frecce e caselle sempre visibili',
