@@ -47,6 +47,8 @@ interface Props<T> {
   onSelectedChange?: (next: Set<string>) => void
   /** voci aggiuntive nel menu delle opzioni (es. esportazioni speciali) */
   extraItems?: { label: string; onClick: () => void | Promise<void>; disabled?: boolean }[]
+  /** esportazione "completa" alternativa a quella della vista (es. task + sub-task su 2 fogli), scelta nel popup Esporta */
+  fullExport?: { label: string; run: () => Promise<void> }
 }
 
 const ALIGN = { left: 'text-left', center: 'text-center', right: 'text-right' }
@@ -70,7 +72,8 @@ export default function DataTable<T>({
   exportName,
   selected,
   onSelectedChange,
-  extraItems
+  extraItems,
+  fullExport
 }: Props<T>) {
   const selectable = !!selected && !!onSelectedChange
   const pageKeys = rows.map((r) => rowKey(r))
@@ -224,6 +227,7 @@ export default function DataTable<T>({
           visibleCols={visible.filter((c) => !c.fixed && c.exportValue)}
           allCols={movable.filter((c) => c.exportValue)}
           fileBase={exportName ?? tableId}
+          fullExport={fullExport}
         />
       )}
 
@@ -494,7 +498,8 @@ function ExportDialog<T>({
   allRows,
   visibleCols,
   allCols,
-  fileBase
+  fileBase,
+  fullExport
 }: {
   onClose: () => void
   pageRows: T[]
@@ -502,7 +507,9 @@ function ExportDialog<T>({
   visibleCols: Column<T>[]
   allCols: Column<T>[]
   fileBase: string
+  fullExport?: { label: string; run: () => Promise<void> }
 }) {
+  const [what, setWhat] = useState<'view' | 'full'>('view')
   const [format, setFormat] = useState<'xlsx' | 'csv'>('xlsx')
   const [rowsScope, setRowsScope] = useState<'all' | 'page'>('all')
   const [colsScope, setColsScope] = useState<'visible' | 'all'>('visible')
@@ -515,6 +522,15 @@ function ExportDialog<T>({
 
   async function run() {
     setBusy(true)
+    if (what === 'full' && fullExport) {
+      try {
+        await fullExport.run()
+      } finally {
+        setBusy(false)
+      }
+      onClose()
+      return
+    }
     const stamp = new Date().toISOString().slice(0, 10)
     const table: (string | number)[][] = data.map((row) => cols.map((c) => c.exportValue!(row) ?? ''))
     if (header) table.unshift(cols.map((c) => c.label))
@@ -548,6 +564,27 @@ function ExportDialog<T>({
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <h2 className="text-lg font-bold text-slate-800 mb-4">Esporta tabella</h2>
+
+        {fullExport && (
+          <fieldset className="mb-4">
+            <legend className="text-xs font-semibold text-slate-500 uppercase mb-1">Cosa esportare</legend>
+            <label className="flex items-center gap-2 text-sm py-0.5">
+              <input type="radio" className={radio} checked={what === 'view'} onChange={() => setWhat('view')} />
+              La vista attuale (filtri e colonne a tua scelta)
+            </label>
+            <label className="flex items-center gap-2 text-sm py-0.5">
+              <input type="radio" className={radio} checked={what === 'full'} onChange={() => setWhat('full')} />
+              {fullExport.label}
+            </label>
+          </fieldset>
+        )}
+
+        {what === 'full' && fullExport ? (
+          <p className="text-sm text-slate-500 mb-5">
+            L&apos;esportazione completa ignora filtri e colonne scelte e produce un file Excel con tutti i dati.
+          </p>
+        ) : (
+          <>
 
         <fieldset className="mb-4">
           <legend className="text-xs font-semibold text-slate-500 uppercase mb-1">Formato</legend>
@@ -602,6 +639,8 @@ function ExportDialog<T>({
           <input type="checkbox" className={radio} checked={header} onChange={(e) => setHeader(e.target.checked)} />
           Includi la riga con i nomi delle colonne
         </label>
+          </>
+        )}
 
         <div className="flex justify-end gap-2">
           <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm text-slate-600 hover:bg-slate-100">
@@ -609,7 +648,7 @@ function ExportDialog<T>({
           </button>
           <button
             onClick={run}
-            disabled={busy || cols.length === 0 || data.length === 0}
+            disabled={busy || (what === 'view' && (cols.length === 0 || data.length === 0))}
             className="px-4 py-2 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700 disabled:opacity-50"
           >
             {busy ? 'Esportazione...' : 'Esporta'}

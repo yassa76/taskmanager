@@ -2,11 +2,14 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import clsx from 'clsx'
 import NotificationRow, { notificationHref, type NotificationItem } from './NotificationRow'
 
 export default function NotificationsView() {
   const router = useRouter()
+  const { data: session } = useSession()
+  const isAdmin = (session?.user as any)?.role === 'admin'
   const [kind, setKind] = useState<'menzioni' | 'altro'>('menzioni')
   const [page, setPage] = useState(1)
   const [items, setItems] = useState<NotificationItem[] | null>(null)
@@ -175,6 +178,7 @@ export default function NotificationsView() {
           >
             Segna come lette
           </button>
+          {isAdmin && (
           <button
             disabled={selected.size === 0}
             onClick={deleteSelected}
@@ -182,6 +186,7 @@ export default function NotificationsView() {
           >
             Elimina
           </button>
+          )}
           <button onClick={endSelect} className="ml-auto text-xs text-slate-500 hover:text-brand-600">
             Fine
           </button>

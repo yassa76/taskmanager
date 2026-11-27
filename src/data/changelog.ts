@@ -16,8 +16,16 @@ export const CHANGELOG: ChangelogEntry[] = [
     date: '2026-11-27',
     title: 'Notifiche: menu opzioni e selezione',
     description:
-      'Nell\'elenco delle notifiche c\'è ora il menu con i tre puntini: Seleziona notifiche e Segna tutte come lette. I check compaiono solo quando scegli di selezionare, e poi puoi segnare come lette o eliminare quelle scelte.',
+      'Nell\'elenco delle notifiche c\'è ora il menu con i tre puntini: Seleziona notifiche e Segna tutte come lette. I check compaiono solo quando scegli di selezionare, e poi puoi segnare come lette quelle scelte (solo l\'amministratore può eliminarle).',
     tag: 'novità'
+  },
+  {
+    id: '2026-11-27-esporta-unificato',
+    date: '2026-11-27',
+    title: 'Esporta: una sola voce, con scelta tra vista e tutto',
+    description:
+      'Nel menu delle tabelle resta solo Esporta…: nel popup scegli se esportare la vista attuale oppure, nei task, tutto con task e sub-task su due fogli. Nella Home ho anche allineato meglio i riquadri.',
+    tag: 'miglioramento'
   },
   {
     id: '2026-11-27-profilo-totale-notifiche',

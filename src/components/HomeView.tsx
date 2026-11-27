@@ -328,7 +328,7 @@ export default function HomeView({ userName }: { userName: string }) {
                     key={ids.join('-')}
                     className={clsx(
                       'grid gap-3 mb-4 items-stretch',
-                      pair && (ids[0] === 'calendar' ? 'lg:grid-cols-[280px_1fr]' : 'lg:grid-cols-[1fr_280px]')
+                      pair && (ids[0] === 'calendar' ? 'lg:grid-cols-[280px_1fr] xl:grid-cols-2' : 'lg:grid-cols-[1fr_280px] xl:grid-cols-2')
                     )}
                   >
                     {ids.map((id) => blocks[id])}
@@ -336,7 +336,7 @@ export default function HomeView({ userName }: { userName: string }) {
                 )
               }
               return (
-                <div key={ids.join('-')} className={clsx('grid gap-6 mb-6 items-start', pair && 'xl:grid-cols-2')}>
+                <div key={ids.join('-')} className={clsx('grid gap-3 mb-4 items-start', pair && 'xl:grid-cols-2')}>
                   {ids.map((id) => blocks[id])}
                 </div>
               )

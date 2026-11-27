@@ -462,13 +462,7 @@ export default function TasksView() {
           exportName="task"
           selected={selected}
           onSelectedChange={setSelected}
-          extraItems={[
-            {
-              label: exporting ? 'Esportazione in corso…' : 'Esporta tutto: task e sub-task (Excel, 2 fogli)',
-              disabled: exporting,
-              onClick: exportXls
-            }
-          ]}
+          fullExport={{ label: 'Tutto: task e sub-task (Excel, 2 fogli)', run: exportXls }}
           columns={columns}
           rows={pagedTasks}
           rowKey={(t) => t.id}
