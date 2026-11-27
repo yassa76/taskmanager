@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { getRole, getUserId } from '@/lib/permissions'
+import { getUserId, scopeOf } from '@/lib/permissions'
 import { extractMentionIds } from '@/lib/commentText'
 import { MAX_COMMENT_LENGTH, createNotifications, toCommentDTO } from '@/lib/comments'
 
@@ -13,7 +13,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
   const existing = await prisma.comment.findUnique({ where: { id: params.id } })
   if (!existing) return NextResponse.json({ error: 'Commento non trovato' }, { status: 404 })
-  if (existing.authorId !== getUserId(session)) {
+  if (existing.authorId !== getUserId(session) || scopeOf(session, 'comment', 'update') === 'none') {
     return NextResponse.json({ error: 'Puoi modificare solo i tuoi commenti' }, { status: 403 })
   }
 
@@ -51,7 +51,8 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
 
   const existing = await prisma.comment.findUnique({ where: { id: params.id } })
   if (!existing) return NextResponse.json({ error: 'Commento non trovato' }, { status: 404 })
-  if (existing.authorId !== getUserId(session) && getRole(session) !== 'admin') {
+  const delScope = scopeOf(session, 'comment', 'delete')
+  if (!(delScope === 'all' || (delScope === 'own' && existing.authorId === getUserId(session)))) {
     return NextResponse.json({ error: 'Non puoi eliminare questo commento' }, { status: 403 })
   }
 

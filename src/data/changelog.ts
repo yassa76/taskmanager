@@ -12,6 +12,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-11-27-ruoli-permessi',
+    date: '2026-11-27',
+    title: 'Ruoli personalizzati e permessi',
+    description:
+      'Nell\'area Admin c\'è il nuovo tab Ruoli e permessi: puoi creare ruoli e scegliere, per task, sub-task, clienti, commenti e notifiche, chi può creare, modificare ed eliminare (nessuno, solo i propri o tutti). Il ruolo si assegna da Team.',
+    tag: 'novità'
+  },
+  {
     id: '2026-11-27-notifiche-preferenze-menu',
     date: '2026-11-27',
     title: 'Notifiche più pulite e icona Novità',

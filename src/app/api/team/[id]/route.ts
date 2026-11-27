@@ -12,6 +12,11 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   const body = await req.json()
   const { firstName, lastName, status, role } = body
 
+  if (role !== undefined) {
+    const exists = ['admin', 'normal', 'read_only'].includes(role) || !!(await prisma.role.findUnique({ where: { key: String(role) } }))
+    if (!exists) return NextResponse.json({ error: 'Ruolo non valido' }, { status: 400 })
+  }
+
   const member = await prisma.teamMember.update({
     where: { id: params.id },
     data: {

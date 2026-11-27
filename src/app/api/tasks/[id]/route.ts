@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { deriveTaskStatus } from '@/lib/taskStatus'
-import { canEditRecord } from '@/lib/permissions'
+import { canEditRecord, canDeleteRecord } from '@/lib/permissions'
 import { logActivity } from '@/lib/activityLog'
 import { notifyUser, actorName, assignedMessage, deadlineChangedMessage } from '@/lib/notify'
 import type { TaskDTO } from '@/types'
@@ -170,7 +170,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
 
   const existing = await prisma.task.findUnique({ where: { id: params.id }, include: { _count: { select: { subtasks: true } } } })
   if (!existing) return NextResponse.json({ error: 'Task non trovato' }, { status: 404 })
-  if (!canEditRecord(session, existing.ownerId)) {
+  if (!canDeleteRecord(session, existing.ownerId)) {
     return NextResponse.json({ error: 'Non hai i permessi per eliminare questo task' }, { status: 403 })
   }
 

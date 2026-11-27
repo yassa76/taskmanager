@@ -2,6 +2,7 @@
 
 import { useSession } from 'next-auth/react'
 import clsx from 'clsx'
+import { isReadOnlyPerms } from '@/lib/permissionsShared'
 
 export const READ_ONLY_MSG = 'Hai privilegi di sola lettura: non puoi effettuare modifiche'
 
@@ -18,7 +19,9 @@ export default function ReadOnlyGuard({
   className?: string
 }) {
   const { data: session } = useSession()
-  const readOnly = (session?.user as any)?.role === 'read_only'
+  const u = session?.user as any
+  // sola lettura: ruolo con nessun permesso di creare/modificare/eliminare (anche un ruolo personalizzato)
+  const readOnly = u?.permissions ? isReadOnlyPerms(u.permissions) : u?.role === 'read_only'
   return (
     <fieldset
       disabled={readOnly}

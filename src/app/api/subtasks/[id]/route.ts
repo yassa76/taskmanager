@@ -4,23 +4,24 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { deriveTaskStatus } from '@/lib/taskStatus'
-import { getRole, getUserId } from '@/lib/permissions'
+import { scopeOf, getUserId } from '@/lib/permissions'
 import { logActivity } from '@/lib/activityLog'
 import type { SubtaskDetailDTO } from '@/types'
 import { syncTaskFromSubtask } from '@/lib/taskSync'
 import { isRecurrence } from '@/lib/recurrenceShared'
 import { spawnNextSubtask } from '@/lib/recurrence'
 
-// Puo' modificare/eliminare un sub-task: admin, owner del sub-task,
-// owner del task padre, oppure chi lo ha creato. Mai i read_only.
+// Puo' modificare/eliminare un sub-task secondo il ruolo: "Tutti" sempre; "Solo i miei" se e' owner del sub-task,
+// owner del task padre oppure chi lo ha creato; "No" mai.
 function canManageSubtask(
   session: any,
   subtask: { ownerId: string; createdById: string | null },
-  taskOwnerId: string
+  taskOwnerId: string,
+  action: 'update' | 'delete'
 ): boolean {
-  const role = getRole(session)
-  if (role === 'read_only') return false
-  if (role === 'admin') return true
+  const scope = scopeOf(session, 'subtask', action)
+  if (scope === 'all') return true
+  if (scope === 'none') return false
   const uid = getUserId(session)
   if (!uid) return false
   return subtask.ownerId === uid || taskOwnerId === uid || subtask.createdById === uid
@@ -77,7 +78,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     include: { owner: true, task: true }
   })
   if (!existing) return NextResponse.json({ error: 'Sub-task non trovato' }, { status: 404 })
-  if (!canManageSubtask(session, existing, existing.task.ownerId)) {
+  if (!canManageSubtask(session, existing, existing.task.ownerId, 'update')) {
     return NextResponse.json({ error: 'Non hai i permessi per modificare questo sub-task' }, { status: 403 })
   }
 
@@ -206,7 +207,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
     include: { task: true }
   })
   if (!existing) return NextResponse.json({ error: 'Sub-task non trovato' }, { status: 404 })
-  if (!canManageSubtask(session, existing, existing.task.ownerId)) {
+  if (!canManageSubtask(session, existing, existing.task.ownerId, 'delete')) {
     return NextResponse.json({ error: 'Non hai i permessi per eliminare questo sub-task' }, { status: 403 })
   }
 

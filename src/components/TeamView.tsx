@@ -8,13 +8,9 @@ import type { TeamMemberDTO } from '@/types'
 import Breadcrumbs from './Breadcrumbs'
 import DataTable, { type Column } from './DataTable'
 import { EditIcon, DeleteIcon } from './icons'
+import { useRoles } from '@/lib/useRoles'
 
-const ROLE_LABELS: Record<string, string> = {
-  admin: 'Admin',
-  normal: 'Normale',
-  read_only: 'Sola lettura'
-}
-
+const CUSTOM_ROLE_COLOR = 'bg-teal-100 text-teal-800'
 const ROLE_COLORS: Record<string, string> = {
   admin: 'bg-purple-100 text-purple-800',
   normal: 'bg-blue-100 text-blue-800',
@@ -54,6 +50,7 @@ export default function TeamView() {
   const [editFirstName, setEditFirstName] = useState('')
   const [editLastName, setEditLastName] = useState('')
   const [editRole, setEditRole] = useState('normal')
+  const { roles, labelOf } = useRoles()
   const [editStatus, setEditStatus] = useState('new')
   const [savingEdit, setSavingEdit] = useState(false)
   const [page, setPage] = useState(1)
@@ -250,12 +247,12 @@ export default function TeamView() {
     },
     {
       id: 'role',
-      exportValue: (r) => ROLE_LABELS[r.matchedUser?.role || 'normal'],
+      exportValue: (r) => labelOf(r.matchedUser?.role || 'normal'),
       label: 'Ruolo',
       sortKey: 'role',
       render: (m) => (
-        <span className={clsx('px-2 py-1 rounded-full text-xs font-medium', ROLE_COLORS[m.matchedUser?.role || 'normal'])}>
-          {ROLE_LABELS[m.matchedUser?.role || 'normal']}
+        <span className={clsx('px-2 py-1 rounded-full text-xs font-medium', (ROLE_COLORS[m.matchedUser?.role || 'normal'] ?? CUSTOM_ROLE_COLOR))}>
+          {labelOf(m.matchedUser?.role || 'normal')}
         </span>
       )
     },
@@ -455,9 +452,11 @@ export default function TeamView() {
                     onChange={(e) => setEditRole(e.target.value)}
                     className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1"
                   >
-                    <option value="admin">Admin</option>
-                    <option value="normal">Normale</option>
-                    <option value="read_only">Sola lettura</option>
+                    {roles.map((r) => (
+                      <option key={r.key} value={r.key}>
+                        {r.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <div>
