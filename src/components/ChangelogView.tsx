@@ -11,7 +11,12 @@ const TAG_COLORS: Record<string, string> = {
   correzione: 'bg-amber-100 text-amber-700'
 }
 
+// voci lunghe: poche per pagina
+const PAGE_SIZE = 6
+
 export default function ChangelogView() {
+  const [page, setPage] = useState(1)
+  const totalPages = Math.max(1, Math.ceil(CHANGELOG.length / PAGE_SIZE))
   // le voci piu' recenti dell'ultima visita restano evidenziate in questa visita; poi si segnano come viste
   const [unread, setUnread] = useState<number | null>(null)
 
@@ -31,7 +36,8 @@ export default function ChangelogView() {
       <Breadcrumbs items={[{ label: 'Novità' }]} />
 
       <div className="space-y-3">
-        {CHANGELOG.map((e, i) => {
+        {CHANGELOG.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map((e, idx) => {
+          const i = (page - 1) * PAGE_SIZE + idx
           const isNew = unread !== null && i < unread
           return (
             <div
@@ -49,6 +55,30 @@ export default function ChangelogView() {
           )
         })}
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between mt-4 text-sm text-slate-600">
+          <span>
+            {CHANGELOG.length} novità — pagina {page} di {totalPages}
+          </span>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="px-3 h-9 rounded-lg border border-slate-300 disabled:opacity-40 hover:bg-slate-100"
+            >
+              ← Più recenti
+            </button>
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages}
+              className="px-3 h-9 rounded-lg border border-slate-300 disabled:opacity-40 hover:bg-slate-100"
+            >
+              Meno recenti →
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
