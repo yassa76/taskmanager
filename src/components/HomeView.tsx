@@ -2,7 +2,9 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
-import { useSession } from 'next-auth/react'
+import ScopeSelect from './ScopeSelect'
+import { useScopePref, useScopes } from '@/lib/useScopes'
+import type { ViewScope } from '@/lib/scopesShared'
 import clsx from 'clsx'
 import Breadcrumbs from './Breadcrumbs'
 import DeadlineCalendar, { CalendarItem } from './DeadlineCalendar'
@@ -82,13 +84,12 @@ function KpiCard({
 }
 
 export default function HomeView({ userName }: { userName: string }) {
-  const { data: session } = useSession()
-  // l'interruttore "I miei / Tutto il team" compare a chi, per profilo e ruolo, vede anche i record di altri
-  const isAdmin = !!(session?.user as any)?.canSeeTeam
-
   const [data, setData] = useState<HomeData | null>(null)
   const [loading, setLoading] = useState(true)
-  const [scope, setScope] = useState<'mine' | 'team'>('mine')
+  const { scope: savedScope, setScope: changeScope, ready } = useScopePref()
+  const scopes = useScopes(true)
+  // se la vista salvata non e' (piu') disponibile si usa la piu' ampia consentita
+  const scope: ViewScope = scopes.includes(savedScope) ? savedScope : scopes[scopes.length - 1]
   const { pref, save, reset } = useColumnPrefs('home')
   const [customizing, setCustomizing] = useState(false)
 
@@ -110,9 +111,6 @@ export default function HomeView({ userName }: { userName: string }) {
     save({ order, hidden: Array.from(h) })
   }
 
-  // La preferenza salvata va letta PRIMA del primo caricamento: altrimenti parte la richiesta
-  // "mine" e la sua risposta puo' arrivare dopo quella "team", mostrando numeri sbagliati.
-  const [ready, setReady] = useState(false)
 
   const load = useCallback(() => {
     if (!ready) return
@@ -131,19 +129,6 @@ export default function HomeView({ userName }: { userName: string }) {
     }
   }, [scope, ready])
 
-  // Ripristina la preferenza "i miei / tutto il team" salvata in precedenza,
-  // cosi' resta valida anche navigando su altre pagine e tornando qui.
-  useEffect(() => {
-    const saved = typeof window !== 'undefined' ? localStorage.getItem('homeScope') : null
-    if (saved === 'team' || saved === 'mine') setScope(saved)
-    setReady(true)
-  }, [])
-
-  function changeScope(v: 'mine' | 'team') {
-    setScope(v)
-    if (typeof window !== 'undefined') localStorage.setItem('homeScope', v)
-  }
-
   useEffect(() => {
     return load()
   }, [load])
@@ -152,7 +137,7 @@ export default function HomeView({ userName }: { userName: string }) {
   // di dove si e' cliccato e se si sta guardando "i miei" o "tutto il team".
   function tasksHref(extra: string) {
     const params = new URLSearchParams(extra)
-    if (scope === 'mine') params.set('view', 'mine')
+    params.set('scope', scope)
     return `/tasks?${params.toString()}`
   }
 
@@ -162,22 +147,7 @@ export default function HomeView({ userName }: { userName: string }) {
       <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
         <h1 className="text-xl font-bold text-slate-800">Ciao, {userName.split(' ')[0] || userName} 👋</h1>
         <div className="flex items-center gap-2">
-          {isAdmin && (
-            <div className="flex bg-slate-100 rounded-lg p-1">
-              {(['mine', 'team'] as const).map((v) => (
-                <button
-                  key={v}
-                  onClick={() => changeScope(v)}
-                  className={clsx(
-                    'px-3 py-1.5 rounded-md text-sm font-medium transition',
-                    scope === v ? 'bg-white shadow text-brand-700' : 'text-slate-500'
-                  )}
-                >
-                  {v === 'mine' ? 'I miei record' : 'Tutto il team'}
-                </button>
-              ))}
-            </div>
-          )}
+          <ScopeSelect value={scope} onChange={changeScope} />
           <button
             onClick={() => setCustomizing((v) => !v)}
             className="hidden lg:inline-flex px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-medium text-slate-700 hover:bg-slate-100"
@@ -253,7 +223,7 @@ export default function HomeView({ userName }: { userName: string }) {
           ),
           kpi: (
             <div key="kpi" className="grid grid-cols-2 sm:grid-cols-3 auto-rows-fr gap-2 lg:h-[200px]">
-              <KpiCard label={scope === 'mine' ? 'I miei task attivi' : 'Task attivi del team'} value={data.kpi.totalTasks} href={tasksHref('')} />
+              <KpiCard label={scope === 'mine' ? 'I miei task attivi' : scope === 'team' ? 'Task attivi del team' : 'Task attivi di tutti'} value={data.kpi.totalTasks} href={tasksHref('')} />
               <KpiCard label="In corso" value={data.kpi.inProgress} accent="text-amber-600" href={tasksHref('status=in_corso')} />
               <KpiCard label="Da avviare" value={data.kpi.notStarted} href={tasksHref('status=da_avviare')} />
               <KpiCard label="Task in ritardo" value={data.kpi.overdueTasks} accent="text-red-600" href={tasksHref('overdue=true')} />
@@ -264,7 +234,7 @@ export default function HomeView({ userName }: { userName: string }) {
           tasks: (
             <HomeDeadlineList
               key="tasks"
-              title={scope === 'mine' ? 'I miei task in scadenza' : 'Task del team in scadenza'}
+              title={scope === 'mine' ? 'I miei task in scadenza' : scope === 'team' ? 'Task del team in scadenza' : 'Task di tutti in scadenza'}
               firstColLabel="Task"
               subColLabel="Cliente"
               emptyText="Nessun task in scadenza. 🎉"
@@ -286,7 +256,7 @@ export default function HomeView({ userName }: { userName: string }) {
             <HomeDeadlineList
               key="subtasks"
               anchorId="subtask-deadlines"
-              title={scope === 'mine' ? 'I miei sub-task in scadenza' : 'Sub-task del team in scadenza'}
+              title={scope === 'mine' ? 'I miei sub-task in scadenza' : scope === 'team' ? 'Sub-task del team in scadenza' : 'Sub-task di tutti in scadenza'}
               firstColLabel="Sub-task"
               subColLabel="Task"
               emptyText="Nessun sub-task in scadenza. 🎉"

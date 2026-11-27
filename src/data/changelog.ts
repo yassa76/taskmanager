@@ -12,6 +12,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-11-27-viste-standard',
+    date: '2026-11-27',
+    title: 'Viste standard: miei, del mio team, tutti',
+    description:
+      'Nei Task il pulsante Tutti/I miei è ora nel menu delle viste, insieme a Del mio team e alle tue viste salvate. Le stesse viste valgono in Home e nei Report, grafici compresi, e la scelta resta la stessa tra le pagine. Quali compaiono dipende dal tuo ruolo. Nel Team il ruolo ha un badge colorato, e i permessi delle sezioni Admin sono ora applicati anche ai pulsanti.',
+    tag: 'miglioramento'
+  },
+  {
     id: '2026-11-27-permessi-matrice',
     date: '2026-11-27',
     title: 'Permessi più semplici e scalabili',

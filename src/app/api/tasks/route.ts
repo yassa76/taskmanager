@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { getVisibility, taskWhere as visTaskWhere, canSeeSubtask, type Visibility } from '@/lib/visibility'
+import { getVisibility, taskWhere as visTaskWhere, canSeeSubtask, resolveScope, scopeOwnerWhere, type Visibility } from '@/lib/visibility'
 import { deriveTaskStatus } from '@/lib/taskStatus'
 import { canCreate } from '@/lib/permissions'
 import { logActivity } from '@/lib/activityLog'
@@ -61,7 +61,7 @@ export async function GET(req: NextRequest) {
   if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
 
   const { searchParams } = new URL(req.url)
-  const mine = searchParams.get('mine') === 'true'
+  const scopeParam = searchParams.get('scope') || (searchParams.get('mine') === 'true' ? 'mine' : null)
   const ownerId = searchParams.get('ownerId')
   const clientId = searchParams.get('clientId')
   const projectId = searchParams.get('projectId')
@@ -69,10 +69,11 @@ export async function GET(req: NextRequest) {
   const search = searchParams.get('search')
 
   const vis = await getVisibility(session)
+  // senza vista (o "tutti") valgono tutti i task visibili; "miei" e "del mio team" restringono ai proprietari
+  const scopeWhere = !scopeParam || scopeParam === 'all' ? {} : scopeOwnerWhere(vis, resolveScope(vis, scopeParam))
   const tasks = await prisma.task.findMany({
     where: {
-      AND: [visTaskWhere(vis)],
-      ...(mine ? { ownerId: (session.user as any).id } : {}),
+      AND: [visTaskWhere(vis), scopeWhere],
       ...(ownerId ? { ownerId } : {}),
       ...(projectId ? { projectId } : {}),
       ...(clientId ? { clientId } : {}),

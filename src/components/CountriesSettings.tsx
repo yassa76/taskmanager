@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Combobox from './Combobox'
+import { useCan } from '@/lib/useCan'
 import { allCountries } from '@/lib/geoShared'
 
 interface CountryRow {
@@ -11,6 +12,7 @@ interface CountryRow {
 }
 
 export default function CountriesSettings() {
+  const canEdit = useCan('countries', 'update')
   const [countries, setCountries] = useState<CountryRow[] | null>(null)
   const [toAdd, setToAdd] = useState('')
   const [busy, setBusy] = useState(false)
@@ -50,7 +52,7 @@ export default function CountriesSettings() {
   }, [countries])
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-5 max-w-2xl">
+    <fieldset disabled={!canEdit} className="bg-white border border-slate-200 rounded-xl p-5 max-w-2xl m-0 min-w-0 disabled:opacity-90">
       <h2 className="font-semibold text-slate-800">Paesi dei clienti</h2>
       <p className="text-sm text-slate-500 mt-1">
         Questi paesi compaiono nel menu &quot;Country&quot; del cliente. Provincia e città sono disponibili solo per l&apos;Italia;
@@ -111,6 +113,6 @@ export default function CountriesSettings() {
         </button>
       </div>
       {error && <p className="text-sm text-red-600 mt-3">{error}</p>}
-    </div>
+    </fieldset>
   )
 }

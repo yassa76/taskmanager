@@ -280,7 +280,12 @@ export default function TeamView() {
       sortKey: 'orgRole',
       render: (m) =>
         m.matchedUser?.orgRoleName ? (
-          <span className="text-slate-700">{m.matchedUser.orgRoleName}</span>
+          <span
+            title={orgRoles.find((o) => o.id === m.matchedUser?.orgRoleId)?.description || undefined}
+            className="px-2 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 cursor-help"
+          >
+            {m.matchedUser.orgRoleName}
+          </span>
         ) : (
           <span className="text-slate-300">—</span>
         )

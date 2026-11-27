@@ -14,6 +14,8 @@ import Filters, { FilterState } from './Filters'
 import Breadcrumbs from './Breadcrumbs'
 import TasksKanban from './TasksKanban'
 import SavedViews from './SavedViews'
+import { isViewScope, type ViewScope } from '@/lib/scopesShared'
+import { useScopes } from '@/lib/useScopes'
 import SubtaskCount from './SubtaskCount'
 import { EditIcon, DeleteIcon } from './icons'
 
@@ -29,7 +31,7 @@ export default function TasksView() {
   const [loading, setLoading] = useState(true)
   // Filtri iniziali: possono arrivare dall'URL (es. click su un KPI in Home).
   const [filters, setFilters] = useState<FilterState>(() => ({
-    view: searchParams.get('view') === 'mine' ? 'mine' : 'all',
+    view: isViewScope(searchParams.get('scope')) ? (searchParams.get('scope') as ViewScope) : searchParams.get('view') === 'mine' ? 'mine' : 'all',
     clientId: searchParams.get('clientId') || '',
     ownerId: searchParams.get('ownerId') || '',
     status: searchParams.get('status') || '',
@@ -37,6 +39,9 @@ export default function TasksView() {
     overdue: searchParams.get('overdue') === 'true',
     includeClosed: searchParams.get('closed') === 'true'
   }))
+  // vista standard effettiva: se quella scelta non e' disponibile (es. vista salvata da un altro ruolo) si usa la piu' ampia
+  const scopes = useScopes()
+  const scope: ViewScope = scopes.includes(filters.view) ? filters.view : scopes[scopes.length - 1]
   const [sortKey, setSortKey] = useState<SortKey>('endDate')
   const [sortDir, setSortDir] = useState<SortDir>('asc')
   const [showForm, setShowForm] = useState(false)
@@ -62,7 +67,7 @@ export default function TasksView() {
   const loadAll = useCallback(async () => {
     setLoading(true)
     const params = new URLSearchParams()
-    if (filters.view === 'mine') params.set('mine', 'true')
+    params.set('scope', scope)
     if (filters.ownerId) params.set('ownerId', filters.ownerId)
     if (filters.clientId) params.set('clientId', filters.clientId)
     if (filters.status) params.set('status', filters.status)
@@ -77,13 +82,13 @@ export default function TasksView() {
     setTeam(await teamRes.json())
     setClients(await clientsRes.json())
     setLoading(false)
-  }, [filters])
+  }, [filters, scope])
 
   useEffect(() => {
     loadAll()
     setPage(1)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters])
+  }, [filters, scope])
 
   const owners = useMemo(
     () =>
@@ -402,7 +407,13 @@ export default function TasksView() {
 
       <SavedViews
         page="tasks"
-        current={{ filters, sortKey, sortDir }}
+        current={{ filters: { ...filters, view: scope }, sortKey, sortDir }}
+        scopes={scopes}
+        scope={scope}
+        onScope={(v) => {
+          setFilters((f) => ({ ...f, view: v }))
+          setPage(1)
+        }}
         onApply={(d) => {
           if (d?.filters) setFilters(d.filters)
           if (d?.sortKey) setSortKey(d.sortKey)
