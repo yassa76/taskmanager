@@ -12,7 +12,11 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   if (!canManage(session, 'team')) return NextResponse.json({ error: 'Il tuo profilo non può modificare il team' }, { status: 403 })
 
   const body = await req.json()
-  const { firstName, lastName, status, role } = body
+  const { firstName, lastName, status, role, orgRoleId } = body
+
+  if (orgRoleId && !(await prisma.orgRole.findUnique({ where: { id: String(orgRoleId) } }))) {
+    return NextResponse.json({ error: 'Ruolo non valido' }, { status: 400 })
+  }
 
   if (role !== undefined) {
     const exists = ['admin', 'normal', 'read_only'].includes(role) || !!(await prisma.role.findUnique({ where: { key: String(role) } }))
@@ -47,6 +51,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
   const userUpdates: Record<string, any> = {}
   if (role !== undefined) userUpdates.role = role
+  if (orgRoleId !== undefined) userUpdates.orgRoleId = orgRoleId || null
   if (firstName !== undefined) userUpdates.firstName = firstName || null
   if (lastName !== undefined) userUpdates.lastName = lastName || null
   if (firstName !== undefined || lastName !== undefined) {

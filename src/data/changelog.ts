@@ -12,6 +12,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-11-27-ruoli-gerarchia',
+    date: '2026-11-27',
+    title: 'Ruoli ad albero per la visibilità',
+    description:
+      'Nell\'area Admin c\'è il nuovo tab Ruoli e visibilità: crei la gerarchia dell\'azienda e per ogni ruolo scegli quali task e clienti si vedono. Il ruolo di una persona si assegna da Team; passando il mouse sul profilo compare la sua descrizione. Per ora il ruolo si imposta ma non limita ancora cosa si vede.',
+    tag: 'novità'
+  },
+  {
     id: '2026-11-27-profili-e-account',
     date: '2026-11-27',
     title: 'Profili modificabili, permessi anche per Team e Admin',
