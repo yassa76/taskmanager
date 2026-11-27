@@ -135,7 +135,7 @@ export default function OrgRolesSettings() {
       <p className="text-sm text-slate-500 mb-3 max-w-3xl">
         I ruoli formano la gerarchia dell&apos;azienda e decidono <strong>chi vede cosa</strong>: per ogni ruolo scegli quali task e
         quali clienti sono visibili. Chi può fare cosa si decide invece con i Profili. Una persona senza ruolo vede tutto, come
-        prima; il profilo Admin vede sempre tutto.
+        prima; il profilo Admin vede sempre tutto. Il ruolo segnato come predefinito viene assegnato ai nuovi utenti.
       </p>
       <div className="grid lg:grid-cols-[280px_1fr] gap-4 items-start">
         <div className="bg-white border border-slate-200 rounded-xl p-3">
@@ -154,6 +154,7 @@ export default function OrgRolesSettings() {
                   <span className="truncate">
                     {r.depth > 0 && <span className="text-slate-300 mr-1">└</span>}
                     {r.name}
+                    {r.isDefault && <span className="ml-1.5 text-[10px] uppercase text-brand-600">predefinito</span>}
                   </span>
                   <span className="text-xs text-slate-400 shrink-0">{r.users}</span>
                 </button>
@@ -292,6 +293,18 @@ export default function OrgRolesSettings() {
               Un cliente visibile mostra solo i task che la persona può vedere, e i totali si calcolano su quelli. Un task è
               visibile anche se la persona ha un suo sub-task al suo interno.
             </p>
+
+            <label className="flex items-center gap-2 text-sm text-slate-700">
+              <input
+                type="checkbox"
+                className="h-4 w-4 accent-brand-600"
+                checked={sel.isDefault}
+                onChange={async (e) => {
+                  if (await call('PATCH', { id: sel.id, isDefault: e.target.checked })) await load()
+                }}
+              />
+              Predefinito per i nuovi utenti
+            </label>
 
             {error && <p className="text-sm text-red-600">{error}</p>}
             <div className="flex items-center gap-3">

@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { canManage } from '@/lib/permissions'
 import { descendantIds, loadOrgRoleRows } from '@/lib/orgRoles'
 import { isClientVisibility, isTaskVisibility } from '@/lib/visibilityShared'
+import { getDefaultOrgRoleId, setDefaultOrgRoleId } from '@/lib/defaults'
 
 // Ruoli aziendali (gerarchia). L'elenco lo leggono tutti (serve per le etichette nel Team);
 // creare, modificare ed eliminare richiede il permesso "Profili e ruoli".
@@ -14,9 +15,11 @@ export async function GET() {
   const rows = await prisma.orgRole
     .findMany({ orderBy: { createdAt: 'asc' }, include: { _count: { select: { users: true } } } })
     .catch(() => [])
+  const defaultId = await getDefaultOrgRoleId()
   return NextResponse.json({
     orgRoles: rows.map((r) => ({
       id: r.id,
+      isDefault: r.id === defaultId,
       name: r.name,
       description: r.description,
       parentId: r.parentId,
@@ -67,6 +70,11 @@ export async function PATCH(req: NextRequest) {
   const row = await prisma.orgRole.findUnique({ where: { id } })
   if (!row) return NextResponse.json({ error: 'Ruolo non trovato' }, { status: 404 })
 
+  if (typeof body.isDefault === 'boolean') {
+    if (body.isDefault) await setDefaultOrgRoleId(id)
+    else if ((await getDefaultOrgRoleId()) === id) await setDefaultOrgRoleId(null)
+  }
+
   const data: Record<string, unknown> = {}
   if (typeof body.name === 'string') {
     const name = body.name.trim().slice(0, 40)
@@ -109,6 +117,9 @@ export async function DELETE(req: NextRequest) {
   const body = await req.json().catch(() => ({}))
   const row = await prisma.orgRole.findUnique({ where: { id: String(body.id || '') } })
   if (!row) return NextResponse.json({ error: 'Ruolo non trovato' }, { status: 404 })
+  if ((await getDefaultOrgRoleId()) === row.id) {
+    return NextResponse.json({ error: 'È il ruolo predefinito dei nuovi utenti: sceglierne un altro prima di eliminarlo' }, { status: 409 })
+  }
   const users = await prisma.user.count({ where: { orgRoleId: row.id } })
   if (users > 0) {
     return NextResponse.json(
