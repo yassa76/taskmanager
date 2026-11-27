@@ -12,8 +12,8 @@ export default function CloseParentModal({
   onDismiss: () => void
 }) {
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl">
+    <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50 sm:p-4">
+      <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full max-w-md max-h-[92vh] overflow-y-auto p-4 sm:p-6 shadow-2xl">
         <h2 className="text-lg font-bold text-slate-800 mb-2">Chiudere anche il task padre?</h2>
         <p className="text-sm text-slate-500 mb-6">
           Tutti i sub-task di <span className="font-semibold text-slate-700">&quot;{task.title}&quot;</span> risultano

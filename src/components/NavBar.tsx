@@ -2,6 +2,7 @@
 
 import ChangelogLink from './ChangelogLink'
 import Link from 'next/link'
+import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { signOut, useSession } from 'next-auth/react'
 import clsx from 'clsx'
@@ -19,26 +20,35 @@ const links = [
 export default function NavBar() {
   const pathname = usePathname()
   const { data: session } = useSession()
+  const [menuOpen, setMenuOpen] = useState(false)
   const isAdmin = (session?.user as any)?.role === 'admin'
   const visibleLinks = isAdmin ? [...links, { href: '/settings', label: 'Admin' }] : links
 
+  // il menu si chiude quando si cambia pagina
+  useEffect(() => {
+    setMenuOpen(false)
+  }, [pathname])
+
+  const firstName = (session?.user as any)?.firstName
+  const lastName = (session?.user as any)?.lastName
+  const fullName = [firstName, lastName].filter(Boolean).join(' ') || session?.user?.name || session?.user?.email
+
   return (
     <header className="bg-brand-50 border-b border-brand-100 sticky top-0 z-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-14 lg:h-16">
         <div className="flex items-center gap-8">
           <Link href="/home" className="font-bold text-brand-600 text-lg hover:text-brand-700">
             Task Manager
           </Link>
-          <nav className="flex gap-1">
+          {/* menu completo solo da schermo largo; su telefono e tablet c'e' il menu a tendina */}
+          <nav className="hidden lg:flex gap-1">
             {visibleLinks.map((l) => (
               <Link
                 key={l.href}
                 href={l.href}
                 className={clsx(
                   'px-3 py-2 rounded-md text-sm font-medium transition',
-                  pathname?.startsWith(l.href)
-                    ? 'bg-white text-brand-700 shadow-sm'
-                    : 'text-slate-600 hover:bg-white/60'
+                  pathname?.startsWith(l.href) ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-600 hover:bg-white/60'
                 )}
               >
                 {l.label}
@@ -46,35 +56,77 @@ export default function NavBar() {
             ))}
           </nav>
         </div>
-        <div className="hidden md:block">
+        <div className="hidden lg:block">
           <GlobalSearch />
         </div>
         <div className="flex items-center gap-3">
-          <ChangelogLink />
+          <span className="hidden lg:block">
+            <ChangelogLink />
+          </span>
           <NotificationBell />
           {session?.user?.image && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={session.user.image} alt="" className="w-8 h-8 rounded-full" />
+            <img src={session.user.image} alt="" className="w-8 h-8 rounded-full hidden sm:block" />
           )}
-          <Link
-            href="/profile"
-            className="text-sm text-slate-600 hidden sm:block hover:text-brand-600 font-medium"
-          >
-            {(() => {
-              const firstName = (session?.user as any)?.firstName
-              const lastName = (session?.user as any)?.lastName
-              const fullName = [firstName, lastName].filter(Boolean).join(' ')
-              return fullName || session?.user?.name || session?.user?.email
-            })()}
+          <Link href="/profile" className="text-sm text-slate-600 hidden lg:block hover:text-brand-600 font-medium">
+            {fullName}
           </Link>
           <button
             onClick={() => signOut({ callbackUrl: '/login' })}
-            className="text-sm text-slate-500 hover:text-red-600 font-medium"
+            className="text-sm text-slate-500 hover:text-red-600 font-medium hidden lg:block"
           >
             Esci
           </button>
+          <button
+            onClick={() => setMenuOpen((v) => !v)}
+            className="lg:hidden w-10 h-10 -mr-2 rounded-lg flex items-center justify-center text-slate-700 hover:bg-white/70"
+            aria-label={menuOpen ? 'Chiudi il menu' : 'Apri il menu'}
+            aria-expanded={menuOpen}
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              {menuOpen ? (
+                <path d="M6 6l12 12M18 6L6 18" />
+              ) : (
+                <path d="M4 7h16M4 12h16M4 17h16" />
+              )}
+            </svg>
+          </button>
         </div>
       </div>
+
+      {menuOpen && (
+        <div className="lg:hidden border-t border-brand-100 bg-brand-50 px-4 pb-4 pt-3 max-h-[calc(100vh-3.5rem)] overflow-y-auto">
+          <div className="mb-3">
+            <GlobalSearch />
+          </div>
+          <nav className="flex flex-col gap-1">
+            {visibleLinks.map((l) => (
+              <Link
+                key={l.href}
+                href={l.href}
+                className={clsx(
+                  'px-3 py-3 rounded-lg text-base font-medium',
+                  pathname?.startsWith(l.href) ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-700 hover:bg-white/60'
+                )}
+              >
+                {l.label}
+              </Link>
+            ))}
+            <ChangelogLink mobile />
+          </nav>
+          <div className="mt-3 pt-3 border-t border-brand-100 flex items-center justify-between">
+            <Link href="/profile" className="text-sm text-slate-700 font-medium py-2">
+              {fullName}
+            </Link>
+            <button
+              onClick={() => signOut({ callbackUrl: '/login' })}
+              className="text-sm text-red-600 font-medium px-3 py-2 rounded-lg hover:bg-white/60"
+            >
+              Esci
+            </button>
+          </div>
+        </div>
+      )}
     </header>
   )
 }
