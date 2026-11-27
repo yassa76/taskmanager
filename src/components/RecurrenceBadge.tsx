@@ -1,3 +1,4 @@
+import { RepeatIcon } from './icons'
 import { recurrenceLabel, recurrenceShort } from '@/lib/recurrenceShared'
 
 // Pillola viola "🔁 Mensile" per riconoscere a colpo d'occhio i sub-task ricorrenti nelle liste.
