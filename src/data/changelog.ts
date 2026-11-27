@@ -12,6 +12,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-11-27-home-personalizzabile',
+    date: '2026-11-27',
+    title: 'Home personalizzabile',
+    description:
+      'Da computer, con il pulsante Personalizza nella Home, scegli quali blocchi mostrare (calendario, indicatori, scadenze di task e sub-task) e in che ordine. La scelta è tua e resta salvata.',
+    tag: 'novità'
+  },
+  {
     id: '2026-11-27-liste-azioni-viste',
     date: '2026-11-27',
     title: 'Task: azioni multiple e viste salvate',
