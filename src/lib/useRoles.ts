@@ -16,7 +16,7 @@ const FALLBACK: RoleOption[] = [
 
 let cache: RoleOption[] | null = null
 
-/** Ruoli disponibili (di sistema e personalizzati) con il loro nome, per etichette e menu. */
+/** Profili disponibili (di sistema e personalizzati) con il loro nome, per etichette e menu. */
 export function useRoles() {
   const [roles, setRoles] = useState<RoleOption[]>(cache ?? FALLBACK)
   useEffect(() => {
