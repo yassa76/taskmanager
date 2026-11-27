@@ -213,7 +213,7 @@ export default function ReportsView() {
         <button
           onClick={() => changeIncludeClosed(!includeClosed)}
           className={clsx(
-            'px-3 py-1.5 rounded-lg text-sm font-medium border transition ml-auto',
+            'px-3 h-9 rounded-lg text-sm font-medium border transition ml-auto',
             includeClosed
               ? 'bg-slate-100 border-slate-300 text-slate-700'
               : 'border-slate-200 text-slate-500 hover:bg-slate-50'

@@ -267,7 +267,7 @@ export default function SubtasksView() {
         <button
           onClick={() => set({ overdue: !filters.overdue })}
           className={clsx(
-            'px-3 py-1.5 rounded-lg text-sm font-medium border transition',
+            'px-3 h-9 rounded-lg text-sm font-medium border transition',
             filters.overdue ? 'bg-red-50 border-red-200 text-red-700' : 'border-slate-200 text-slate-500 hover:bg-slate-50'
           )}
         >
@@ -277,7 +277,7 @@ export default function SubtasksView() {
           onClick={() => set({ includeClosed: !filters.includeClosed })}
           title="Per default i sub-task completati e annullati sono nascosti"
           className={clsx(
-            'px-3 py-1.5 rounded-lg text-sm font-medium border transition',
+            'px-3 h-9 rounded-lg text-sm font-medium border transition',
             filters.includeClosed ? 'bg-slate-100 border-slate-300 text-slate-700' : 'border-slate-200 text-slate-500 hover:bg-slate-50'
           )}
         >
@@ -287,7 +287,7 @@ export default function SubtasksView() {
           value={filters.search}
           onChange={(e) => set({ search: e.target.value })}
           placeholder="Cerca per sub-task, task o cliente..."
-          className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm flex-1 min-w-[180px]"
+          className="border border-slate-200 rounded-lg px-3 h-9 text-sm flex-1 min-w-[180px]"
         />
       </div>
 
@@ -314,14 +314,14 @@ export default function SubtasksView() {
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="px-3 py-1.5 rounded-lg border border-slate-300 disabled:opacity-40 hover:bg-slate-100"
+              className="px-3 h-9 rounded-lg border border-slate-300 disabled:opacity-40 hover:bg-slate-100"
             >
               ← Precedente
             </button>
             <button
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
-              className="px-3 py-1.5 rounded-lg border border-slate-300 disabled:opacity-40 hover:bg-slate-100"
+              className="px-3 h-9 rounded-lg border border-slate-300 disabled:opacity-40 hover:bg-slate-100"
             >
               Successiva →
             </button>

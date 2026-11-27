@@ -390,13 +390,13 @@ export default function TasksView() {
         }
         right={
           <>
-          <div className="flex bg-slate-100 rounded-lg p-1">
+          <div className="flex h-9 bg-slate-100 rounded-lg p-0.5">
             {(['table', 'kanban'] as const).map((v) => (
               <button
                 key={v}
                 onClick={() => changeViewMode(v)}
                 className={clsx(
-                  'px-3 py-1.5 rounded-md text-sm font-medium transition',
+                  'px-3 h-full rounded-md text-sm font-medium transition',
                   viewMode === v ? 'bg-white shadow text-brand-700' : 'text-slate-500'
                 )}
               >
@@ -406,7 +406,7 @@ export default function TasksView() {
           </div>
           <button
             onClick={loadAll}
-            className="px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-medium text-slate-700 hover:bg-slate-100"
+            className="px-3 h-9 rounded-lg border border-slate-300 text-sm font-medium text-slate-700 hover:bg-slate-100"
           >
             ↻ Aggiorna
           </button>
@@ -415,7 +415,7 @@ export default function TasksView() {
               setEditingTask(null)
               setShowForm(true)
             }}
-            className="px-3 py-1.5 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700"
+            className="px-3 h-9 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700"
           >
             + Nuovo Task
           </button>
@@ -497,14 +497,14 @@ export default function TasksView() {
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="px-3 py-1.5 rounded-lg border border-slate-300 disabled:opacity-40 hover:bg-slate-100"
+              className="px-3 h-9 rounded-lg border border-slate-300 disabled:opacity-40 hover:bg-slate-100"
             >
               ← Precedente
             </button>
             <button
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
-              className="px-3 py-1.5 rounded-lg border border-slate-300 disabled:opacity-40 hover:bg-slate-100"
+              className="px-3 h-9 rounded-lg border border-slate-300 disabled:opacity-40 hover:bg-slate-100"
             >
               Successiva →
             </button>

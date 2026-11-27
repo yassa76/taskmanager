@@ -91,7 +91,7 @@ export default function Combobox({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="w-full border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-left bg-white flex items-center justify-between gap-2 hover:border-slate-300"
+        className="w-full border border-slate-200 rounded-lg px-3 h-9 text-sm text-left bg-white flex items-center justify-between gap-2 hover:border-slate-300"
       >
         <span className={clsx('truncate', !selected && 'text-slate-500')}>
           {selected ? selected.label : emptyLabel || 'Seleziona...'}

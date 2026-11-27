@@ -14,7 +14,7 @@ export default function ScopeSelect({ value, onChange }: { value: ViewScope; onC
       value={current}
       onChange={(e) => onChange(e.target.value as ViewScope)}
       aria-label="Vista"
-      className="border border-slate-300 rounded-lg px-2 py-1.5 bg-white text-sm text-slate-700"
+      className="border border-slate-300 rounded-lg px-2 h-9 bg-white text-sm text-slate-700"
     >
       {scopes.map((s) => (
         <option key={s} value={s}>

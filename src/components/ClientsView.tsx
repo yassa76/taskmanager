@@ -438,13 +438,13 @@ export default function ClientsView() {
         }
         right={
           <>
-          <div className="flex bg-slate-100 rounded-lg p-1">
+          <div className="flex h-9 bg-slate-100 rounded-lg p-0.5">
             {(['table', 'map'] as const).map((v) => (
               <button
                 key={v}
                 onClick={() => setView(v)}
                 className={clsx(
-                  'px-3 py-1.5 rounded-md text-sm font-medium transition',
+                  'px-3 h-full rounded-md text-sm font-medium transition',
                   view === v ? 'bg-white shadow text-brand-700' : 'text-slate-500'
                 )}
               >
@@ -454,13 +454,13 @@ export default function ClientsView() {
           </div>
           <button
             onClick={load}
-            className="px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-medium text-slate-700 hover:bg-slate-100"
+            className="px-3 h-9 rounded-lg border border-slate-300 text-sm font-medium text-slate-700 hover:bg-slate-100"
           >
             ↻ Aggiorna
           </button>
           <button
             onClick={openNewForm}
-            className="px-3 py-1.5 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700"
+            className="px-3 h-9 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700"
           >
             + Nuovo cliente
           </button>
@@ -539,10 +539,10 @@ export default function ClientsView() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Cerca per nome cliente..."
-          className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm flex-1 min-w-[180px]"
+          className="border border-slate-200 rounded-lg px-3 h-9 text-sm flex-1 min-w-[180px]"
         />
         {anyFilterActive && (
-          <button onClick={resetFilters} className="px-3 py-1.5 rounded-lg text-sm text-slate-500 hover:bg-slate-100">
+          <button onClick={resetFilters} className="px-3 h-9 rounded-lg text-sm text-slate-500 hover:bg-slate-100">
             ✕ Azzera filtri
           </button>
         )}
@@ -588,14 +588,14 @@ export default function ClientsView() {
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="px-3 py-1.5 rounded-lg border border-slate-300 disabled:opacity-40 hover:bg-slate-100"
+              className="px-3 h-9 rounded-lg border border-slate-300 disabled:opacity-40 hover:bg-slate-100"
             >
               ← Precedente
             </button>
             <button
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
-              className="px-3 py-1.5 rounded-lg border border-slate-300 disabled:opacity-40 hover:bg-slate-100"
+              className="px-3 h-9 rounded-lg border border-slate-300 disabled:opacity-40 hover:bg-slate-100"
             >
               Successiva →
             </button>

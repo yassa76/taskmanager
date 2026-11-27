@@ -83,7 +83,7 @@ export default function SavedViews<T>({
           const v = views.find((x) => x.id === val)
           if (v) onApply(v.data)
         }}
-        className="border border-slate-300 rounded-lg px-2 py-1.5 bg-white text-slate-700"
+        className="border border-slate-300 rounded-lg px-2 h-9 bg-white text-slate-700"
         aria-label="Viste"
       >
         {scopes && scopes.length > 0 && (
@@ -115,7 +115,7 @@ export default function SavedViews<T>({
           }}
           title="Elimina questa vista"
           aria-label="Elimina questa vista"
-          className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-slate-100"
+          className="w-9 h-9 flex items-center justify-center rounded-lg text-slate-400 hover:text-red-600 hover:bg-slate-100"
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v5M14 11v5" />
@@ -131,12 +131,12 @@ export default function SavedViews<T>({
             onKeyDown={(e) => e.key === 'Enter' && save()}
             placeholder="Nome della vista"
             maxLength={40}
-            className="border border-slate-300 rounded-lg px-2 py-1.5"
+            className="border border-slate-300 rounded-lg px-2 h-9"
           />
-          <button onClick={save} className="px-2 py-1.5 rounded-lg bg-brand-600 text-white text-xs font-medium">
+          <button onClick={save} className="px-2 h-9 rounded-lg bg-brand-600 text-white text-xs font-medium">
             Salva
           </button>
-          <button onClick={() => setSaving(false)} className="px-2 py-1.5 text-xs text-slate-500">
+          <button onClick={() => setSaving(false)} className="px-2 h-9 text-xs text-slate-500">
             Annulla
           </button>
         </span>
@@ -145,7 +145,7 @@ export default function SavedViews<T>({
           onClick={() => setSaving(true)}
           title="Salva la vista attuale (filtri e ordinamento)"
           aria-label="Salva la vista attuale"
-          className="p-1.5 rounded-lg text-slate-400 hover:text-brand-600 hover:bg-slate-100"
+          className="w-9 h-9 flex items-center justify-center rounded-lg text-slate-400 hover:text-brand-600 hover:bg-slate-100"
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M6 3h12v18l-6-4-6 4V3z" />
