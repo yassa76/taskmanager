@@ -3,6 +3,8 @@ import { cookies } from 'next/headers'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import Providers from '@/components/Providers'
+import LocaleInit from '@/components/LocaleInit'
+import { isValidTz, DEFAULT_TZ } from '@/lib/locale'
 
 const TOKEN_BY_THEME: Record<string, string> = {
   blue: 't1',
@@ -30,10 +32,13 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const tzCookie = decodeURIComponent(cookies().get('tz')?.value || '')
+  const tz = isValidTz(tzCookie) ? tzCookie : DEFAULT_TZ
   const density = cookies().get('density')?.value === 'narrow' ? 'narrow' : undefined
   return (
     <html lang="it" data-density={density}>
       <body className={inter.variable}>
+        <LocaleInit tz={tz} />
         <Providers>{children}</Providers>
       </body>
     </html>

@@ -1,5 +1,6 @@
 'use client'
 
+import { formatDateTime } from '@/lib/locale'
 import React from 'react'
 import { KeyIcon, MessageIcon, UserIcon, CalendarIcon, ClockIcon, BellIcon } from './icons'
 import clsx from 'clsx'
@@ -20,7 +21,7 @@ export interface NotificationItem {
 const ICONS: Record<string, React.ComponentType<{ className?: string }>> = { richiesta_accesso: KeyIcon, menzione: MessageIcon, assegnato: UserIcon, scadenza_cambiata: CalendarIcon, in_scadenza: ClockIcon }
 
 export function whenLabel(iso: string) {
-  return new Date(iso).toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'short' })
+  return formatDateTime(iso)
 }
 
 export function notificationHref(i: NotificationItem) {

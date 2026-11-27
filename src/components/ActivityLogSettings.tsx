@@ -1,5 +1,6 @@
 'use client'
 
+import { formatDateTime } from '@/lib/locale'
 import { formatNumber } from '@/lib/formatNumber'
 import { ArrowLeftIcon, ArrowRightIcon } from './icons'
 import { useEffect, useState } from 'react'
@@ -76,7 +77,7 @@ export default function ActivityLogSettings() {
   const pages = Math.max(1, Math.ceil(total / pageSize))
 
   function fmt(iso: string) {
-    return new Date(iso).toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'short' })
+    return formatDateTime(iso)
   }
 
   return (

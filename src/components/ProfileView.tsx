@@ -8,6 +8,8 @@ import clsx from 'clsx'
 import { useSearchParams } from 'next/navigation'
 import NotificationsView from './NotificationsView'
 import { applyDensity } from './DensityApplier'
+import { TIMEZONES, localeForTz, getTimeZone } from '@/lib/locale'
+import { saveTzCookie } from './LocaleApplier'
 
 const THEMES: { key: string; label: string; swatch: string }[] = [
   { key: 'blue', label: 'Blu', swatch: '#2f49b3' },
@@ -30,6 +32,7 @@ function PreferencesPanel() {
   const [email, setEmail] = useState('')
   const [themeColor, setThemeColor] = useState('blue')
   const [density, setDensity] = useState<'wide' | 'narrow'>('wide')
+  const [timeZone, setTimeZoneState] = useState(getTimeZone())
 
   useEffect(() => {
     fetch('/api/profile')
@@ -46,6 +49,20 @@ function PreferencesPanel() {
       .then((d) => d && setDensity(d.density === 'narrow' ? 'narrow' : 'wide'))
       .catch(() => {})
   }, [])
+
+  // il fuso orario (e con lui il formato di numeri e date) si salva subito e ricarica la pagina per applicarlo
+  async function changeTimeZone(tz: string) {
+    setTimeZoneState(tz)
+    const res = await fetch('/api/profile/locale', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ timeZone: tz })
+    }).catch(() => null)
+    if (res?.ok) {
+      saveTzCookie(tz)
+      window.location.reload()
+    }
+  }
 
   // la densita' si applica e si salva subito, senza bisogno di "Salva modifiche"
   async function changeDensity(v: 'wide' | 'narrow') {
@@ -132,6 +149,25 @@ function PreferencesPanel() {
               </button>
             ))}
           </div>
+        </div>
+
+        <div>
+          <label className="text-xs font-medium text-slate-500 block mb-2">Fuso orario e formato</label>
+          <select
+            value={timeZone}
+            onChange={(e) => changeTimeZone(e.target.value)}
+            className="border border-slate-300 rounded-lg px-3 h-9 bg-white text-sm text-slate-700 w-full sm:w-72"
+          >
+            {TIMEZONES.map((t) => (
+              <option key={t.tz} value={t.tz}>
+                {t.label}
+              </option>
+            ))}
+          </select>
+          <p className="text-xs text-slate-500 mt-1">
+            Da qui l&apos;app sceglie il separatore dei numeri e il formato di date e orari. Esempio:{' '}
+            {new Intl.NumberFormat(localeForTz(timeZone), { useGrouping: 'always' as unknown as boolean }).format(1234567.89)}
+          </p>
         </div>
 
         <div className="hidden lg:block">

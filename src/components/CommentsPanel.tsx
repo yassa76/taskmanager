@@ -1,5 +1,6 @@
 'use client'
 
+import { formatDateTime } from '@/lib/locale'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { getInitials } from '@/lib/initials'
@@ -46,7 +47,7 @@ function mentionsFromStored(body: string): Record<string, string> {
 }
 
 function formatWhen(iso: string) {
-  return new Date(iso).toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'short' })
+  return formatDateTime(iso)
 }
 
 function CommentInput({
