@@ -1,5 +1,6 @@
 'use client'
 
+import { ArrowLeftIcon, ArrowRightIcon } from './icons'
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import clsx from 'clsx'
@@ -285,14 +286,14 @@ export default function HomeDeadlineList({
             disabled={page === 1}
             className="px-2 py-1 rounded border border-slate-200 disabled:opacity-40 hover:bg-slate-100"
           >
-            ←
+            <ArrowLeftIcon />
           </button>
           <button
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page === totalPages}
             className="px-2 py-1 rounded border border-slate-200 disabled:opacity-40 hover:bg-slate-100"
           >
-            →
+            <ArrowRightIcon />
           </button>
         </div>
       </div>

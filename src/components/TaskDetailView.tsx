@@ -1,6 +1,6 @@
 'use client'
 
-import { CheckboxIcon } from './icons'
+import { CheckboxIcon, ArrowLeftIcon, ArrowRightIcon, RefreshIcon, EditIcon, DeleteIcon, IconSelectWrap, UserIcon, CalendarIcon, RepeatIcon, PlayIcon, CheckIcon, SubArrowIcon, WarningIcon } from './icons'
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -15,7 +15,6 @@ import Breadcrumbs from './Breadcrumbs'
 import DataTable, { type Column } from './DataTable'
 import ActivityLogPanel from './ActivityLogPanel'
 import CommentsPanel from './CommentsPanel'
-import { EditIcon, DeleteIcon } from './icons'
 import ReadOnlyGuard from './ReadOnlyGuard'
 import RecurrenceFields from './RecurrenceFields'
 import RecurrenceBadge from './RecurrenceBadge'
@@ -348,7 +347,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
                   onClick={startTask}
                   className="px-3 py-1.5 rounded-lg bg-amber-500 text-white text-sm font-medium hover:bg-amber-600"
                 >
-                  ▶ Avvia
+                  <PlayIcon /> Avvia
                 </button>
               </ReadOnlyGuard>
             )}
@@ -356,7 +355,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
               onClick={load}
               className="px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-medium text-slate-600 hover:bg-slate-100"
             >
-              ↻ Aggiorna
+              <RefreshIcon /> Aggiorna
             </button>
             <ReadOnlyGuard className="flex gap-2">
               <button
@@ -401,10 +400,11 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
                 {task.owner.name || task.owner.email}
               </Link>
               <ReadOnlyGuard className="inline-flex">
-                <select
+<IconSelectWrap title="Cambia owner" icon={<UserIcon />}>
+<select
                   value={task.owner.id}
                   onChange={(e) => patchTask({ ownerId: e.target.value })}
-                  className="w-6 h-6 text-transparent bg-transparent border border-slate-200 rounded cursor-pointer"
+                  className=""
                   title="Cambia owner"
                   aria-label="Cambia owner"
                 >
@@ -414,7 +414,8 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
                     </option>
                   ))}
                 </select>
-              </ReadOnlyGuard>
+</IconSelectWrap>
+</ReadOnlyGuard>
             </div>
           </div>
           <div>
@@ -434,15 +435,18 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
                 {task.endDate ? formatDate(task.endDate) : '—'}
               </p>
               <ReadOnlyGuard className="inline-flex">
-                <input
+<IconSelectWrap title="Cambia scadenza" icon={<CalendarIcon />}>
+<input
                   type="date"
+                  onClick={(e) => (e.currentTarget as HTMLInputElement).showPicker?.()}
                   value={task.endDate ? task.endDate.slice(0, 10) : ''}
                   onChange={(e) => patchTask({ endDate: e.target.value || null })}
-                  className="w-6 h-6 text-transparent bg-transparent border border-slate-200 rounded cursor-pointer"
+                  className=""
                   title="Cambia scadenza"
                   aria-label="Cambia scadenza"
                 />
-              </ReadOnlyGuard>
+</IconSelectWrap>
+</ReadOnlyGuard>
             </div>
           </div>
         </div>
@@ -462,7 +466,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
             onClick={load}
             className="text-xs text-slate-500 font-medium hover:text-brand-600"
           >
-            ↻ Aggiorna
+            <RefreshIcon /> Aggiorna
           </button>
         </div>
 
@@ -487,7 +491,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
                 : 'border-slate-200 text-slate-500 hover:bg-slate-50'
             )}
           >
-            ⚠ In ritardo
+            <WarningIcon /> In ritardo
           </button>
           <button
             onClick={() => setSubIncludeClosed((v) => !v)}
@@ -530,14 +534,14 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
                 disabled={subPage === 1}
                 className="px-2 py-1 rounded border border-slate-200 disabled:opacity-40 hover:bg-slate-100"
               >
-                ←
+                <ArrowLeftIcon />
               </button>
               <button
                 onClick={() => setSubPage((p) => Math.min(subTotalPages, p + 1))}
                 disabled={subPage === subTotalPages}
                 className="px-2 py-1 rounded border border-slate-200 disabled:opacity-40 hover:bg-slate-100"
               >
-                →
+                <ArrowRightIcon />
               </button>
             </div>
           </div>

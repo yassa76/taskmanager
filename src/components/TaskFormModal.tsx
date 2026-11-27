@@ -1,5 +1,6 @@
 'use client'
 
+import { CloseIcon } from './icons'
 import { RECURRENCE_HELP, RECURRENCE_OPTIONS, RECURRENCE_SHORT } from '@/lib/recurrenceShared'
 import { useState } from 'react'
 import type { ClientDTO, TaskDTO } from '@/types'
@@ -311,7 +312,7 @@ export default function TaskFormModal({
                       <option value="">Singolo</option>
                       {RECURRENCE_OPTIONS.map((o) => (
                         <option key={o.value} value={o.value}>
-                          🔁 {o.label}
+                          {o.label}
                         </option>
                       ))}
                     </select>
@@ -329,7 +330,7 @@ export default function TaskFormModal({
                       onClick={() => removeSubtask(i)}
                       className="text-slate-400 hover:text-red-600 px-2"
                     >
-                      ✕
+                      <CloseIcon />
                     </button>
                   </div>
                 ))}

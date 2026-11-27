@@ -1,6 +1,6 @@
 'use client'
 
-import { CheckboxIcon } from './icons'
+import { CheckboxIcon, ArrowLeftIcon, ArrowRightIcon, RefreshIcon, WarningIcon} from './icons'
 import { filterSelectClass } from '@/lib/ui'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
@@ -239,7 +239,7 @@ export default function SubtasksView() {
         }
         right={
           <button onClick={load} className={BTN}>
-            ↻ Aggiorna
+            <RefreshIcon /> Aggiorna
           </button>
         }
       />
@@ -271,7 +271,7 @@ export default function SubtasksView() {
             filters.overdue ? 'bg-red-50 border-red-200 text-red-700' : 'border-slate-200 text-slate-500 hover:bg-slate-50'
           )}
         >
-          ⚠ In ritardo
+          <WarningIcon /> In ritardo
         </button>
         <button
           onClick={() => set({ includeClosed: !filters.includeClosed })}
@@ -316,14 +316,14 @@ export default function SubtasksView() {
               disabled={page === 1}
               className="px-3 h-9 rounded-lg border border-slate-300 disabled:opacity-40 hover:bg-slate-100"
             >
-              ← Precedente
+              <ArrowLeftIcon /> Precedente
             </button>
             <button
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
               className="px-3 h-9 rounded-lg border border-slate-300 disabled:opacity-40 hover:bg-slate-100"
             >
-              Successiva →
+              Successiva <ArrowRightIcon />
             </button>
           </div>
         </div>

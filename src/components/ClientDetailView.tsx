@@ -1,6 +1,6 @@
 'use client'
 
-import { CheckboxIcon } from './icons'
+import { CheckboxIcon, ArrowLeftIcon, ArrowRightIcon, RefreshIcon, WarningIcon, PinIcon, EditIcon, DeleteIcon } from './icons'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import clsx from 'clsx'
@@ -10,7 +10,6 @@ import { getInitials } from '@/lib/initials'
 import Breadcrumbs from './Breadcrumbs'
 import DataTable, { type Column } from './DataTable'
 import ActivityLogPanel from './ActivityLogPanel'
-import { EditIcon, DeleteIcon } from './icons'
 import TaskFormModal from './TaskFormModal'
 import Combobox from './Combobox'
 import ClientLocationFields from './ClientLocationFields'
@@ -297,7 +296,7 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
               onClick={load}
               className="px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-medium text-slate-600 hover:bg-slate-100"
             >
-              ↻ Aggiorna
+              <RefreshIcon /> Aggiorna
             </button>
             <ReadOnlyGuard className="inline-flex">
               <button
@@ -313,7 +312,7 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
         {client.description && <p className="text-slate-500 text-sm mt-2">{client.description}</p>}
         {(client.address || client.city || client.country) && (
           <p className="text-sm text-slate-500 mt-2">
-            📍{' '}
+            <PinIcon className="w-4 h-4 text-brand-600 mr-1" />
             {[
               client.address,
               client.country === 'IT'
@@ -351,9 +350,10 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
                   setEditingTask(null)
                   setShowTaskForm(true)
                 }}
-                className="px-3 py-1.5 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700"
+                title="Nuovo task" aria-label="Nuovo task"
+            className="px-3 py-1.5 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700"
               >
-                + Nuovo Task
+                + Nuovo
               </button>
             </ReadOnlyGuard>
           )}
@@ -378,7 +378,7 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
               overdueOnly ? 'bg-red-50 border-red-200 text-red-700' : 'border-slate-200 text-slate-500 hover:bg-slate-50'
             )}
           >
-            ⚠ In ritardo
+            <WarningIcon /> In ritardo
           </button>
           <button
             onClick={() => setIncludeClosed((v) => !v)}
@@ -421,14 +421,14 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
                 disabled={page === 1}
                 className="px-2 py-1 rounded border border-slate-200 disabled:opacity-40 hover:bg-slate-100"
               >
-                ←
+                <ArrowLeftIcon />
               </button>
               <button
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
                 className="px-2 py-1 rounded border border-slate-200 disabled:opacity-40 hover:bg-slate-100"
               >
-                →
+                <ArrowRightIcon />
               </button>
             </div>
           </div>

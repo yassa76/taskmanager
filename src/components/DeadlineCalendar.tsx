@@ -1,5 +1,6 @@
 'use client'
 
+import { ArrowLeftIcon, ArrowRightIcon, SubArrowIcon} from './icons'
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import RecurrenceBadge from './RecurrenceBadge'
@@ -94,7 +95,7 @@ export default function DeadlineCalendar({ items }: { items: CalendarItem[] }) {
           onClick={prevMonth}
           className="w-6 h-6 text-xs rounded-md hover:bg-slate-100 text-slate-500 flex items-center justify-center"
         >
-          ←
+          <ArrowLeftIcon />
         </button>
         <h2 className="font-semibold text-slate-800 text-sm">
           {MONTH_NAMES[viewMonth]} {viewYear}
@@ -103,7 +104,7 @@ export default function DeadlineCalendar({ items }: { items: CalendarItem[] }) {
           onClick={nextMonth}
           className="w-6 h-6 text-xs rounded-md hover:bg-slate-100 text-slate-500 flex items-center justify-center"
         >
-          →
+          <ArrowRightIcon />
         </button>
       </div>
 
@@ -170,7 +171,7 @@ export default function DeadlineCalendar({ items }: { items: CalendarItem[] }) {
                     {item.clientName || '—'}
                   </span>
                   <span className="flex-1 text-brand-600 font-medium truncate min-w-0" title={item.title}>
-                    {item.type === 'subtask' ? '↳ ' : ''}
+                    {item.type === 'subtask' ? <SubArrowIcon className="w-3.5 h-3.5 mr-0.5" /> : null}
                     {item.title}
                   </span>
                   <RecurrenceBadge recurrence={item.recurrence} />

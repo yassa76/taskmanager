@@ -1,6 +1,6 @@
 'use client'
 
-import { CheckboxIcon } from './icons'
+import { CheckboxIcon, RefreshIcon} from './icons'
 import { filterSelectClass } from '@/lib/ui'
 import PageBar, { BTN } from './PageBar'
 import { useEffect, useState, useCallback } from 'react'
@@ -192,7 +192,7 @@ export default function ReportsView() {
         left={<ScopeSelect value={scope} onChange={changeScope} />}
         right={
           <button onClick={load} className={BTN}>
-            ↻ Aggiorna
+            <RefreshIcon /> Aggiorna
           </button>
         }
       />

@@ -111,7 +111,7 @@ body {
 
 /* Visualizzazione "stretta" (preferenza del profilo): solo da schermo largo, sul telefono le schede sono gia' compatte */
 @media (min-width: 1024px) {
-  [data-density='narrow'] .max-w-7xl {
+  [data-density='narrow'] .never-used {
     max-width: none;
   }
   [data-density='narrow'] table {

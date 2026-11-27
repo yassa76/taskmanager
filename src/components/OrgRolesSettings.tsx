@@ -1,5 +1,6 @@
 'use client'
 
+import { CheckIcon } from './icons'
 import { useCallback, useEffect, useState } from 'react'
 import { useCan } from '@/lib/useCan'
 import clsx from 'clsx'
@@ -316,7 +317,7 @@ export default function OrgRolesSettings() {
               >
                 {saving ? 'Salvataggio...' : 'Salva'}
               </button>}
-              {saved && <span className="text-sm text-emerald-600">Salvato ✓</span>}
+              {saved && <span className="text-sm text-emerald-600">Salvato <CheckIcon /></span>}
               {canDelete && (
                 <button onClick={remove} className="ml-auto text-sm text-red-600 hover:underline">
                   Elimina ruolo

@@ -1,5 +1,7 @@
 'use client'
 
+import React from 'react'
+import { KeyIcon, MessageIcon, UserIcon, CalendarIcon, ClockIcon, BellIcon } from './icons'
 import clsx from 'clsx'
 
 export interface NotificationItem {
@@ -15,7 +17,7 @@ export interface NotificationItem {
   message: string | null
 }
 
-const ICONS: Record<string, string> = { richiesta_accesso: '🔑', menzione: '💬', assegnato: '👤', scadenza_cambiata: '📅', in_scadenza: '⏰' }
+const ICONS: Record<string, React.ComponentType<{ className?: string }>> = { richiesta_accesso: KeyIcon, menzione: MessageIcon, assegnato: UserIcon, scadenza_cambiata: CalendarIcon, in_scadenza: ClockIcon }
 
 export function whenLabel(iso: string) {
   return new Date(iso).toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'short' })
@@ -40,8 +42,11 @@ export default function NotificationRow({ item, onClick }: { item: NotificationI
       )}
     >
       <div className="flex items-start gap-2">
-        <span className="shrink-0 text-base leading-5" aria-hidden>
-          {ICONS[item.reason] ?? '🔔'}
+        <span className="shrink-0 text-brand-600 mt-0.5" aria-hidden>
+          {(() => {
+            const Icon = ICONS[item.reason] ?? BellIcon
+            return <Icon className="w-4 h-4" />
+          })()}
         </span>
         <div className="min-w-0 flex-1">
           {mention ? (

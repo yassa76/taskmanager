@@ -10,7 +10,7 @@ import clsx from 'clsx'
 import Link from 'next/link'
 import type { ClientDTO, TeamMemberDTO } from '@/types'
 import DataTable, { type Column } from './DataTable'
-import { EditIcon, DeleteIcon } from './icons'
+import { EditIcon, DeleteIcon, ArrowLeftIcon, ArrowRightIcon, CloseIcon, RefreshIcon, ListIcon, MapIcon} from './icons'
 import Combobox from './Combobox'
 import ClientLocationFields from './ClientLocationFields'
 import ClientsMap from './ClientsMap'
@@ -448,7 +448,7 @@ export default function ClientsView() {
                   view === v ? 'bg-white shadow text-brand-700' : 'text-slate-500'
                 )}
               >
-                {v === 'table' ? '☰ Tabella' : '🗺 Mappa'}
+                {v === 'table' ? <><ListIcon /> Tabella</> : <><MapIcon /> Mappa</>}
               </button>
             ))}
           </div>
@@ -456,13 +456,14 @@ export default function ClientsView() {
             onClick={load}
             className="px-3 h-9 rounded-lg border border-slate-300 text-sm font-medium text-slate-700 hover:bg-slate-100"
           >
-            ↻ Aggiorna
+            <RefreshIcon /> Aggiorna
           </button>
           <button
             onClick={openNewForm}
+            title="Nuovo cliente" aria-label="Nuovo cliente"
             className="px-3 h-9 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700"
           >
-            + Nuovo cliente
+            + Nuovo
           </button>
           </>
         }
@@ -543,7 +544,7 @@ export default function ClientsView() {
         />
         {anyFilterActive && (
           <button onClick={resetFilters} className="px-3 h-9 rounded-lg text-sm text-slate-500 hover:bg-slate-100">
-            ✕ Azzera filtri
+            <CloseIcon /> Azzera filtri
           </button>
         )}
       </div>
@@ -590,14 +591,14 @@ export default function ClientsView() {
               disabled={page === 1}
               className="px-3 h-9 rounded-lg border border-slate-300 disabled:opacity-40 hover:bg-slate-100"
             >
-              ← Precedente
+              <ArrowLeftIcon /> Precedente
             </button>
             <button
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
               className="px-3 h-9 rounded-lg border border-slate-300 disabled:opacity-40 hover:bg-slate-100"
             >
-              Successiva →
+              Successiva <ArrowRightIcon />
             </button>
           </div>
         </div>
