@@ -38,7 +38,7 @@ export async function PUT(req: NextRequest) {
   if (monthlyLimit > FREE_MONTHLY_CAP) {
     return NextResponse.json(
       {
-        error: `Il limite mensile non puo' superare ${FREE_MONTHLY_CAP.toLocaleString('it-IT')}: oltre questa soglia Google addebita il servizio.`
+        error: `Il limite mensile non puo' superare ${String(FREE_MONTHLY_CAP).replace(/\B(?=(\d{3})+(?!\d))/g, '.')}: oltre questa soglia Google addebita il servizio.`
       },
       { status: 400 }
     )

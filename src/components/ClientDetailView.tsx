@@ -1,5 +1,6 @@
 'use client'
 
+import { formatNumber } from '@/lib/formatNumber'
 import { BTN_PRIMARY } from './PageBar'
 import { CheckboxIcon, ArrowLeftIcon, ArrowRightIcon, RefreshIcon, WarningIcon, PinIcon, EditIcon, DeleteIcon } from './icons'
 import { useEffect, useState } from 'react'
@@ -414,7 +415,7 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
         {visibleTasks.length > PAGE_SIZE && (
           <div className="flex items-center justify-between px-4 py-2 border-t border-slate-100 text-xs text-slate-500">
             <span>
-              {visibleTasks.length} task — pagina {page} di {totalPages}
+              {formatNumber(visibleTasks.length)} task — pagina {page} di {totalPages}
             </span>
             <div className="flex gap-1">
               <button

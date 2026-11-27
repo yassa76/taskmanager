@@ -1,5 +1,6 @@
 'use client'
 
+import { formatNumber } from '@/lib/formatNumber'
 import { useEffect, useState } from 'react'
 import clsx from 'clsx'
 import { useSearchParams } from 'next/navigation'
@@ -28,7 +29,7 @@ function UsageBar({ label, used, limit }: { label: string; used: number; limit: 
       <div className="flex justify-between text-sm">
         <span className="text-slate-600">{label}</span>
         <span className="font-medium text-slate-800">
-          {used.toLocaleString('it-IT')} / {limit.toLocaleString('it-IT')}
+          {formatNumber(used)} / {formatNumber(limit)}
         </span>
       </div>
       <div className="w-full bg-slate-100 rounded-full h-2 mt-1">
@@ -101,10 +102,10 @@ function GeocodeSettingsPanel() {
 
   const dirty = daily !== String(data.dailyLimit) || monthly !== String(data.monthlyLimit)
   const tooltip =
-    `Google Maps è gratuito solo fino a ${data.freeMonthlyCap.toLocaleString('it-IT')} richieste al mese per la verifica degli indirizzi: ` +
+    `Google Maps è gratuito solo fino a ${formatNumber(data.freeMonthlyCap)} richieste al mese per la verifica degli indirizzi: ` +
     `oltre questa soglia costa circa 5 $ ogni 1.000 richieste. ` +
     `Per evitare costi, l'app blocca il pulsante "Verifica indirizzo" quando raggiunge uno dei due limiti. ` +
-    `Il limite mensile non può superare ${data.freeMonthlyCap.toLocaleString('it-IT')}. ` +
+    `Il limite mensile non può superare ${formatNumber(data.freeMonthlyCap)}. ` +
     `I conteggi seguono il fuso orario del Pacifico, come Google, e riguardano solo le richieste fatte da questa app.`
 
   return (
@@ -155,7 +156,7 @@ function GeocodeSettingsPanel() {
           </div>
           <div>
             <label className="text-xs font-medium text-slate-500">
-              Limite mensile (massimo {data.freeMonthlyCap.toLocaleString('it-IT')})
+              Limite mensile (massimo {formatNumber(data.freeMonthlyCap)})
             </label>
             <input
               type="number"

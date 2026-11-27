@@ -1,5 +1,6 @@
 'use client'
 
+import { formatNumber } from '@/lib/formatNumber'
 import { ArrowLeftIcon, ArrowRightIcon } from './icons'
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -239,7 +240,7 @@ export default function NotificationsView() {
       </div>
 
       <div className="flex items-center justify-between mt-3 text-sm text-slate-500">
-        <span>{total.toLocaleString('it-IT')} notifiche</span>
+        <span>{formatNumber(total)} notifiche</span>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}

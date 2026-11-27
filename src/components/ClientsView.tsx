@@ -1,5 +1,6 @@
 'use client'
 
+import { formatNumber } from '@/lib/formatNumber'
 import { filterSelectClass } from '@/lib/ui'
 import PageBar, { BTN, BTN_PRIMARY } from './PageBar'
 import SavedViews from './SavedViews'
@@ -583,7 +584,7 @@ export default function ClientsView() {
       {sortedClients.length > PAGE_SIZE && (
         <div className="flex items-center justify-between mt-3 text-sm text-slate-500">
           <span>
-            {sortedClients.length} clienti totali — pagina {page} di {totalPages}
+            {formatNumber(sortedClients.length)} clienti totali — pagina {page} di {totalPages}
           </span>
           <div className="flex gap-1">
             <button

@@ -1,5 +1,6 @@
 'use client'
 
+import { formatNumber } from '@/lib/formatNumber'
 import { ArrowLeftIcon, ArrowRightIcon } from './icons'
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
@@ -194,7 +195,7 @@ export default function HomeDeadlineList({
                   : 'text-slate-600 border-slate-200 hover:bg-slate-100'
               )}
             >
-              {c.label} ({counts[c.key]})
+              {c.label} ({formatNumber(counts[c.key])})
             </button>
           ))}
         </div>
@@ -263,7 +264,7 @@ export default function HomeDeadlineList({
       </table>
       <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-1.5 border-t border-slate-100 text-sm text-slate-500">
         <span>
-          {from}–{to} di {visible.length}
+          {formatNumber(from)}–{formatNumber(to)} di {formatNumber(visible.length)}
         </span>
         <div className="flex items-center gap-2">
           <select

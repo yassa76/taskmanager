@@ -1,5 +1,6 @@
 'use client'
 
+import { formatNumber } from '@/lib/formatNumber'
 import PageBar, { BTN, BTN_PRIMARY } from './PageBar'
 import DataTable, { type Column } from './DataTable'
 import { formatDate } from '@/lib/formatDate'
@@ -492,7 +493,7 @@ export default function TasksView() {
       {filteredTasks.length > 0 && (
         <div className="flex items-center justify-between mt-3 text-sm text-slate-500">
           <span>
-            {filteredTasks.length} task totali — pagina {page} di {totalPages}
+            {formatNumber(filteredTasks.length)} task totali — pagina {page} di {totalPages}
           </span>
           <div className="flex gap-1">
             <button

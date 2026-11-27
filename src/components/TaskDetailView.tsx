@@ -1,5 +1,6 @@
 'use client'
 
+import { formatNumber } from '@/lib/formatNumber'
 import { CheckboxIcon, ArrowLeftIcon, ArrowRightIcon, RefreshIcon, EditIcon, DeleteIcon, IconSelectWrap, UserIcon, CalendarIcon, RepeatIcon, PlayIcon, CheckIcon, SubArrowIcon, WarningIcon } from './icons'
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
@@ -526,7 +527,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
         {visibleSubtasks.length > SUB_PAGE_SIZE && (
           <div className="flex items-center justify-between px-4 py-2 border-t border-slate-100 text-xs text-slate-500">
             <span>
-              {visibleSubtasks.length} sub-task — pagina {subPage} di {subTotalPages}
+              {formatNumber(visibleSubtasks.length)} sub-task — pagina {subPage} di {subTotalPages}
             </span>
             <div className="flex gap-1">
               <button

@@ -1,5 +1,6 @@
 'use client'
 
+import { formatNumber } from '@/lib/formatNumber'
 import { ArrowLeftIcon, ArrowRightIcon } from './icons'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
@@ -170,7 +171,7 @@ export default function ActivityLogSettings() {
           </div>
 
           <div className="flex items-center justify-between mt-3 text-sm text-slate-500">
-            <span>{total.toLocaleString('it-IT')} modifiche</span>
+            <span>{formatNumber(total)} modifiche</span>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
