@@ -1,5 +1,6 @@
 'use client'
 
+import { CheckboxIcon } from './icons'
 import { useRoles } from '@/lib/useRoles'
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
@@ -350,7 +351,7 @@ export default function OwnerDetailView({ ownerId }: { ownerId: string }) {
                 : 'border-slate-200 text-slate-500 hover:bg-slate-50'
             )}
           >
-            {includeClosed ? '☑' : '☐'} Mostra completati/annullati
+            <CheckboxIcon checked={includeClosed} /> Mostra completati/annullati
           </button>
           <input
             value={search}
@@ -416,7 +417,7 @@ export default function OwnerDetailView({ ownerId }: { ownerId: string }) {
                 : 'border-slate-200 text-slate-500 hover:bg-slate-50'
             )}
           >
-            {subIncludeClosed ? '☑' : '☐'} Mostra completati/annullati
+            <CheckboxIcon checked={subIncludeClosed} /> Mostra completati/annullati
           </button>
           <input
             value={subSearch}

@@ -79,14 +79,9 @@ export default function ActivityLogSettings() {
 
   return (
     <div className="bg-white border border-slate-200 rounded-xl p-5">
-      <h2 className="font-semibold text-slate-800">Registro modifiche</h2>
-      <p className="text-sm text-slate-500 mt-1">
-        Creazioni, cambi di stato, owner e scadenza, eliminazioni di task, sub-task e clienti, con chi le ha fatte.
-      </p>
-
       <RetentionSelect kind="activity" />
 
-      <div className="flex flex-wrap gap-2 mt-4">
+      <div className="flex flex-wrap gap-2 mt-3">
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -197,6 +192,9 @@ export default function ActivityLogSettings() {
           </div>
         </>
       )}
+      <p className="text-xs text-slate-400 mt-4">
+        Creazioni, cambi di stato, owner e scadenza, eliminazioni di task, sub-task e clienti, con chi le ha fatte.
+      </p>
     </div>
   )
 }

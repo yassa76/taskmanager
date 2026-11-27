@@ -12,6 +12,30 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-11-27-frecce-icone',
+    date: '2026-11-27',
+    title: 'Frecce e caselle sempre visibili',
+    description:
+      'Nei menu a tendina con ricerca (owner, cliente...) la freccia non compare più come un quadratino bianco su alcuni dispositivi. Stesso fix per le frecce di ordinamento delle tabelle e per le caselle "Mostra completati/annullati".',
+    tag: 'correzione'
+  },
+  {
+    id: '2026-11-27-account-sottoviste',
+    date: '2026-11-27',
+    title: 'Stessa struttura in tutta l\'app',
+    description:
+      'Anche Il mio account ha le sue sottoviste sotto il menu (Preferenze personali, Notifiche con il totale e le nuove). Nel Team, in Admin e nell\'account le spiegazioni sono ora in fondo, in piccolo, e le sezioni partono subito dal contenuto.',
+    tag: 'miglioramento'
+  },
+  {
+    id: '2026-11-27-dettagli-menu',
+    date: '2026-11-27',
+    title: 'Ritocchi: ricerca, avvisi, uscita, filtri',
+    description:
+      'La ricerca dice solo "Cerca". Nel menu degli avvisi i tab mostrano il totale tra parentesi e le nuove, come nel tuo account. "Esci" diventa un\'icona e chiede conferma. Task, Sub-task e Clienti si aprono di default sui tuoi record. I menu dei filtri sono grigi finché non ne scegli uno.',
+    tag: 'miglioramento'
+  },
+  {
     id: '2026-11-27-layout-uniforme',
     date: '2026-11-27',
     title: 'Pagine con la stessa impostazione',

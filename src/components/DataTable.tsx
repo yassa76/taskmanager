@@ -1,5 +1,6 @@
 'use client'
 
+import { ChevronDownIcon, ChevronUpIcon } from './icons'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import clsx from 'clsx'
 import { useColumnPrefs } from '@/lib/useColumnPrefs'
@@ -423,7 +424,7 @@ export default function DataTable<T>({
                     )}
                   >
                     {c.label}
-                    {c.sortKey && sortKey === c.sortKey ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}
+                    {c.sortKey && sortKey === c.sortKey ? (sortDir === 'asc' ? <ChevronUpIcon className="inline w-3 h-3 ml-0.5" /> : <ChevronDownIcon className="inline w-3 h-3 ml-0.5" />) : null}
                   </th>
                 )
               })}

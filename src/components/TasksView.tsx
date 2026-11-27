@@ -31,7 +31,7 @@ export default function TasksView() {
   const [loading, setLoading] = useState(true)
   // Filtri iniziali: possono arrivare dall'URL (es. click su un KPI in Home).
   const [filters, setFilters] = useState<FilterState>(() => ({
-    view: isViewScope(searchParams.get('scope')) ? (searchParams.get('scope') as ViewScope) : searchParams.get('view') === 'mine' ? 'mine' : 'all',
+    view: isViewScope(searchParams.get('scope')) ? (searchParams.get('scope') as ViewScope) : 'mine',
     clientId: searchParams.get('clientId') || '',
     ownerId: searchParams.get('ownerId') || '',
     status: searchParams.get('status') || '',

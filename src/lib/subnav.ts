@@ -8,6 +8,8 @@ export interface SubNavItem {
   label: string
   href: string
   perm?: [ObjectKey, ActionKey]
+  /** mostra il totale delle notifiche tra parentesi e il marker "N nuove" */
+  badge?: 'notifications'
   active: (pathname: string, tab: string | null) => boolean
 }
 
@@ -37,6 +39,15 @@ export const ADMIN_ITEMS: SubNavItem[] = [
 ]
 
 export const SUBNAV: SubNavSection[] = [
+  {
+    id: 'account',
+    applies: (p) => p.startsWith('/profile'),
+    fallbackFirst: true,
+    items: [
+      { id: 'preferenze', label: 'Preferenze personali', href: '/profile?tab=preferenze', active: (_p, tab) => tab === 'preferenze' },
+      { id: 'notifiche', label: 'Notifiche', href: '/profile?tab=notifiche', badge: 'notifications', active: (_p, tab) => tab === 'notifiche' }
+    ]
+  },
   {
     id: 'admin',
     applies: (p) => p.startsWith('/settings'),

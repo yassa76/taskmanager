@@ -93,7 +93,7 @@ export default function GlobalSearch() {
         onFocus={() => {
           if (groups.length > 0) setOpen(true)
         }}
-        placeholder="Cerca task, clienti, persone..."
+        placeholder="Cerca"
         className="w-full border border-slate-200 rounded-lg px-3 py-1.5 text-sm bg-white"
       />
       {open && (

@@ -1,5 +1,7 @@
 'use client'
 
+import { CheckboxIcon } from './icons'
+import { filterSelectClass } from '@/lib/ui'
 import clsx from 'clsx'
 import type { ClientDTO } from '@/types'
 import Combobox from './Combobox'
@@ -49,7 +51,7 @@ export default function Filters({
       <select
         value={filters.status}
         onChange={(e) => onChange({ ...filters, status: e.target.value })}
-        className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm"
+        className={filterSelectClass(filters.status)}
       >
         <option value="">Tutti gli stati</option>
         <option value="da_avviare">Da avviare</option>
@@ -80,7 +82,7 @@ export default function Filters({
             : 'border-slate-200 text-slate-500 hover:bg-slate-50'
         )}
       >
-        {filters.includeClosed ? '☑' : '☐'} Mostra completati/annullati
+        <CheckboxIcon checked={filters.includeClosed} /> Mostra completati/annullati
       </button>
 
       <input

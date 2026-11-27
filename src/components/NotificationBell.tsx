@@ -11,6 +11,8 @@ export default function NotificationBell() {
   const [open, setOpen] = useState(false)
   const [unreadMentions, setUnreadMentions] = useState(0)
   const [unreadOther, setUnreadOther] = useState(0)
+  const [totalMentions, setTotalMentions] = useState(0)
+  const [totalOther, setTotalOther] = useState(0)
   const [kind, setKind] = useState<'menzioni' | 'altro'>('menzioni')
   const [items, setItems] = useState<NotificationItem[]>([])
   const box = useRef<HTMLDivElement>(null)
@@ -22,6 +24,8 @@ export default function NotificationBell() {
       const d = await r.json()
       setUnreadMentions(d.unreadMentions)
       setUnreadOther(d.unreadOther)
+      setTotalMentions(d.totalMentions ?? 0)
+      setTotalOther(d.totalOther ?? 0)
       setItems(d.items)
     } catch {}
   }, [kind])
@@ -106,8 +110,8 @@ export default function NotificationBell() {
           <div className="flex border-b border-slate-100">
             {(
               [
-                { k: 'menzioni', label: 'Menzioni', n: unreadMentions, badge: 'bg-red-500' },
-                { k: 'altro', label: 'Altro', n: unreadOther, badge: 'bg-slate-400' }
+                { k: 'menzioni', label: 'Menzioni', n: unreadMentions, total: totalMentions },
+                { k: 'altro', label: 'Altro', n: unreadOther, total: totalOther }
               ] as const
             ).map((t) => (
               <button
@@ -118,9 +122,16 @@ export default function NotificationBell() {
                   kind === t.k ? 'border-brand-600 text-brand-700' : 'border-transparent text-slate-500 hover:text-slate-700'
                 )}
               >
-                {t.label}
+                <span className={t.n > 0 ? 'font-bold text-slate-900' : undefined}>
+                  {t.label} ({t.total})
+                </span>
                 {t.n > 0 && (
-                  <span className={clsx('ml-1.5 px-1.5 rounded-full text-white text-[10px] align-middle', t.badge)}>{t.n}</span>
+                  <span
+                    className="ml-1.5 px-1.5 py-0.5 rounded-full bg-red-500 text-white text-[10px] font-semibold align-middle"
+                    title={`${t.n} non lette`}
+                  >
+                    {t.n} {t.n === 1 ? 'nuova' : 'nuove'}
+                  </span>
                 )}
               </button>
             ))}

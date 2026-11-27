@@ -29,7 +29,6 @@ export default function ChangelogView() {
   return (
     <div>
       <Breadcrumbs items={[{ label: 'Novità' }]} />
-      <p className="text-sm text-slate-500 mb-5">Cosa è cambiato nella piattaforma e quando.</p>
 
       <div className="space-y-3">
         {CHANGELOG.map((e, i) => {

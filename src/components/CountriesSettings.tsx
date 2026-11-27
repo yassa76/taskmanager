@@ -53,16 +53,10 @@ export default function CountriesSettings() {
 
   return (
     <fieldset disabled={!canEdit} className="bg-white border border-slate-200 rounded-xl p-5 max-w-2xl m-0 min-w-0 disabled:opacity-90">
-      <h2 className="font-semibold text-slate-800">Paesi dei clienti</h2>
-      <p className="text-sm text-slate-500 mt-1">
-        Questi paesi compaiono nel menu &quot;Country&quot; del cliente. Provincia e città sono disponibili solo per l&apos;Italia;
-        per gli altri paesi si sceglie solo il paese.
-      </p>
-
       {!countries && !error && <p className="text-sm text-slate-400 mt-4">Caricamento...</p>}
 
       {countries && (
-        <ul className="mt-4 divide-y divide-slate-100 border border-slate-200 rounded-lg">
+        <ul className="divide-y divide-slate-100 border border-slate-200 rounded-lg">
           {countries.map((c) => (
             <li key={c.code} className="flex items-center justify-between px-3 py-2 text-sm">
               <span className="text-slate-800">
@@ -113,6 +107,10 @@ export default function CountriesSettings() {
         </button>
       </div>
       {error && <p className="text-sm text-red-600 mt-3">{error}</p>}
+      <p className="text-xs text-slate-400 mt-4">
+        Questi paesi compaiono nel menu &quot;Country&quot; del cliente. Provincia e città sono disponibili solo per l&apos;Italia;
+        per gli altri paesi si sceglie solo il paese.
+      </p>
     </fieldset>
   )
 }
