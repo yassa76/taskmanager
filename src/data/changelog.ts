@@ -12,6 +12,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-11-27-cognome-obbligatorio',
+    date: '2026-11-27',
+    title: 'Cognome obbligatorio nel Team',
+    description:
+      'Quando aggiungi o modifichi una persona del team, nome, cognome ed email sono tutti obbligatori. Il suggerimento dell\'email ora è nome@gmail.com.',
+    tag: 'miglioramento'
+  },
+  {
     id: '2026-11-27-viste-uniformi',
     date: '2026-11-27',
     title: 'Tendina delle viste uguale ovunque',

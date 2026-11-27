@@ -14,6 +14,10 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   const body = await req.json()
   const { firstName, lastName, status, role, orgRoleId } = body
 
+  if (lastName !== undefined && !String(lastName ?? '').trim()) {
+    return NextResponse.json({ error: 'Cognome obbligatorio' }, { status: 400 })
+  }
+
   if (orgRoleId && !(await prisma.orgRole.findUnique({ where: { id: String(orgRoleId) } }))) {
     return NextResponse.json({ error: 'Ruolo non valido' }, { status: 400 })
   }

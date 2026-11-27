@@ -207,6 +207,10 @@ export default function TeamView() {
 
   async function saveEdit() {
     if (!editingMember) return
+    if (!editLastName.trim()) {
+      alert('Il cognome è obbligatorio')
+      return
+    }
     setSavingEdit(true)
     const res = await fetch(`/api/team/${editingMember.id}`, {
       method: 'PATCH',
@@ -382,7 +386,7 @@ export default function TeamView() {
           />
         </div>
         <div className="flex-1 min-w-[140px]">
-          <label className="text-xs font-medium text-slate-500">Cognome</label>
+          <label className="text-xs font-medium text-slate-500">Cognome *</label>
           <input
             value={lastName}
             onChange={(e) => setLastName(e.target.value)}
@@ -400,7 +404,7 @@ export default function TeamView() {
         </div>
         <button
           onClick={invite}
-          disabled={saving || !firstName.trim() || !email.trim()}
+          disabled={saving || !firstName.trim() || !lastName.trim() || !email.trim()}
           className="px-4 py-2 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700 disabled:opacity-50"
         >
           Aggiungi al team
@@ -478,7 +482,7 @@ export default function TeamView() {
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-brand-700">Cognome</label>
+                  <label className="text-xs font-medium text-brand-700">Cognome *</label>
                   <input
                     value={editLastName}
                     onChange={(e) => setEditLastName(e.target.value)}
