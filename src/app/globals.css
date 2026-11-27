@@ -156,3 +156,21 @@ body {
     min-height: 40px;
   }
 }
+
+/* Il cursore diventa una manina su tutto cio' che e' cliccabile (Tailwind lo lascia a freccia sui pulsanti) */
+button:not(:disabled),
+[role='button']:not([aria-disabled='true']),
+select:not(:disabled),
+summary,
+label[for],
+input[type='checkbox']:not(:disabled),
+input[type='radio']:not(:disabled),
+input[type='date']:not(:disabled),
+input[type='file']:not(:disabled) {
+  cursor: pointer;
+}
+button:disabled,
+select:disabled,
+input:disabled {
+  cursor: not-allowed;
+}
