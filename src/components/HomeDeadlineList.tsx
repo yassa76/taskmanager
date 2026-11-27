@@ -64,7 +64,7 @@ function DeadlineBadge({ endDate, overdue }: { endDate: string | null; overdue: 
   return (
     <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
       <span className="text-slate-500 tabular-nums">{shortDate(endDate)}</span>
-      <span className={clsx('px-1.5 py-0.5 rounded-full text-[11px] font-medium', tone)}>{label}</span>
+      <span className={clsx('px-1.5 py-0.5 rounded-full text-xs font-medium', tone)}>{label}</span>
     </span>
   )
 }
@@ -172,12 +172,12 @@ export default function HomeDeadlineList({
   return (
     <div id={anchorId} className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm scroll-mt-20">
       <div className="px-4 py-2.5 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2">
-        <h2 className="font-semibold text-slate-800 text-sm">{title}</h2>
+        <h2 className="font-semibold text-slate-800 text-base">{title}</h2>
         <div className="flex flex-wrap items-center gap-1">
           <select
             value={horizon}
             onChange={(e) => changeHorizon(e.target.value as Horizon)}
-            className="border border-slate-200 rounded-full px-2 py-1 text-xs text-slate-600 mr-1"
+            className="border border-slate-200 rounded-full px-2 h-8 text-sm text-slate-600 mr-1"
             title="Quali scadenze mostrare"
           >
             <option value="30">Prossimi 30 giorni</option>
@@ -188,7 +188,7 @@ export default function HomeDeadlineList({
               key={c.key}
               onClick={() => setFilter(c.key)}
               className={clsx(
-                'px-2.5 py-1 rounded-full text-xs font-medium border transition',
+                'px-3 h-8 rounded-full text-sm font-medium border transition',
                 filter === c.key
                   ? 'bg-brand-600 text-white border-brand-600'
                   : 'text-slate-600 border-slate-200 hover:bg-slate-100'
@@ -199,12 +199,12 @@ export default function HomeDeadlineList({
           ))}
         </div>
       </div>
-      <table className="w-full text-[13px]">
+      <table className="w-full text-sm">
         <thead className="bg-slate-50 border-b border-slate-200">
           <tr>
-            <th className="px-3 py-1.5 text-left text-[11px] font-semibold text-slate-500 uppercase">{firstColLabel}</th>
-            <th className="px-3 py-1.5 text-left text-[11px] font-semibold text-slate-500 uppercase w-14">Owner</th>
-            <th className="px-3 py-1.5 text-left text-[11px] font-semibold text-slate-500 uppercase">Scadenza</th>
+            <th className="px-3 py-1.5 text-left text-xs font-semibold text-slate-500 uppercase">{firstColLabel}</th>
+            <th className="px-3 py-1.5 text-left text-xs font-semibold text-slate-500 uppercase w-14">Owner</th>
+            <th className="px-3 py-1.5 text-left text-xs font-semibold text-slate-500 uppercase">Scadenza</th>
           </tr>
         </thead>
         <tbody>
@@ -224,7 +224,7 @@ export default function HomeDeadlineList({
                         <RecurrenceBadge recurrence={r.recurrence} />
                       </div>
                       {r.sub && (
-                        <div className="truncate text-[11px] text-slate-400" title={`${subColLabel}: ${r.sub}`}>
+                        <div className="truncate text-xs text-slate-400" title={`${subColLabel}: ${r.sub}`}>
                           {r.subHref ? (
                             <Link href={r.subHref} className="hover:underline">
                               {r.sub}
@@ -261,7 +261,7 @@ export default function HomeDeadlineList({
           )}
         </tbody>
       </table>
-      <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-1.5 border-t border-slate-100 text-xs text-slate-500">
+      <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-1.5 border-t border-slate-100 text-sm text-slate-500">
         <span>
           {from}–{to} di {visible.length}
         </span>
@@ -269,7 +269,7 @@ export default function HomeDeadlineList({
           <select
             value={pageSize}
             onChange={(e) => changePageSize(Number(e.target.value))}
-            className="border border-slate-200 rounded px-1.5 py-1"
+            className="border border-slate-200 rounded px-1.5 h-8"
             title="Righe per pagina"
           >
             {PAGE_SIZES.map((n) => (
