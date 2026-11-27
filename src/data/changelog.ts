@@ -12,6 +12,30 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-11-27-home-personalizzabile',
+    date: '2026-11-27',
+    title: 'Home personalizzabile',
+    description:
+      'Da computer, con il pulsante Personalizza nella Home, scegli quali blocchi mostrare (calendario, indicatori, scadenze di task e sub-task) e in che ordine. La scelta è tua e resta salvata.',
+    tag: 'novità'
+  },
+  {
+    id: '2026-11-27-liste-azioni-viste',
+    date: '2026-11-27',
+    title: 'Task: azioni multiple e viste salvate',
+    description:
+      'Nella lista dei task puoi selezionare più righe e cambiare stato o owner in un colpo solo. Inoltre puoi salvare con un nome la combinazione di filtri e ordinamento che usi spesso e riapplicarla quando vuoi.',
+    tag: 'novità'
+  },
+  {
+    id: '2026-11-27-dettaglio-task',
+    date: '2026-11-27',
+    title: 'Dettaglio task: stato a passaggi e modifica rapida',
+    description:
+      'Nella pagina del task trovi la barra Da avviare, In corso, Completato su cui cliccare per cambiare stato, e puoi cambiare owner e scadenza direttamente dai campi in evidenza, senza aprire la modifica.',
+    tag: 'novità'
+  },
+  {
     id: '2026-11-27-nuovo-aspetto',
     date: '2026-11-27',
     title: 'Nuovo aspetto e barra in basso su telefono',

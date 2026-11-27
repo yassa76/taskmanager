@@ -42,6 +42,9 @@ interface Props<T> {
   exportRows?: T[]
   /** nome base del file esportato */
   exportName?: string
+  /** selezione righe (per azioni multiple): insieme di chiavi selezionate e callback */
+  selected?: Set<string>
+  onSelectedChange?: (next: Set<string>) => void
   /** voci aggiuntive nel menu delle opzioni (es. esportazioni speciali) */
   extraItems?: { label: string; onClick: () => void | Promise<void>; disabled?: boolean }[]
 }
@@ -65,8 +68,27 @@ export default function DataTable<T>({
   bare,
   exportRows,
   exportName,
+  selected,
+  onSelectedChange,
   extraItems
 }: Props<T>) {
+  const selectable = !!selected && !!onSelectedChange
+  const pageKeys = rows.map((r) => rowKey(r))
+  const allSelected = selectable && pageKeys.length > 0 && pageKeys.every((k) => selected!.has(k))
+  function toggleOne(k: string) {
+    if (!selectable) return
+    const next = new Set(selected)
+    if (next.has(k)) next.delete(k)
+    else next.add(k)
+    onSelectedChange!(next)
+  }
+  function toggleAll() {
+    if (!selectable) return
+    const next = new Set(selected)
+    if (allSelected) pageKeys.forEach((k) => next.delete(k))
+    else pageKeys.forEach((k) => next.add(k))
+    onSelectedChange!(next)
+  }
   const { pref, save, reset } = useColumnPrefs(tableId)
   // Personalizzare le colonne (riordino, nascondi, mostra) si puo' solo da desktop (>= 1024px):
   // su tablet e telefono resta la vista semplice, senza nulla da spostare per sbaglio.
@@ -313,9 +335,22 @@ export default function DataTable<T>({
         {rows.map((row) => (
           <div
             key={rowKey(row)}
-            className={clsx('bg-white border border-slate-200 rounded-xl p-3 shadow-sm', rowClassName?.(row))}
+            className={clsx(
+              'bg-white border border-slate-200 rounded-xl p-3 shadow-sm',
+              selectable && selected!.has(rowKey(row)) && 'ring-2 ring-brand-400',
+              rowClassName?.(row)
+            )}
           >
             <div className="flex items-start justify-between gap-2">
+              {selectable && (
+                <input
+                  type="checkbox"
+                  className="mt-1 h-4 w-4 accent-brand-600 shrink-0"
+                  checked={selected!.has(rowKey(row))}
+                  onChange={() => toggleOne(rowKey(row))}
+                  aria-label="Seleziona"
+                />
+              )}
               <div className="min-w-0 flex-1 font-semibold">{primaryCol?.render(row)}</div>
               {actionCols.length > 0 && (
                 <div className="shrink-0 flex items-center gap-3">{actionCols.map((c) => <span key={c.id}>{c.render(row)}</span>)}</div>
@@ -338,6 +373,17 @@ export default function DataTable<T>({
         <table className="w-full text-sm">
           <thead className="bg-slate-50 border-b border-slate-200">
             <tr>
+              {selectable && (
+                <th className="pl-3 py-2 w-8">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 accent-brand-600"
+                    checked={allSelected}
+                    onChange={toggleAll}
+                    aria-label="Seleziona tutti in questa pagina"
+                  />
+                </th>
+              )}
               {visible.map((c) => {
                 const canDrag = !c.fixed && canCustomize
                 return (
@@ -382,20 +428,38 @@ export default function DataTable<T>({
           <tbody>
             {loading && (
               <tr>
-                <td colSpan={visible.length} className="text-center py-8 text-slate-400">
+                <td colSpan={visible.length + (selectable ? 1 : 0)} className="text-center py-8 text-slate-400">
                   Caricamento...
                 </td>
               </tr>
             )}
             {empty && (
               <tr>
-                <td colSpan={visible.length} className="text-center py-8 text-slate-400">
+                <td colSpan={visible.length + (selectable ? 1 : 0)} className="text-center py-8 text-slate-400">
                   {emptyText}
                 </td>
               </tr>
             )}
             {rows.map((row) => (
-              <tr key={rowKey(row)} className={clsx('border-b border-slate-100 hover:bg-slate-50', rowClassName?.(row))}>
+              <tr
+                key={rowKey(row)}
+                className={clsx(
+                  'border-b border-slate-100 hover:bg-slate-50',
+                  selectable && selected!.has(rowKey(row)) && 'bg-brand-50/60',
+                  rowClassName?.(row)
+                )}
+              >
+                {selectable && (
+                  <td className="pl-3 py-2 w-8">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 accent-brand-600"
+                      checked={selected!.has(rowKey(row))}
+                      onChange={() => toggleOne(rowKey(row))}
+                      aria-label="Seleziona"
+                    />
+                  </td>
+                )}
                 {visible.map((c) => (
                   <td key={c.id} className={clsx('px-3 py-2', ALIGN[c.align ?? 'left'], c.tdClassName)}>
                     {c.render(row)}
