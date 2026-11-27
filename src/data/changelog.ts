@@ -12,6 +12,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-11-27-dettagli-pannello-laterale',
+    date: '2026-11-27',
+    title: 'Dettagli: pannello laterale e modifica rapida sui sub-task',
+    description:
+      'Su schermi larghi, nelle pagine di task, sub-task e cliente commenti e attività stanno in un pannello a destra, così hai tutto sotto gli occhi. Anche il sub-task ha ora la barra di stato cliccabile e la modifica rapida di owner e scadenza.',
+    tag: 'miglioramento'
+  },
+  {
     id: '2026-11-27-home-personalizzabile',
     date: '2026-11-27',
     title: 'Home personalizzabile',

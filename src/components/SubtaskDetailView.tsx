@@ -15,6 +15,7 @@ import Combobox from './Combobox'
 import { EditIcon, DeleteIcon } from './icons'
 import ReadOnlyGuard from './ReadOnlyGuard'
 import RecurrenceFields from './RecurrenceFields'
+import StatusPath from './StatusPath'
 import { RECURRENCE_HELP, recurrenceLabel } from '@/lib/recurrenceShared'
 
 export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) {
@@ -138,6 +139,26 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
     load()
   }
 
+  async function patchSubtask(body: Record<string, unknown>) {
+    setSaving(true)
+    const res = await fetch(`/api/subtasks/${subtaskId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    })
+    if (!res.ok) {
+      const b = await res.json().catch(() => ({}))
+      alert(b.error || `Errore nel salvataggio (status ${res.status})`)
+    }
+    setSaving(false)
+    load()
+  }
+
+  function changeStatus(st: string) {
+    if (st === 'completato') return closeNow()
+    return patchSubtask({ status: st })
+  }
+
   async function deleteSubtask() {
     if (!subtask) return
     if (!confirm(`Eliminare il sub-task "${subtask.title}"?`)) return
@@ -165,7 +186,9 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
         ]}
       />
 
-      <div className="bg-white border border-slate-200 rounded-xl p-5 max-w-2xl">
+      <div className="xl:grid xl:grid-cols-[minmax(0,1fr)_360px] xl:gap-6 xl:items-start">
+        <div className="min-w-0">
+      <div className="bg-white border border-slate-200 rounded-xl p-5">
         <div className="flex items-start justify-between gap-3 flex-wrap mb-4">
           <div>
             <div className="flex items-center gap-2 flex-wrap">
@@ -254,6 +277,12 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
         </div>
 
         <div className="mb-4">
+          <ReadOnlyGuard className="block">
+            <StatusPath status={subtask.status} onChange={changeStatus} restoreTo="da_avviare" />
+          </ReadOnlyGuard>
+        </div>
+
+        <div className="mb-4">
           <p className="text-xs text-slate-400 uppercase">Descrizione</p>
           <p className="text-slate-700 text-sm mt-0.5">{subtask.description || '—'}</p>
         </div>
@@ -261,11 +290,26 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-slate-100 text-sm">
           <div>
             <p className="text-xs text-slate-400 uppercase">Owner</p>
-            <p className="text-slate-700">
-              <Link href={`/owners/${subtask.owner.id}`} className="text-brand-600 hover:underline">
+            <div className="flex items-center gap-2">
+              <Link href={`/owners/${subtask.owner.id}`} className="text-brand-600 hover:underline truncate">
                 {subtask.owner.name || subtask.owner.email}
               </Link>
-            </p>
+              <ReadOnlyGuard className="inline-flex">
+                <select
+                  value={subtask.owner.id}
+                  onChange={(e) => patchSubtask({ ownerId: e.target.value })}
+                  className="w-6 h-6 text-transparent bg-transparent border border-slate-200 rounded cursor-pointer"
+                  title="Cambia owner"
+                  aria-label="Cambia owner"
+                >
+                  {owners.map((o) => (
+                    <option key={o.id} value={o.id} className="text-slate-800">
+                      {o.name}
+                    </option>
+                  ))}
+                </select>
+              </ReadOnlyGuard>
+            </div>
           </div>
           <div>
             <p className="text-xs text-slate-400 uppercase">Data inizio</p>
@@ -273,9 +317,21 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
           </div>
           <div>
             <p className="text-xs text-slate-400 uppercase">Data di scadenza</p>
-            <p className={clsx(isOverdue ? 'text-red-600 font-semibold' : 'text-slate-700')}>
+            <div className="flex items-center gap-2">
+              <p className={clsx(isOverdue ? 'text-red-600 font-semibold' : 'text-slate-700')}>
               {subtask.endDate ? formatDate(subtask.endDate) : '—'}
             </p>
+              <ReadOnlyGuard className="inline-flex">
+                <input
+                  type="date"
+                  value={subtask.endDate ? subtask.endDate.slice(0, 10) : ''}
+                  onChange={(e) => e.target.value && patchSubtask({ endDate: e.target.value })}
+                  className="w-6 h-6 text-transparent bg-transparent border border-slate-200 rounded cursor-pointer"
+                  title="Cambia scadenza"
+                  aria-label="Cambia scadenza"
+                />
+              </ReadOnlyGuard>
+            </div>
           </div>
           <div>
             <p className="text-xs text-slate-400 uppercase">Data di chiusura</p>
@@ -290,6 +346,13 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
             </button>
           </ReadOnlyGuard>
         )}
+      </div>
+
+        </div>
+        <aside className="min-w-0 [&>*:first-child]:mt-0">
+          <CommentsPanel entityType="subtask" entityId={subtaskId} />
+          <ActivityLogPanel entityType="subtask" entityId={subtaskId} />
+        </aside>
       </div>
 
       {showEditForm && (
@@ -402,8 +465,6 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
         </div>
       )}
 
-      <CommentsPanel entityType="subtask" entityId={subtaskId} />
-      <ActivityLogPanel entityType="subtask" entityId={subtaskId} />
     </div>
   )
 }

@@ -15,11 +15,14 @@ const STEPS: { key: string; label: string }[] = [
 export default function StatusPath({
   status,
   onChange,
-  disabled
+  disabled,
+  restoreTo = 'auto'
 }: {
   status: string
   onChange?: (status: string) => void
   disabled?: boolean
+  /** stato da impostare quando si ripristina un annullato ('auto' per i task) */
+  restoreTo?: string
 }) {
   const idx = STEPS.findIndex((s) => s.key === status)
   const cancelled = status === 'annullato'
@@ -55,7 +58,7 @@ export default function StatusPath({
       {onChange && !disabled && (
         <button
           type="button"
-          onClick={() => onChange(cancelled ? 'auto' : 'annullato')}
+          onClick={() => onChange(cancelled ? restoreTo : 'annullato')}
           className="text-xs text-slate-500 hover:text-brand-600"
           title={cancelled ? 'Ripristina lo stato automatico' : 'Segna come annullato'}
         >
