@@ -229,7 +229,7 @@ export default function TeamView() {
   }
 
   async function deleteMember(m: TeamMemberDTO) {
-    if (!confirm(`Rimuovere "${m.matchedUser?.name || m.email}" dal team?`)) return
+    if (!confirm(`Eliminare definitivamente "${m.matchedUser?.name || m.email}" dal team e dal database? Non si può annullare.`)) return
     const res = await fetch(`/api/team/${m.id}`, { method: 'DELETE' })
     if (!res.ok) {
       const body = await res.json().catch(() => ({}))
