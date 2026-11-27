@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { getUserId } from '@/lib/permissions'
+import { getUserId, isAdmin } from '@/lib/permissions'
 import { plainBody } from '@/lib/commentText'
 
 // Avvisi dell'utente corrente, in due gruppi: "menzioni" (priorita') e "altro".
@@ -76,4 +76,17 @@ export async function GET(req: NextRequest) {
       })
       .filter(Boolean)
   })
+}
+
+// Elimina avvisi propri: { ids: string[] }. Solo l'amministratore puo' eliminarli.
+export async function DELETE(req: NextRequest) {
+  const session = await getServerSession(authOptions)
+  if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
+  if (!isAdmin(session)) return NextResponse.json({ error: 'Solo l\'amministratore può eliminare le notifiche' }, { status: 403 })
+  const userId = getUserId(session)
+  const body = await req.json().catch(() => ({}))
+  const ids = Array.isArray(body.ids) ? body.ids.filter((x: unknown): x is string => typeof x === 'string').slice(0, 200) : []
+  if (ids.length === 0) return NextResponse.json({ error: 'Nessun avviso indicato' }, { status: 400 })
+  const r = await prisma.notification.deleteMany({ where: { userId, id: { in: ids } } })
+  return NextResponse.json({ deleted: r.count })
 }
