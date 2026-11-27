@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { canManage } from '@/lib/permissions'
+import { can } from '@/lib/permissions'
 import { FREE_MONTHLY_CAP, getLimits, getUsage, saveLimits } from '@/lib/geocodeLimits'
 
 async function snapshot() {
@@ -19,14 +19,14 @@ async function snapshot() {
 export async function GET() {
   const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
-  if (!canManage(session, 'settings')) return NextResponse.json({ error: 'Solo gli admin possono vedere le impostazioni' }, { status: 403 })
+  if (!can(session, 'geocode', 'read')) return NextResponse.json({ error: 'Solo gli admin possono vedere le impostazioni' }, { status: 403 })
   return NextResponse.json(await snapshot())
 }
 
 export async function PUT(req: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
-  if (!canManage(session, 'settings')) return NextResponse.json({ error: 'Solo gli admin possono modificare le impostazioni' }, { status: 403 })
+  if (!can(session, 'geocode', 'update')) return NextResponse.json({ error: 'Solo gli admin possono modificare le impostazioni' }, { status: 403 })
 
   const body = await req.json().catch(() => ({}))
   const dailyLimit = Number(body.dailyLimit)

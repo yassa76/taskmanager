@@ -1,71 +1,83 @@
 // Permessi dei ruoli: condivisi tra server e browser (nessun import del database qui).
 
 export type Scope = 'none' | 'own' | 'all'
-export type ActionKey = 'create' | 'update' | 'delete' | 'manage'
-export type ObjectKey = 'task' | 'subtask' | 'client' | 'comment' | 'notification' | 'team' | 'settings' | 'profiles'
+export type ActionKey = 'read' | 'create' | 'update' | 'delete'
+export type ObjectKey =
+  | 'task'
+  | 'subtask'
+  | 'client'
+  | 'comment'
+  | 'notification'
+  | 'team'
+  | 'countries'
+  | 'geocode'
+  | 'activitylog'
+  | 'accesslog'
+  | 'profiles'
+  | 'orgroles'
 export type PermissionMap = Record<ObjectKey, Partial<Record<ActionKey, Scope>>>
 
 export const ACTION_LABELS: Record<ActionKey, string> = {
+  read: 'Visualizzare',
   create: 'Creare',
   update: 'Modificare',
-  delete: 'Eliminare',
-  manage: 'Gestire'
+  delete: 'Eliminare'
 }
 
-// Oggetti del sistema e azioni che per ciascuno hanno senso, con i valori ammessi.
+export const ACTIONS: ActionKey[] = ['read', 'create', 'update', 'delete']
+
+export const GROUP_LABELS = { data: 'Dati', admin: 'Amministrazione' } as const
+export type GroupKey = keyof typeof GROUP_LABELS
+
+const YN: Scope[] = ['none', 'all']
+const YON: Scope[] = ['none', 'own', 'all']
+
+// Entita' del sistema e azioni che per ciascuna hanno senso, con i valori ammessi.
+// Per aggiungere un'entita' basta una riga qui: la matrice e i controlli la raccolgono da soli.
+// Nelle entita' di amministrazione "Visualizzare" decide anche se la sezione compare.
 export const OBJECT_DEFS: {
   key: ObjectKey
+  group: GroupKey
   label: string
   hint?: string
   actions: Partial<Record<ActionKey, Scope[]>>
 }[] = [
   {
     key: 'task',
+    group: 'data',
     label: 'Task',
     hint: '"Solo i miei" = quelli di cui la persona è owner',
-    actions: { create: ['none', 'all'], update: ['none', 'own', 'all'], delete: ['none', 'own', 'all'] }
+    actions: { create: YN, update: YON, delete: YON }
   },
   {
     key: 'subtask',
+    group: 'data',
     label: 'Sub-task',
     hint: '"Solo i miei" = di cui è owner, creatore o owner del task padre',
-    actions: { create: ['none', 'all'], update: ['none', 'own', 'all'], delete: ['none', 'own', 'all'] }
+    actions: { create: YN, update: YON, delete: YON }
   },
-  {
-    key: 'client',
-    label: 'Clienti',
-    actions: { create: ['none', 'all'], update: ['none', 'own', 'all'], delete: ['none', 'own', 'all'] }
-  },
+  { key: 'client', group: 'data', label: 'Clienti', actions: { create: YN, update: YON, delete: YON } },
   {
     key: 'comment',
+    group: 'data',
     label: 'Commenti',
     hint: '"Solo i miei" = scritti dalla persona stessa',
-    actions: { create: ['none', 'all'], update: ['none', 'own'], delete: ['none', 'own', 'all'] }
+    actions: { create: YN, update: ['none', 'own'], delete: YON }
   },
-  {
-    key: 'notification',
-    label: 'Notifiche',
-    hint: 'Eliminare le proprie notifiche',
-    actions: { delete: ['none', 'all'] }
-  },
+  { key: 'notification', group: 'data', label: 'Notifiche', hint: 'Eliminare le proprie notifiche', actions: { delete: YN } },
   {
     key: 'team',
+    group: 'admin',
     label: 'Team',
-    hint: 'Invitare persone, approvare accessi, cambiare profilo e stato',
-    actions: { manage: ['none', 'all'] }
+    hint: 'Creare = invitare; Modificare = profilo, ruolo, stato, approvazioni',
+    actions: { read: YN, create: YN, update: YN, delete: YN }
   },
-  {
-    key: 'settings',
-    label: 'Impostazioni Admin',
-    hint: 'Paesi, verifica indirizzi, registro modifiche e accessi',
-    actions: { manage: ['none', 'all'] }
-  },
-  {
-    key: 'profiles',
-    label: 'Profili e ruoli',
-    hint: 'Creare e modificare profili e permessi',
-    actions: { manage: ['none', 'all'] }
-  }
+  { key: 'countries', group: 'admin', label: 'Paesi dei clienti', actions: { read: YN, update: YN } },
+  { key: 'geocode', group: 'admin', label: 'Verifica indirizzi', actions: { read: YN, update: YN } },
+  { key: 'activitylog', group: 'admin', label: 'Registro modifiche', hint: 'Modificare = durata di conservazione', actions: { read: YN, update: YN } },
+  { key: 'accesslog', group: 'admin', label: 'Registro accessi', hint: 'Modificare = durata di conservazione', actions: { read: YN, update: YN } },
+  { key: 'profiles', group: 'admin', label: 'Profili e permessi', actions: { read: YN, create: YN, update: YN, delete: YN } },
+  { key: 'orgroles', group: 'admin', label: 'Ruoli e visibilità', actions: { read: YN, create: YN, update: YN, delete: YN } }
 ]
 
 export const SCOPE_LABELS: Record<Scope, string> = { none: 'No', own: 'Solo i miei', all: 'Tutti' }
@@ -74,7 +86,18 @@ const full = { create: 'all', update: 'all', delete: 'all' } as const
 const mine = { create: 'all', update: 'own', delete: 'own' } as const
 const nothing = { create: 'none', update: 'none', delete: 'none' } as const
 
-// Ruoli di sistema: riproducono le regole che c'erano prima dei ruoli personalizzati.
+// Entita' di amministrazione: tutto aperto o tutto chiuso.
+const ADMIN_KEYS: ObjectKey[] = ['team', 'countries', 'geocode', 'activitylog', 'accesslog', 'profiles', 'orgroles']
+function adminSet(v: Scope): Partial<PermissionMap> {
+  const out: Partial<PermissionMap> = {}
+  for (const k of ADMIN_KEYS) {
+    const def = OBJECT_DEFS.find((o) => o.key === k)!
+    out[k] = Object.fromEntries(Object.keys(def.actions).map((a) => [a, v])) as Partial<Record<ActionKey, Scope>>
+  }
+  return out
+}
+
+// Ruoli di sistema: riproducono le regole che c'erano prima dei profili personalizzati.
 export const SYSTEM_ROLE_DEFAULTS: Record<string, PermissionMap> = {
   admin: {
     task: { ...full },
@@ -82,30 +105,26 @@ export const SYSTEM_ROLE_DEFAULTS: Record<string, PermissionMap> = {
     client: { ...full },
     comment: { create: 'all', update: 'own', delete: 'all' },
     notification: { delete: 'all' },
-    team: { manage: 'all' },
-    settings: { manage: 'all' },
-    profiles: { manage: 'all' }
-  },
+    ...adminSet('all')
+  } as PermissionMap,
   normal: {
     task: { ...mine },
     subtask: { ...mine },
     client: { ...mine },
     comment: { ...mine },
     notification: { delete: 'none' },
-    team: { manage: 'none' },
-    settings: { manage: 'none' },
-    profiles: { manage: 'none' }
-  },
+    ...adminSet('none'),
+    team: { read: 'all', create: 'none', update: 'none', delete: 'none' }
+  } as PermissionMap,
   read_only: {
     task: { ...nothing },
     subtask: { ...nothing },
     client: { ...nothing },
     comment: { ...mine },
     notification: { delete: 'none' },
-    team: { manage: 'none' },
-    settings: { manage: 'none' },
-    profiles: { manage: 'none' }
-  }
+    ...adminSet('none'),
+    team: { read: 'all', create: 'none', update: 'none', delete: 'none' }
+  } as PermissionMap
 }
 
 export const SYSTEM_ROLE_DESCRIPTIONS: Record<string, string> = {
@@ -120,16 +139,37 @@ export const SYSTEM_ROLE_NAMES: Record<string, string> = {
   read_only: 'Sola lettura'
 }
 
+// Vecchio formato: un unico permesso "manage" per Team, "settings" e "profiles".
+// Chi lo aveva attivo ottiene tutte le azioni delle entita' corrispondenti.
+const LEGACY: Record<string, ObjectKey[]> = {
+  team: ['team'],
+  settings: ['countries', 'geocode', 'activitylog', 'accesslog'],
+  profiles: ['profiles', 'orgroles']
+}
+
+function legacyOn(src: Record<string, any>, key: ObjectKey): boolean {
+  for (const [old, targets] of Object.entries(LEGACY)) {
+    if (targets.includes(key) && src[old]?.manage === 'all') return true
+  }
+  return false
+}
+
 // Pulisce una mappa ricevuta (dal database o dal browser): tiene solo oggetti, azioni e valori ammessi;
-// quello che manca si completa con "No".
+// quello che manca si completa con "No". Nelle entita' di amministrazione, senza "Visualizzare" le altre azioni cadono.
 export function sanitizePermissions(input: unknown): PermissionMap {
   const src = input && typeof input === 'object' ? (input as Record<string, any>) : {}
   const out = {} as PermissionMap
   for (const o of OBJECT_DEFS) {
     const row: Partial<Record<ActionKey, Scope>> = {}
+    const legacy = legacyOn(src, o.key)
     for (const [action, allowed] of Object.entries(o.actions) as [ActionKey, Scope[]][]) {
       const v = src[o.key]?.[action]
-      row[action] = allowed.includes(v) ? v : 'none'
+      // profili salvati prima di "Visualizzare": la pagina Team restava visibile a tutti, quindi resta "Si'"
+      const keepTeamPage = o.key === 'team' && action === 'read' && v === undefined
+      row[action] = allowed.includes(v) ? v : (legacy || keepTeamPage) && allowed.includes('all') ? 'all' : 'none'
+    }
+    if (o.actions.read && row.read === 'none') {
+      for (const a of Object.keys(row) as ActionKey[]) row[a] = 'none'
     }
     out[o.key] = row
   }

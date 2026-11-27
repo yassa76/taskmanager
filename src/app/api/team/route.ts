@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import type { TeamMemberDTO } from '@/types'
-import { canManage } from '@/lib/permissions'
+import { can } from '@/lib/permissions'
 import { newUserDefaults } from '@/lib/defaults'
 
 export async function GET() {
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
 
-  if (!canManage(session, 'team')) return NextResponse.json({ error: 'Il tuo profilo non può invitare persone' }, { status: 403 })
+  if (!can(session, 'team', 'create')) return NextResponse.json({ error: 'Il tuo profilo non può invitare persone' }, { status: 403 })
 
   const body = await req.json()
   const { firstName, lastName } = body

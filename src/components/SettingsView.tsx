@@ -197,11 +197,11 @@ function GeocodeSettingsPanel() {
 // Sezioni delle impostazioni: per aggiungerne una basta una riga qui sotto.
 const ALL_TABS = [
   { id: 'profili', label: 'Profili e permessi', perm: 'profiles' as const, render: () => <RolesSettings /> },
-  { id: 'ruoli', label: 'Ruoli e visibilità', perm: 'profiles' as const, render: () => <OrgRolesSettings /> },
-  { id: 'paesi', perm: 'settings' as const, label: 'Paesi dei clienti', render: () => <CountriesSettings /> },
-  { id: 'indirizzi', perm: 'settings' as const, label: 'Verifica indirizzi', render: () => <GeocodeSettingsPanel /> },
-  { id: 'registro', perm: 'settings' as const, label: 'Registro modifiche', render: () => <ActivityLogSettings /> },
-  { id: 'accessi', perm: 'settings' as const, label: 'Registro accessi', render: () => <AccessLogSettings /> }
+  { id: 'ruoli', label: 'Ruoli e visibilità', perm: 'orgroles' as const, render: () => <OrgRolesSettings /> },
+  { id: 'paesi', perm: 'countries' as const, label: 'Paesi dei clienti', render: () => <CountriesSettings /> },
+  { id: 'indirizzi', perm: 'geocode' as const, label: 'Verifica indirizzi', render: () => <GeocodeSettingsPanel /> },
+  { id: 'registro', perm: 'activitylog' as const, label: 'Registro modifiche', render: () => <ActivityLogSettings /> },
+  { id: 'accessi', perm: 'accesslog' as const, label: 'Registro accessi', render: () => <AccessLogSettings /> }
 ]
 
 export default function SettingsView() {
@@ -209,8 +209,8 @@ export default function SettingsView() {
   const params = useSearchParams()
   const { data: session } = useSession()
   const perms = (session?.user as any)?.permissions
-  // si vedono solo le sezioni per cui il profilo ha il permesso di gestione
-  const TABS = ALL_TABS.filter((t) => scopeIn(perms, t.perm, 'manage') !== 'none')
+  // si vedono solo le sezioni che il profilo puo' visualizzare
+  const TABS = ALL_TABS.filter((t) => scopeIn(perms, t.perm, 'read') !== 'none')
   const current = TABS.find((t) => t.id === params?.get('tab')) ?? TABS[0]
   if (!current) return <p className="text-slate-400">Caricamento...</p>
 

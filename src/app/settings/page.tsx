@@ -3,12 +3,14 @@ import { redirect } from 'next/navigation'
 import { authOptions } from '@/lib/auth'
 import NavBar from '@/components/NavBar'
 import SettingsView from '@/components/SettingsView'
-import { canManage } from '@/lib/permissions'
+import { can } from '@/lib/permissions'
+
+const ADMIN_SECTIONS = ['profiles', 'orgroles', 'countries', 'geocode', 'activitylog', 'accesslog'] as const
 
 export default async function SettingsPage() {
   const session = await getServerSession(authOptions)
   if (!session) redirect('/login')
-  if (!canManage(session, 'settings') && !canManage(session, 'profiles')) redirect('/home')
+  if (!ADMIN_SECTIONS.some((o) => can(session, o, 'read'))) redirect('/home')
 
   return (
     <div>

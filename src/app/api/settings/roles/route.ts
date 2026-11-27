@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { canManage } from '@/lib/permissions'
+import { can } from '@/lib/permissions'
 import { clearRoleCache } from '@/lib/rolePermissions'
 import { getDefaultProfileKey, setDefaultProfileKey } from '@/lib/defaults'
 import {
@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
   const full = new URL(req.url).searchParams.get('full') === '1'
-  if (full && !canManage(session, 'profiles')) return NextResponse.json({ error: 'Solo gli admin' }, { status: 403 })
+  if (full && !can(session, 'profiles', 'read')) return NextResponse.json({ error: 'Solo gli admin' }, { status: 403 })
 
   const rows = await prisma.role.findMany({ orderBy: { createdAt: 'asc' } }).catch(() => [])
   const byKey = new Map(rows.map((r) => [r.key, r]))
@@ -70,7 +70,7 @@ function randomKey() {
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
-  if (!canManage(session, 'profiles')) return NextResponse.json({ error: 'Solo gli admin possono creare profili' }, { status: 403 })
+  if (!can(session, 'profiles', 'create')) return NextResponse.json({ error: 'Solo gli admin possono creare profili' }, { status: 403 })
   const body = await req.json().catch(() => ({}))
   const name = typeof body.name === 'string' ? body.name.trim().slice(0, 40) : ''
   if (!name) return NextResponse.json({ error: 'Dai un nome al profilo' }, { status: 400 })
@@ -102,7 +102,7 @@ export async function POST(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
-  if (!canManage(session, 'profiles')) return NextResponse.json({ error: 'Solo gli admin possono modificare i profili' }, { status: 403 })
+  if (!can(session, 'profiles', 'update')) return NextResponse.json({ error: 'Solo gli admin possono modificare i profili' }, { status: 403 })
   const body = await req.json().catch(() => ({}))
   const key = typeof body.key === 'string' ? body.key : ''
 
@@ -148,7 +148,7 @@ export async function PATCH(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
-  if (!canManage(session, 'profiles')) return NextResponse.json({ error: 'Solo gli admin possono eliminare profili' }, { status: 403 })
+  if (!can(session, 'profiles', 'delete')) return NextResponse.json({ error: 'Solo gli admin possono eliminare profili' }, { status: 403 })
   const body = await req.json().catch(() => ({}))
   const row = await prisma.role.findUnique({ where: { key: String(body.key || '') } })
   if (!row) return NextResponse.json({ error: 'Profilo non trovato' }, { status: 404 })
