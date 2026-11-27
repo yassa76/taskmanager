@@ -77,3 +77,15 @@ export async function GET(req: NextRequest) {
       .filter(Boolean)
   })
 }
+
+// Elimina avvisi propri: { ids: string[] }
+export async function DELETE(req: NextRequest) {
+  const session = await getServerSession(authOptions)
+  if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
+  const userId = getUserId(session)
+  const body = await req.json().catch(() => ({}))
+  const ids = Array.isArray(body.ids) ? body.ids.filter((x: unknown): x is string => typeof x === 'string').slice(0, 200) : []
+  if (ids.length === 0) return NextResponse.json({ error: 'Nessun avviso indicato' }, { status: 400 })
+  const r = await prisma.notification.deleteMany({ where: { userId, id: { in: ids } } })
+  return NextResponse.json({ deleted: r.count })
+}

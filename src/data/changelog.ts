@@ -12,6 +12,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-11-27-notifiche-seleziona',
+    date: '2026-11-27',
+    title: 'Notifiche: menu opzioni e selezione',
+    description:
+      'Nell\'elenco delle notifiche c\'è ora il menu con i tre puntini: Seleziona notifiche e Segna tutte come lette. I check compaiono solo quando scegli di selezionare, e poi puoi segnare come lette o eliminare quelle scelte.',
+    tag: 'novità'
+  },
+  {
     id: '2026-11-27-profilo-totale-notifiche',
     date: '2026-11-27',
     title: 'Profilo: totale notifiche sempre visibile',
