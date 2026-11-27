@@ -1,5 +1,6 @@
 'use client'
 
+import { formatNumber } from '@/lib/formatNumber'
 import { GearIcon, RefreshIcon, ArrowDownIcon, ArrowUpIcon} from './icons'
 import PageBar, { BTN } from './PageBar'
 import { useEffect, useState, useCallback } from 'react'
@@ -73,7 +74,7 @@ function KpiCard({
   const content = (
     <div className="bg-white border border-slate-200 rounded-xl px-3 py-2 shadow-sm h-full flex flex-col justify-center hover:border-brand-300 hover:shadow-md transition">
       <p className="text-sm font-medium text-slate-500 uppercase tracking-wide">{label}</p>
-      <p className={clsx('text-2xl font-bold mt-1', accent || 'text-slate-800')}>{value}</p>
+      <p className={clsx('text-2xl font-bold mt-1', accent || 'text-slate-800')}>{typeof value === 'number' ? formatNumber(value) : value}</p>
     </div>
   )
   if (!href) return content

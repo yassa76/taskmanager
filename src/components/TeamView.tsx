@@ -1,5 +1,6 @@
 'use client'
 
+import { formatNumber } from '@/lib/formatNumber'
 import PageBar, { BTN } from './PageBar'
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
@@ -439,7 +440,7 @@ export default function TeamView() {
       {sortedMembers.length > PAGE_SIZE && (
         <div className="flex items-center justify-between mt-3 text-sm text-slate-500">
           <span>
-            {sortedMembers.length} persone totali — pagina {page} di {totalPages}
+            {formatNumber(sortedMembers.length)} persone totali — pagina {page} di {totalPages}
           </span>
           <div className="flex gap-1">
             <button

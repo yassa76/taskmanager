@@ -1,5 +1,6 @@
 'use client'
 
+import { formatNumber } from '@/lib/formatNumber'
 import { CheckboxIcon, RefreshIcon} from './icons'
 import { filterSelectClass } from '@/lib/ui'
 import PageBar, { BTN } from './PageBar'
@@ -80,7 +81,7 @@ function KpiCard({ label, value, accent, href }: { label: string; value: string 
   const body = (
     <>
       <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">{label}</p>
-      <p className={`text-2xl font-bold mt-1 ${accent || 'text-slate-800'}`}>{value}</p>
+      <p className={`text-2xl font-bold mt-1 ${accent || 'text-slate-800'}`}>{typeof value === 'number' ? formatNumber(value) : value}</p>
     </>
   )
   const base = 'bg-white border border-slate-200 rounded-xl p-4 shadow-sm'
@@ -261,7 +262,7 @@ export default function ReportsView() {
                   <Cell key={i} fill={COLORS[i % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip />
+              <Tooltip formatter={(v: unknown) => (typeof v === 'number' ? formatNumber(v) : String(v))} />
               <Legend />
             </PieChart>
           </ResponsiveContainer>
@@ -275,8 +276,8 @@ export default function ReportsView() {
           <ResponsiveContainer width="100%" height={260}>
             <BarChart data={data.byOwner}>
               <XAxis dataKey="name" tick={<OwnerTick />} interval={0} />
-              <YAxis allowDecimals={false} />
-              <Tooltip />
+              <YAxis allowDecimals={false} tickFormatter={(v: number) => formatNumber(v)} />
+              <Tooltip formatter={(v: unknown) => (typeof v === 'number' ? formatNumber(v) : String(v))} />
               <Legend />
               <Bar
                 dataKey="da_avviare"
@@ -328,8 +329,8 @@ export default function ReportsView() {
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={data.byOwnerStatus}>
               <XAxis dataKey="name" tick={<OwnerTick />} interval={0} />
-              <YAxis allowDecimals={false} />
-              <Tooltip />
+              <YAxis allowDecimals={false} tickFormatter={(v: number) => formatNumber(v)} />
+              <Tooltip formatter={(v: unknown) => (typeof v === 'number' ? formatNumber(v) : String(v))} />
               <Legend />
               <Bar
                 dataKey="da_avviare"
@@ -381,9 +382,9 @@ export default function ReportsView() {
           </h2>
           <ResponsiveContainer width="100%" height={Math.max(260, data.byClient.length * 36)}>
             <BarChart data={data.byClient} layout="vertical" margin={{ left: 24 }}>
-              <XAxis type="number" allowDecimals={false} />
+              <XAxis type="number" allowDecimals={false} tickFormatter={(v: number) => formatNumber(v)} />
               <YAxis type="category" dataKey="name" width={140} tick={{ fontSize: 12 }} />
-              <Tooltip />
+              <Tooltip formatter={(v: unknown) => (typeof v === 'number' ? formatNumber(v) : String(v))} />
               <Legend />
               <Bar dataKey="da_avviare" name="Da avviare" stackId="client" fill="#94a3b8" cursor="pointer" onClick={openClient} />
               <Bar dataKey="in_corso" name="In corso" stackId="client" fill="#f59e0b" cursor="pointer" onClick={openClient} />

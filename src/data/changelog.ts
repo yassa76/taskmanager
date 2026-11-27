@@ -12,6 +12,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-11-27-numeri-con-punto',
+    date: '2026-11-27',
+    title: 'Numeri con il punto delle migliaia',
+    description:
+      'I numeri di indicatori, contatori, paginazione e grafici ora si scrivono con il punto come separatore delle migliaia (1.234), anche sotto le cinque cifre.',
+    tag: 'miglioramento'
+  },
+  {
     id: '2026-11-27-cognome-obbligatorio',
     date: '2026-11-27',
     title: 'Cognome obbligatorio nel Team',

@@ -1,5 +1,6 @@
 'use client'
 
+import { formatNumber } from '@/lib/formatNumber'
 import { CheckboxIcon, ArrowLeftIcon, ArrowRightIcon, RefreshIcon, WarningIcon} from './icons'
 import { filterSelectClass } from '@/lib/ui'
 import { useCallback, useEffect, useMemo, useState } from 'react'
@@ -308,7 +309,7 @@ export default function SubtasksView() {
       {sorted.length > PAGE_SIZE && (
         <div className="flex items-center justify-between mt-3 text-sm text-slate-600">
           <span>
-            {sorted.length} sub-task totali — pagina {page} di {totalPages}
+            {formatNumber(sorted.length)} sub-task totali — pagina {page} di {totalPages}
           </span>
           <div className="flex gap-2">
             <button
