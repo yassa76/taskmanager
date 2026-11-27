@@ -13,6 +13,7 @@ export default function NotificationsView() {
   const [total, setTotal] = useState(0)
   const [pageSize, setPageSize] = useState(25)
   const [unread, setUnread] = useState({ menzioni: 0, altro: 0 })
+  const [totals, setTotals] = useState({ menzioni: 0, altro: 0 })
 
   const load = useCallback(async () => {
     const r = await fetch(`/api/notifications?kind=${kind}&page=${page}&pageSize=25`)
@@ -22,6 +23,7 @@ export default function NotificationsView() {
     setTotal(d.total)
     setPageSize(d.pageSize)
     setUnread({ menzioni: d.unreadMentions, altro: d.unreadOther })
+    setTotals({ menzioni: d.totalMentions, altro: d.totalOther })
   }, [kind, page])
 
   useEffect(() => {
@@ -60,8 +62,17 @@ export default function NotificationsView() {
               kind === t.k ? 'border-brand-600 text-brand-700' : 'border-transparent text-slate-500 hover:text-slate-700'
             )}
           >
-            {t.label}
-            {unread[t.k] > 0 && <span className="ml-1.5 px-1.5 rounded-full bg-red-500 text-white text-[10px]">{unread[t.k]}</span>}
+            <span className={unread[t.k] > 0 ? 'font-bold text-slate-900' : undefined}>
+              {t.label} ({totals[t.k]})
+            </span>
+            {unread[t.k] > 0 && (
+              <span
+                className="ml-1.5 px-1.5 py-0.5 rounded-full bg-red-500 text-white text-[10px] font-semibold align-middle"
+                title={`${unread[t.k]} non lette`}
+              >
+                {unread[t.k]} {unread[t.k] === 1 ? 'nuova' : 'nuove'}
+              </span>
+            )}
           </button>
         ))}
       </div>

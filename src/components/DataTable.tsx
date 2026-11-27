@@ -19,6 +19,8 @@ export interface Column<T> {
   fixed?: boolean
   /** colonna nascosta di default (l'utente puo' mostrarla) */
   defaultHidden?: boolean
+  /** valore in testo/numero per l'esportazione; senza, la colonna non si esporta */
+  exportValue?: (row: T) => string | number | null | undefined
 }
 
 interface Props<T> {
@@ -36,6 +38,10 @@ interface Props<T> {
   noCustomize?: boolean
   /** senza bordo e ombra esterni: per tabelle dentro una scheda che li ha gia' */
   bare?: boolean
+  /** tutte le righe (filtrate e ordinate, non solo la pagina) per l'esportazione; di default `rows` */
+  exportRows?: T[]
+  /** nome base del file esportato */
+  exportName?: string
 }
 
 const ALIGN = { left: 'text-left', center: 'text-center', right: 'text-right' }
@@ -54,7 +60,9 @@ export default function DataTable<T>({
   emptyText = 'Nessun elemento.',
   rowClassName,
   noCustomize,
-  bare
+  bare,
+  exportRows,
+  exportName
 }: Props<T>) {
   const { pref, save, reset } = useColumnPrefs(tableId)
   // Personalizzare le colonne (riordino, nascondi, mostra) si puo' solo da desktop (>= 1024px):
@@ -66,6 +74,8 @@ export default function DataTable<T>({
   // menu del tasto destro su un'intestazione
   const [menu, setMenu] = useState<{ x: number; y: number; colId: string } | null>(null)
   const btnRef = useRef<HTMLButtonElement>(null)
+  const [optMenu, setOptMenu] = useState(false)
+  const [exportOpen, setExportOpen] = useState(false)
   const dragId = useRef<string | null>(null)
   const [overId, setOverId] = useState<string | null>(null)
 
@@ -124,19 +134,53 @@ export default function DataTable<T>({
   return (
     <div>
       {canCustomize && (
-        <div className={clsx('flex justify-end mb-1', bare && 'px-3 pt-1')}>
+        <div className={clsx('relative flex justify-end mb-1', bare && 'px-3 pt-1')}>
           <button
             ref={btnRef}
-            onClick={() => {
-              const r = btnRef.current?.getBoundingClientRect()
-              setPanelAt(panelAt ? null : { x: (r?.right ?? 300) - 288, y: (r?.bottom ?? 0) + 4 })
-            }}
-            className="text-xs text-slate-500 hover:text-brand-600 px-2 py-1 rounded hover:bg-slate-100"
-            title="Scegli quali colonne vedere. Puoi anche trascinare le intestazioni o cliccarle con il tasto destro."
+            onClick={() => setOptMenu((v) => !v)}
+            className="text-xs text-slate-600 hover:text-brand-600 px-2.5 py-1 rounded-lg border border-slate-200 hover:bg-slate-50"
+            title="Colonne ed esportazione"
           >
-            ⚙ Colonne
+            Opzioni ▾
           </button>
+          {optMenu && (
+            <>
+              <div className="fixed inset-0 z-30" onClick={() => setOptMenu(false)} />
+              <div className={clsx('absolute right-0 top-full mt-1 w-48 bg-white border border-slate-200 rounded-lg shadow-lg py-1 text-sm z-40', bare && 'right-3')}>
+                <button
+                  onClick={() => {
+                    const r = btnRef.current?.getBoundingClientRect()
+                    setPanelAt({ x: (r?.right ?? 300) - 288, y: (r?.bottom ?? 0) + 4 })
+                    setOptMenu(false)
+                  }}
+                  className="w-full text-left px-3 py-2 hover:bg-slate-50"
+                >
+                  Colonne…
+                </button>
+                <button
+                  onClick={() => {
+                    setExportOpen(true)
+                    setOptMenu(false)
+                  }}
+                  className="w-full text-left px-3 py-2 hover:bg-slate-50"
+                >
+                  Esporta…
+                </button>
+              </div>
+            </>
+          )}
         </div>
+      )}
+
+      {canCustomize && exportOpen && (
+        <ExportDialog
+          onClose={() => setExportOpen(false)}
+          pageRows={rows}
+          allRows={exportRows ?? rows}
+          visibleCols={visible.filter((c) => !c.fixed && c.exportValue)}
+          allCols={movable.filter((c) => c.exportValue)}
+          fileBase={exportName ?? tableId}
+        />
       )}
 
       {canCustomize && menu && (
@@ -355,4 +399,137 @@ function useIsDesktop(): boolean {
     return () => mq.removeEventListener('change', update)
   }, [])
   return desktop
+}
+
+// Popup di esportazione: formato, righe, colonne e intestazioni. Tutto nel browser, nessun dato passa dal server.
+function ExportDialog<T>({
+  onClose,
+  pageRows,
+  allRows,
+  visibleCols,
+  allCols,
+  fileBase
+}: {
+  onClose: () => void
+  pageRows: T[]
+  allRows: T[]
+  visibleCols: Column<T>[]
+  allCols: Column<T>[]
+  fileBase: string
+}) {
+  const [format, setFormat] = useState<'xlsx' | 'csv'>('xlsx')
+  const [rowsScope, setRowsScope] = useState<'all' | 'page'>('all')
+  const [colsScope, setColsScope] = useState<'visible' | 'all'>('visible')
+  const [header, setHeader] = useState(true)
+  const [separator, setSeparator] = useState<';' | ','>(';')
+  const [busy, setBusy] = useState(false)
+
+  const cols = colsScope === 'visible' ? visibleCols : allCols
+  const data = rowsScope === 'all' ? allRows : pageRows
+
+  async function run() {
+    setBusy(true)
+    const stamp = new Date().toISOString().slice(0, 10)
+    const table: (string | number)[][] = data.map((row) => cols.map((c) => c.exportValue!(row) ?? ''))
+    if (header) table.unshift(cols.map((c) => c.label))
+
+    if (format === 'xlsx') {
+      const XLSX = await import('xlsx')
+      const ws = XLSX.utils.aoa_to_sheet(table)
+      const wb = XLSX.utils.book_new()
+      XLSX.utils.book_append_sheet(wb, ws, 'Dati')
+      XLSX.writeFile(wb, `${fileBase}-${stamp}.xlsx`)
+    } else {
+      const esc = (v: string | number) => {
+        const t = String(v)
+        return t.includes(separator) || /["\n\r]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t
+      }
+      // BOM iniziale: Excel riconosce cosi' l'UTF-8 (accenti corretti)
+      const csv = '\uFEFF' + table.map((r) => r.map(esc).join(separator)).join('\r\n')
+      const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${fileBase}-${stamp}.csv`
+      a.click()
+      URL.revokeObjectURL(url)
+    }
+    setBusy(false)
+    onClose()
+  }
+
+  const radio = 'accent-brand-600'
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <h2 className="text-lg font-bold text-slate-800 mb-4">Esporta tabella</h2>
+
+        <fieldset className="mb-4">
+          <legend className="text-xs font-semibold text-slate-500 uppercase mb-1">Formato</legend>
+          <label className="flex items-center gap-2 text-sm py-0.5">
+            <input type="radio" className={radio} checked={format === 'xlsx'} onChange={() => setFormat('xlsx')} />
+            Excel (.xlsx)
+          </label>
+          <label className="flex items-center gap-2 text-sm py-0.5">
+            <input type="radio" className={radio} checked={format === 'csv'} onChange={() => setFormat('csv')} />
+            CSV (testo, apribile anche da Excel)
+          </label>
+          {format === 'csv' && (
+            <label className="flex items-center gap-2 text-sm mt-1 ml-6 text-slate-600">
+              Separatore
+              <select
+                value={separator}
+                onChange={(e) => setSeparator(e.target.value as ';' | ',')}
+                className="border border-slate-200 rounded px-2 py-1 text-sm"
+              >
+                <option value=";">Punto e virgola (Excel in italiano)</option>
+                <option value=",">Virgola</option>
+              </select>
+            </label>
+          )}
+        </fieldset>
+
+        <fieldset className="mb-4">
+          <legend className="text-xs font-semibold text-slate-500 uppercase mb-1">Righe</legend>
+          <label className="flex items-center gap-2 text-sm py-0.5">
+            <input type="radio" className={radio} checked={rowsScope === 'all'} onChange={() => setRowsScope('all')} />
+            Tutte quelle filtrate ({allRows.length})
+          </label>
+          <label className="flex items-center gap-2 text-sm py-0.5">
+            <input type="radio" className={radio} checked={rowsScope === 'page'} onChange={() => setRowsScope('page')} />
+            Solo quelle della pagina visibile ({pageRows.length})
+          </label>
+        </fieldset>
+
+        <fieldset className="mb-4">
+          <legend className="text-xs font-semibold text-slate-500 uppercase mb-1">Colonne</legend>
+          <label className="flex items-center gap-2 text-sm py-0.5">
+            <input type="radio" className={radio} checked={colsScope === 'visible'} onChange={() => setColsScope('visible')} />
+            Quelle che vedo ({visibleCols.length})
+          </label>
+          <label className="flex items-center gap-2 text-sm py-0.5">
+            <input type="radio" className={radio} checked={colsScope === 'all'} onChange={() => setColsScope('all')} />
+            Tutte, anche quelle nascoste ({allCols.length})
+          </label>
+        </fieldset>
+
+        <label className="flex items-center gap-2 text-sm mb-5">
+          <input type="checkbox" className={radio} checked={header} onChange={(e) => setHeader(e.target.checked)} />
+          Includi la riga con i nomi delle colonne
+        </label>
+
+        <div className="flex justify-end gap-2">
+          <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm text-slate-600 hover:bg-slate-100">
+            Annulla
+          </button>
+          <button
+            onClick={run}
+            disabled={busy || cols.length === 0 || data.length === 0}
+            className="px-4 py-2 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700 disabled:opacity-50"
+          >
+            {busy ? 'Esportazione...' : 'Esporta'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
 }

@@ -163,6 +163,7 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
   const taskColumns: Column<TaskDTO>[] = [
     {
       id: 'title',
+      exportValue: (r) => r.title,
       label: 'Task',
       primary: true,
       tdClassName: 'max-w-xs',
@@ -174,6 +175,7 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
     },
     {
       id: 'owner',
+      exportValue: (r) => r.owner.name || r.owner.email,
       label: 'Owner',
       render: (t) => (
         <Link href={`/owners/${t.owner.id}`} className="text-brand-600 hover:underline">
@@ -183,6 +185,7 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
     },
     {
       id: 'endDate',
+      exportValue: (r) => r.endDate ? formatDate(r.endDate) : '',
       label: 'Scadenza',
       render: (t) => (
         <span
@@ -198,6 +201,7 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
     },
     {
       id: 'status',
+      exportValue: (r) => STATUS_LABELS[r.status],
       label: 'Stato',
       render: (t) => (
         <span className={clsx('px-2 py-1 rounded-full text-xs font-medium', STATUS_COLORS[t.status])}>{STATUS_LABELS[t.status]}</span>
@@ -205,6 +209,7 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
     },
     {
       id: 'subtasks',
+      exportValue: (r) => countActiveSubtasks(r.subtasks.map((x) => x.status)),
       label: 'Sub-task attivi',
       title: 'Sub-task ancora da fare (da avviare o in corso)',
       align: 'center',
@@ -394,6 +399,8 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
         <DataTable
           bare
           tableId="client-tasks"
+          exportRows={visibleTasks}
+          exportName="task-cliente"
           columns={taskColumns}
           rows={pagedTasks}
           rowKey={(t) => t.id}

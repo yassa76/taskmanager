@@ -236,6 +236,7 @@ export default function TasksView() {
   const columns: Column<TaskDTO>[] = [
     {
       id: 'title',
+      exportValue: (r) => r.title,
       label: 'Task',
       sortKey: 'title',
       primary: true,
@@ -248,6 +249,7 @@ export default function TasksView() {
     },
     {
       id: 'client',
+      exportValue: (r) => r.clientName || '',
       label: 'Cliente',
       sortKey: 'clientName',
       tdClassName: 'max-w-[160px]',
@@ -262,6 +264,7 @@ export default function TasksView() {
     },
     {
       id: 'owner',
+      exportValue: (r) => r.owner.name || r.owner.email,
       label: 'Owner',
       sortKey: 'owner',
       render: (t) => (
@@ -270,9 +273,11 @@ export default function TasksView() {
         </Link>
       )
     },
-    { id: 'startDate', label: 'Data avvio', sortKey: 'startDate', render: (t) => formatDate(t.startDate) },
+    { id: 'startDate',
+      exportValue: (r) => formatDate(r.startDate), label: 'Data avvio', sortKey: 'startDate', render: (t) => formatDate(t.startDate) },
     {
       id: 'endDate',
+      exportValue: (r) => formatDate(r.endDate),
       label: 'Scadenza',
       sortKey: 'endDate',
       render: (t) => (
@@ -289,6 +294,7 @@ export default function TasksView() {
     },
     {
       id: 'status',
+      exportValue: (r) => STATUS_LABELS[r.status],
       label: 'Stato',
       sortKey: 'status',
       render: (t) => (
@@ -297,6 +303,7 @@ export default function TasksView() {
     },
     {
       id: 'subtasks',
+      exportValue: (r) => countActiveSubtasks(r.subtasks.map((x) => x.status)),
       label: 'Sub-task attivi',
       title: 'Sub-task ancora da fare (da avviare o in corso)',
       align: 'center',
@@ -384,6 +391,8 @@ export default function TasksView() {
       <div className="mt-4">
         <DataTable
           tableId="tasks"
+          exportRows={filteredTasks}
+          exportName="task"
           columns={columns}
           rows={pagedTasks}
           rowKey={(t) => t.id}

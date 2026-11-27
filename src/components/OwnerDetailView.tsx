@@ -163,6 +163,7 @@ export default function OwnerDetailView({ ownerId }: { ownerId: string }) {
   const taskColumns: Column<OwnerTask>[] = [
     {
       id: 'title',
+      exportValue: (r) => r.title,
       label: 'Task',
       primary: true,
       tdClassName: 'max-w-xs',
@@ -174,6 +175,7 @@ export default function OwnerDetailView({ ownerId }: { ownerId: string }) {
     },
     {
       id: 'client',
+      exportValue: (r) => r.clientName || '',
       label: 'Cliente',
       render: (t) =>
         t.clientId ? (
@@ -186,11 +188,13 @@ export default function OwnerDetailView({ ownerId }: { ownerId: string }) {
     },
     {
       id: 'endDate',
+      exportValue: (r) => formatDate(r.endDate),
       label: 'Scadenza',
       render: (t) => <span className={clsx(t.overdue ? 'text-red-600 font-semibold' : 'text-slate-700')}>{formatDate(t.endDate)}</span>
     },
     {
       id: 'status',
+      exportValue: (r) => STATUS_LABELS[r.status],
       label: 'Stato',
       render: (t) => (
         <span className={clsx('px-2 py-1 rounded-full text-xs font-medium', STATUS_COLORS[t.status])}>{STATUS_LABELS[t.status]}</span>
@@ -198,6 +202,7 @@ export default function OwnerDetailView({ ownerId }: { ownerId: string }) {
     },
     {
       id: 'subtasks',
+      exportValue: (r) => r.activeSubtasks,
       label: 'Sub-task attivi',
       title: 'Sub-task ancora da fare (da avviare o in corso) assegnati a questa persona',
       align: 'center',
@@ -214,6 +219,7 @@ export default function OwnerDetailView({ ownerId }: { ownerId: string }) {
   const subColumns: Column<OwnerSubtask>[] = [
     {
       id: 'title',
+      exportValue: (r) => r.title,
       label: 'Sub-task',
       primary: true,
       tdClassName: 'max-w-xs',
@@ -228,6 +234,7 @@ export default function OwnerDetailView({ ownerId }: { ownerId: string }) {
     },
     {
       id: 'task',
+      exportValue: (r) => r.taskTitle,
       label: 'Task',
       tdClassName: 'max-w-[160px] truncate',
       render: (s) => (
@@ -238,6 +245,7 @@ export default function OwnerDetailView({ ownerId }: { ownerId: string }) {
     },
     {
       id: 'client',
+      exportValue: (r) => r.clientName || '',
       label: 'Cliente',
       render: (s) =>
         s.clientId ? (
@@ -250,11 +258,13 @@ export default function OwnerDetailView({ ownerId }: { ownerId: string }) {
     },
     {
       id: 'endDate',
+      exportValue: (r) => formatDate(r.endDate),
       label: 'Scadenza',
       render: (s) => <span className={clsx(s.overdue ? 'text-red-600 font-semibold' : 'text-slate-700')}>{formatDate(s.endDate)}</span>
     },
     {
       id: 'status',
+      exportValue: (r) => STATUS_LABELS[r.status],
       label: 'Stato',
       render: (s) => (
         <span className={clsx('px-2 py-1 rounded-full text-xs font-medium', STATUS_COLORS[s.status])}>{STATUS_LABELS[s.status]}</span>
@@ -356,6 +366,7 @@ export default function OwnerDetailView({ ownerId }: { ownerId: string }) {
 
         <DataTable
           bare
+          exportName="task-persona"
           tableId="owner-tasks"
           columns={taskColumns}
           rows={filteredTasks}
@@ -420,6 +431,7 @@ export default function OwnerDetailView({ ownerId }: { ownerId: string }) {
         </div>
         <DataTable
           bare
+          exportName="subtask-persona"
           tableId="owner-subtasks"
           columns={subColumns}
           rows={visibleSubtasks}

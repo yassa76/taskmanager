@@ -12,6 +12,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-11-27-esporta',
+    date: '2026-11-27',
+    title: 'Menu Opzioni delle tabelle: colonne ed esportazione',
+    description:
+      'Da computer, sopra le tabelle principali trovi il pulsante "Opzioni": da lì scegli le colonne da vedere oppure esporti i dati in Excel o CSV, decidendo righe, colonne e intestazioni. Nelle Notifiche del profilo, le schede mostrano ora quante notifiche ci sono e quante sono da leggere.',
+    tag: 'miglioramento'
+  },
+  {
     id: '2026-11-26-mobile-colonne',
     date: '2026-11-26',
     title: 'Uso da telefono e tablet, colonne personalizzabili',
