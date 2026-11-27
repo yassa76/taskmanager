@@ -1,5 +1,6 @@
 'use client'
 
+import { formatDateTime } from '@/lib/locale'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import RetentionSelect from './RetentionSelect'
@@ -15,7 +16,7 @@ interface UserRow {
 const ACTIVE_WINDOW_MS = 15 * 60 * 1000
 
 function fmt(iso: string | null) {
-  return iso ? new Date(iso).toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'short' }) : '—'
+  return iso ? formatDateTime(iso) : '—'
 }
 
 // Accessi per persona: ultimo login e ultima attivita'. Niente elenco dei singoli login.

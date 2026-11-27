@@ -3,6 +3,7 @@
 import { SessionProvider } from 'next-auth/react'
 import ThemeApplier from './ThemeApplier'
 import DensityApplier from './DensityApplier'
+import LocaleApplier from './LocaleApplier'
 import ActivityPing from './ActivityPing'
 
 export default function Providers({ children }: { children: React.ReactNode }) {
@@ -10,6 +11,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     <SessionProvider>
       <ThemeApplier />
       <DensityApplier />
+      <LocaleApplier />
       <ActivityPing />
       {children}
     </SessionProvider>

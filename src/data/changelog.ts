@@ -12,6 +12,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-11-27-fuso-orario',
+    date: '2026-11-27',
+    title: 'Fuso orario e formato di numeri e date',
+    description:
+      'In Il mio account > Preferenze personali puoi scegliere il fuso orario. Da quello l\'app ricava il formato: in Italia 1.234,56 e 27/11/26, in USA 1,234.56 e 11/27/26. Gli orari di commenti, avvisi e registri si mostrano nel fuso scelto.',
+    tag: 'novità'
+  },
+  {
     id: '2026-11-27-numeri-con-punto',
     date: '2026-11-27',
     title: 'Numeri con il punto delle migliaia',
