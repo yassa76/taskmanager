@@ -12,6 +12,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-11-27-dettaglio-task',
+    date: '2026-11-27',
+    title: 'Dettaglio task: stato a passaggi e modifica rapida',
+    description:
+      'Nella pagina del task trovi la barra Da avviare, In corso, Completato su cui cliccare per cambiare stato, e puoi cambiare owner e scadenza direttamente dai campi in evidenza, senza aprire la modifica.',
+    tag: 'novita'
+  },
+  {
     id: '2026-11-27-nuovo-aspetto',
     date: '2026-11-27',
     title: 'Nuovo aspetto e barra in basso su telefono',

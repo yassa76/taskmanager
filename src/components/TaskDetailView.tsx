@@ -18,6 +18,7 @@ import { EditIcon, DeleteIcon } from './icons'
 import ReadOnlyGuard from './ReadOnlyGuard'
 import RecurrenceFields from './RecurrenceFields'
 import RecurrenceBadge from './RecurrenceBadge'
+import StatusPath from './StatusPath'
 import { formatDate } from '@/lib/formatDate'
 
 export default function TaskDetailView({ taskId }: { taskId: string }) {
@@ -181,6 +182,20 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
       body: JSON.stringify({ confirm: confirmValue })
     })
     setPendingClose(false)
+    load()
+  }
+
+  async function patchTask(body: Record<string, unknown>) {
+    if (!task) return
+    const res = await fetch(`/api/tasks/${task.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    })
+    if (!res.ok) {
+      const b = await res.json().catch(() => ({}))
+      alert(b.error || `Errore nel salvataggio (status ${res.status})`)
+    }
     load()
   }
 
@@ -359,6 +374,12 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
           </div>
         </div>
 
+        <div className="mt-4">
+          <ReadOnlyGuard className="block">
+            <StatusPath status={task.status} onChange={(st) => patchTask({ status: st })} />
+          </ReadOnlyGuard>
+        </div>
+
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4 pt-4 border-t border-slate-100 text-sm">
           <div>
             <p className="text-xs text-slate-400 uppercase">Cliente</p>
@@ -372,11 +393,26 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
           </div>
           <div>
             <p className="text-xs text-slate-400 uppercase">Owner</p>
-            <p className="text-slate-700">
-              <Link href={`/owners/${task.owner.id}`} className="text-brand-600 hover:underline">
+            <div className="flex items-center gap-2">
+              <Link href={`/owners/${task.owner.id}`} className="text-brand-600 hover:underline truncate">
                 {task.owner.name || task.owner.email}
               </Link>
-            </p>
+              <ReadOnlyGuard className="inline-flex">
+                <select
+                  value={task.owner.id}
+                  onChange={(e) => patchTask({ ownerId: e.target.value })}
+                  className="w-6 h-6 text-transparent bg-transparent border border-slate-200 rounded cursor-pointer"
+                  title="Cambia owner"
+                  aria-label="Cambia owner"
+                >
+                  {owners.map((o) => (
+                    <option key={o.id} value={o.id} className="text-slate-800">
+                      {o.name}
+                    </option>
+                  ))}
+                </select>
+              </ReadOnlyGuard>
+            </div>
           </div>
           <div>
             <p className="text-xs text-slate-400 uppercase">Data avvio</p>
@@ -384,15 +420,27 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
           </div>
           <div>
             <p className="text-xs text-slate-400 uppercase">Data di scadenza</p>
+            <div className="flex items-center gap-2">
             <p
-              className={clsx(
-                task.endDate && new Date(task.endDate) < new Date() && task.status !== 'completato' && task.status !== 'annullato'
-                  ? 'text-red-600 font-semibold'
-                  : 'text-slate-700'
-              )}
-            >
-              {task.endDate ? formatDate(task.endDate) : '—'}
-            </p>
+                className={clsx(
+                  task.endDate && new Date(task.endDate) < new Date() && task.status !== 'completato' && task.status !== 'annullato'
+                    ? 'text-red-600 font-semibold'
+                    : 'text-slate-700'
+                )}
+              >
+                {task.endDate ? formatDate(task.endDate) : '—'}
+              </p>
+              <ReadOnlyGuard className="inline-flex">
+                <input
+                  type="date"
+                  value={task.endDate ? task.endDate.slice(0, 10) : ''}
+                  onChange={(e) => patchTask({ endDate: e.target.value || null })}
+                  className="w-6 h-6 text-transparent bg-transparent border border-slate-200 rounded cursor-pointer"
+                  title="Cambia scadenza"
+                  aria-label="Cambia scadenza"
+                />
+              </ReadOnlyGuard>
+            </div>
           </div>
         </div>
 
