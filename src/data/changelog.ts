@@ -12,6 +12,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-11-27-permessi-matrice',
+    date: '2026-11-27',
+    title: 'Permessi più semplici e scalabili',
+    description:
+      'Nei profili sparisce "Gestire": ora ogni entità, comprese Team e le sezioni Admin, ha Visualizzare, Creare, Modificare, Eliminare. Senza "Visualizzare" la voce o il tab non compare nemmeno. La matrice è raggruppata (Dati e Amministrazione), con caselle da spuntare e una scorciatoia Tutto/Niente per riga. I profili esistenti mantengono gli stessi permessi.',
+    tag: 'miglioramento'
+  },
+  {
     id: '2026-11-27-visibilita-per-ruolo',
     date: '2026-11-27',
     title: 'Visibilità dei record in base al ruolo',

@@ -2,14 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { canManage, isAdmin } from '@/lib/permissions'
+import { can, isAdmin } from '@/lib/permissions'
 import { getRolePermissions } from '@/lib/rolePermissions'
 import { countActiveAdmins } from '@/lib/admins'
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
-  if (!canManage(session, 'team')) return NextResponse.json({ error: 'Il tuo profilo non può modificare il team' }, { status: 403 })
+  if (!can(session, 'team', 'update')) return NextResponse.json({ error: 'Il tuo profilo non può modificare il team' }, { status: 403 })
 
   const body = await req.json()
   const { firstName, lastName, status, role, orgRoleId } = body
@@ -21,11 +21,11 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   if (role !== undefined) {
     const exists = ['admin', 'normal', 'read_only'].includes(role) || !!(await prisma.role.findUnique({ where: { key: String(role) } }))
     if (!exists) return NextResponse.json({ error: 'Profilo non valido' }, { status: 400 })
-    // per non scalare i privilegi: solo un admin puo' assegnare il profilo Admin, e solo chi gestisce i profili puo' assegnarne uno che li gestisce
+    // per non scalare i privilegi: solo un admin puo' assegnare il profilo Admin, e solo chi puo' modificare i profili puo' assegnarne uno che lo permette
     if (role === 'admin' && !isAdmin(session)) {
       return NextResponse.json({ error: 'Solo un amministratore può assegnare il profilo Admin' }, { status: 403 })
     }
-    if (role !== 'admin' && !canManage(session, 'profiles') && canManage({ user: { role, permissions: await getRolePermissions(role) } }, 'profiles')) {
+    if (role !== 'admin' && !can(session, 'profiles', 'update') && can({ user: { role, permissions: await getRolePermissions(role) } }, 'profiles', 'update')) {
       return NextResponse.json({ error: 'Non puoi assegnare un profilo con più privilegi dei tuoi' }, { status: 403 })
     }
   }
@@ -85,7 +85,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
-  if (!canManage(session, 'team')) return NextResponse.json({ error: 'Il tuo profilo non può modificare il team' }, { status: 403 })
+  if (!can(session, 'team', 'delete')) return NextResponse.json({ error: 'Il tuo profilo non può eliminare dal team' }, { status: 403 })
 
   const member = await prisma.teamMember.findUnique({ where: { id: params.id }, include: { user: true } })
   if (!member) return NextResponse.json({ error: 'Membro non trovato' }, { status: 404 })

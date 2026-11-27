@@ -3,9 +3,12 @@
 import { useCallback, useEffect, useState } from 'react'
 import clsx from 'clsx'
 import {
+  ACTIONS,
   ACTION_LABELS,
+  GROUP_LABELS,
   OBJECT_DEFS,
   SCOPE_LABELS,
+  type GroupKey,
   type ActionKey,
   type ObjectKey,
   type PermissionMap,
@@ -23,7 +26,6 @@ interface RoleFull {
   users: number
 }
 
-const ACTIONS: ActionKey[] = ['create', 'update', 'delete', 'manage']
 
 export default function RolesSettings() {
   const [roles, setRoles] = useState<RoleFull[]>([])
@@ -69,7 +71,32 @@ export default function RolesSettings() {
   }, [sel?.key, roles]) // eslint-disable-line react-hooks/exhaustive-deps
 
   function setCell(obj: ObjectKey, action: ActionKey, v: Scope) {
-    setPerms((p) => (p ? { ...p, [obj]: { ...p[obj], [action]: v } } : p))
+    setPerms((p) => {
+      if (!p) return p
+      const def = OBJECT_DEFS.find((o) => o.key === obj)!
+      const row = { ...p[obj], [action]: v }
+      if (def.actions.read) {
+        // senza "Visualizzare" la sezione non compare: le altre azioni non hanno senso
+        if (action === 'read' && v === 'none') for (const a of Object.keys(row) as ActionKey[]) row[a] = 'none'
+        else if (action !== 'read' && v !== 'none') row.read = 'all'
+      }
+      return { ...p, [obj]: row }
+    })
+    setDirty(true)
+    setSaved(false)
+  }
+
+  // scorciatoia di riga: tutto il possibile oppure niente
+  function setRow(obj: ObjectKey, on: boolean) {
+    const def = OBJECT_DEFS.find((o) => o.key === obj)!
+    setPerms((p) => {
+      if (!p) return p
+      const row: Partial<Record<ActionKey, Scope>> = {}
+      for (const [a, allowed] of Object.entries(def.actions) as [ActionKey, Scope[]][]) {
+        row[a] = on ? allowed[allowed.length - 1] : 'none'
+      }
+      return { ...p, [obj]: row }
+    })
     setDirty(true)
     setSaved(false)
   }
@@ -225,56 +252,85 @@ export default function RolesSettings() {
             </label>
           </div>
 
-          <h3 className="text-sm font-semibold text-slate-700 mb-1">Cosa può fare sugli oggetti</h3>
+          <h3 className="text-sm font-semibold text-slate-700 mb-1">Permessi</h3>
           <p className="text-xs text-slate-500 mb-3">
-            "Gestire" riguarda le parti amministrative: Team, impostazioni Admin, profili. La lettura è per ora aperta a tutti: chi vede cosa si deciderà con i ruoli.
+            Spunta cosa può fare questo profilo. Nelle sezioni di amministrazione, senza "Visualizzare" la sezione non compare
+            nemmeno nel menu. Cosa vede sui dati (task, clienti) lo decide invece il ruolo.
           </p>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-xs uppercase tracking-wide text-slate-500 border-b border-slate-200">
-                  <th className="text-left py-2 pr-3 font-semibold">Oggetto</th>
-                  {ACTIONS.map((a) => (
-                    <th key={a} className="text-left py-2 px-2 font-semibold">
-                      {ACTION_LABELS[a]}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {OBJECT_DEFS.map((o) => (
-                  <tr key={o.key} className="border-b border-slate-100">
-                    <td className="py-2 pr-3 align-top">
-                      <span className="font-medium text-slate-700">{o.label}</span>
-                      {o.hint && <span className="block text-[11px] text-slate-400">{o.hint}</span>}
-                    </td>
-                    {ACTIONS.map((a) => {
-                      const allowed = o.actions[a]
-                      return (
-                        <td key={a} className="py-2 px-2 align-top">
-                          {allowed ? (
-                            <select
-                              value={perms[o.key]?.[a] ?? 'none'}
-                              disabled={locked}
-                              onChange={(e) => setCell(o.key, a, e.target.value as Scope)}
-                              className="border border-slate-300 rounded-lg px-2 py-1 bg-white disabled:bg-slate-50 disabled:text-slate-400"
-                            >
-                              {allowed.map((v) => (
-                                <option key={v} value={v}>
-                                  {SCOPE_LABELS[v]}
-                                </option>
-                              ))}
-                            </select>
-                          ) : (
-                            <span className="text-slate-300">—</span>
-                          )}
-                        </td>
-                      )
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="space-y-4">
+            {(Object.keys(GROUP_LABELS) as GroupKey[]).map((g) => (
+              <div key={g} className="border border-slate-200 rounded-lg overflow-hidden">
+                <div className="bg-slate-50 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500">{GROUP_LABELS[g]}</div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="text-[11px] text-slate-500 border-b border-slate-100">
+                        <th className="text-left py-1.5 px-3 font-medium">Entità</th>
+                        {ACTIONS.map((a) => (
+                          <th key={a} className="py-1.5 px-2 font-medium text-center w-24">
+                            {ACTION_LABELS[a]}
+                          </th>
+                        ))}
+                        <th className="w-16" />
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {OBJECT_DEFS.filter((o) => o.group === g).map((o) => {
+                        const anyOn = Object.keys(o.actions).some((a) => (perms[o.key]?.[a as ActionKey] ?? 'none') !== 'none')
+                        return (
+                          <tr key={o.key} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/60">
+                            <td className="py-2 px-3 align-top">
+                              <span className="font-medium text-slate-700">{o.label}</span>
+                              {o.hint && <span className="block text-[11px] text-slate-400">{o.hint}</span>}
+                            </td>
+                            {ACTIONS.map((a) => {
+                              const allowed = o.actions[a]
+                              const val = perms[o.key]?.[a] ?? 'none'
+                              return (
+                                <td key={a} className="py-2 px-2 text-center align-top">
+                                  {!allowed ? (
+                                    <span className="text-slate-300">—</span>
+                                  ) : allowed.includes('own') ? (
+                                    <select
+                                      value={val}
+                                      disabled={locked}
+                                      onChange={(e) => setCell(o.key, a, e.target.value as Scope)}
+                                      className="border border-slate-300 rounded-lg px-1.5 py-1 text-xs bg-white disabled:bg-slate-50 disabled:text-slate-400"
+                                    >
+                                      {allowed.map((v) => (
+                                        <option key={v} value={v}>
+                                          {SCOPE_LABELS[v]}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  ) : (
+                                    <input
+                                      type="checkbox"
+                                      checked={val !== 'none'}
+                                      disabled={locked}
+                                      onChange={(e) => setCell(o.key, a, e.target.checked ? 'all' : 'none')}
+                                      aria-label={`${ACTION_LABELS[a]} ${o.label}`}
+                                      className="h-4 w-4 accent-brand-600"
+                                    />
+                                  )}
+                                </td>
+                              )
+                            })}
+                            <td className="py-2 px-2 text-right align-top">
+                              {!locked && (
+                                <button onClick={() => setRow(o.key, !anyOn)} className="text-[11px] text-brand-600 hover:underline">
+                                  {anyOn ? 'Niente' : 'Tutto'}
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ))}
           </div>
 
           {locked && <p className="text-xs text-slate-500 mt-3">Il profilo Admin ha sempre tutti i permessi: puoi cambiarne solo il nome e la descrizione.</p>}

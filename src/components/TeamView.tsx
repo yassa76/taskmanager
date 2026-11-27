@@ -39,7 +39,11 @@ const STATUS_COLORS: Record<string, string> = {
 
 export default function TeamView() {
   const { data: session } = useSession()
-  const isAdmin = scopeIn((session?.user as any)?.permissions, 'team', 'manage') !== 'none'
+  const tperms = (session?.user as any)?.permissions
+  const canUpdateTeam = scopeIn(tperms, 'team', 'update') !== 'none'
+  const canDeleteTeam = scopeIn(tperms, 'team', 'delete') !== 'none'
+  const canCreateTeam = scopeIn(tperms, 'team', 'create') !== 'none'
+  const isAdmin = canUpdateTeam || canDeleteTeam
 
   const [members, setMembers] = useState<TeamMemberDTO[]>([])
   const [firstName, setFirstName] = useState('')
@@ -290,12 +294,16 @@ export default function TeamView() {
       render: (m) =>
         isAdmin ? (
           <>
-            <button onClick={() => openEdit(m)} className="inline-flex text-slate-400 hover:text-brand-600 mr-3 align-middle" title="Modifica">
-              <EditIcon />
-            </button>
-            <button onClick={() => deleteMember(m)} className="inline-flex text-slate-400 hover:text-red-600 align-middle" title="Elimina">
-              <DeleteIcon />
-            </button>
+            {canUpdateTeam && (
+              <button onClick={() => openEdit(m)} className="inline-flex text-slate-400 hover:text-brand-600 mr-3 align-middle" title="Modifica">
+                <EditIcon />
+              </button>
+            )}
+            {canDeleteTeam && (
+              <button onClick={() => deleteMember(m)} className="inline-flex text-slate-400 hover:text-red-600 align-middle" title="Elimina">
+                <DeleteIcon />
+              </button>
+            )}
           </>
         ) : (
           <span className="text-slate-300 text-xs">—</span>
@@ -316,10 +324,10 @@ export default function TeamView() {
         </button>
       </div>
       <p className="text-slate-500 text-sm mb-6">
-        Aggiungi qui le persone del team (quelle inattive non sono selezionabili per i task).
+        Le persone del team (quelle inattive non sono selezionabili per i task).
       </p>
 
-      {isAdmin && members.some((m) => m.status === 'pending') && (
+      {canUpdateTeam && members.some((m) => m.status === 'pending') && (
         <div className="bg-violet-50 border border-violet-200 rounded-xl p-4 mb-6">
           <h2 className="font-semibold text-violet-900 text-sm mb-1">Richieste di accesso in attesa</h2>
           <p className="text-xs text-violet-800 mb-3">
@@ -352,6 +360,7 @@ export default function TeamView() {
         </div>
       )}
 
+      {canCreateTeam && (
       <div className="bg-white border border-slate-200 rounded-xl p-4 mb-6 flex flex-wrap gap-2 items-end">
         <div className="flex-1 min-w-[140px]">
           <label className="text-xs font-medium text-slate-500">Nome *</label>
@@ -386,6 +395,7 @@ export default function TeamView() {
           Aggiungi al team
         </button>
       </div>
+      )}
 
       <div className="bg-white border border-slate-200 rounded-xl p-3 flex flex-wrap items-center gap-2 mb-4">
         <input

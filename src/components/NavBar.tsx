@@ -24,9 +24,10 @@ export default function NavBar() {
   const { data: session } = useSession()
   const [menuOpen, setMenuOpen] = useState(false)
   const perms = (session?.user as any)?.permissions
-  // la voce Admin compare a chi puo' gestire le impostazioni o i profili
-  const isAdmin = scopeIn(perms, 'settings', 'manage') !== 'none' || scopeIn(perms, 'profiles', 'manage') !== 'none'
-  const visibleLinks = isAdmin ? [...links, { href: '/settings', label: 'Admin' }] : links
+  // la voce Admin compare a chi puo' visualizzare almeno una sezione amministrativa
+  const isAdmin = (['profiles', 'orgroles', 'countries', 'geocode', 'activitylog', 'accesslog'] as const).some((o) => scopeIn(perms, o, 'read') !== 'none')
+  const baseLinks = scopeIn(perms, 'team', 'read') === 'none' && perms ? links.filter((l) => l.href !== '/team') : links
+  const visibleLinks = isAdmin ? [...baseLinks, { href: '/settings', label: 'Admin' }] : baseLinks
 
   // il menu si chiude quando si cambia pagina
   useEffect(() => {

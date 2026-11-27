@@ -46,9 +46,10 @@ export function canDeleteRecord(session: any, ownerId: string | null | undefined
   return allowedOn(scopeOf(session, obj, 'delete'), !!ownerId && ownerId === getUserId(session))
 }
 
-// True se l'utente puo' gestire una parte amministrativa (team, impostazioni Admin, profili) secondo il suo profilo
-export function canManage(session: any, obj: 'team' | 'settings' | 'profiles'): boolean {
-  return scopeOf(session, obj, 'manage') !== 'none'
+// True se l'utente puo' compiere quell'azione su un'entita' (usato soprattutto per le parti amministrative:
+// visualizzare, creare, modificare, eliminare). Senza "Visualizzare" la sezione non compare e le API rispondono 403.
+export function can(session: any, obj: ObjectKey, action: ActionKey): boolean {
+  return scopeOf(session, obj, action) !== 'none'
 }
 
 // True solo per il profilo Admin di sistema (usato dove serve una visione completa del team, in attesa della visibilita' per ruolo)
