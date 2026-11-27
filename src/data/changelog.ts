@@ -18,6 +18,8 @@ export const CHANGELOG: ChangelogEntry[] = [
     description:
       'Nei profili sparisce "Gestire": ora ogni entità, comprese Team e le sezioni Admin, ha Visualizzare, Creare, Modificare, Eliminare. Senza "Visualizzare" la voce o il tab non compare nemmeno. La matrice è raggruppata (Dati e Amministrazione), con caselle da spuntare e una scorciatoia Tutto/Niente per riga. I profili esistenti mantengono gli stessi permessi.',
     tag: 'miglioramento'
+  },
+  {
     id: '2026-11-27-predefiniti-nuovi-utenti',
     date: '2026-11-27',
     title: 'Profilo e ruolo predefiniti per i nuovi utenti',
