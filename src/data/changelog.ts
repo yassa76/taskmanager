@@ -12,6 +12,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-11-27-esporta-unificato',
+    date: '2026-11-27',
+    title: 'Esporta: una sola voce, con scelta tra vista e tutto',
+    description:
+      'Nel menu delle tabelle resta solo Esporta…: nel popup scegli se esportare la vista attuale oppure, nei task, tutto con task e sub-task su due fogli. Nella Home ho anche allineato meglio i riquadri.',
+    tag: 'miglioramento'
+  },
+  {
     id: '2026-11-27-profilo-totale-notifiche',
     date: '2026-11-27',
     title: 'Profilo: totale notifiche sempre visibile',
