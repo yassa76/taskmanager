@@ -1,5 +1,6 @@
 'use client'
 
+import { GearIcon, RefreshIcon, ArrowDownIcon, ArrowUpIcon} from './icons'
 import PageBar, { BTN } from './PageBar'
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
@@ -146,7 +147,7 @@ export default function HomeView({ userName }: { userName: string }) {
       <PageBar
         left={
           <>
-            <span className="text-base font-medium text-slate-800 mr-1">Ciao, {userName.split(' ')[0] || userName} 👋</span>
+            <span className="text-base font-medium text-slate-800 mr-1">Ciao, {userName.split(' ')[0] || userName}</span>
             <ScopeSelect value={scope} onChange={changeScope} />
           </>
         }
@@ -157,10 +158,10 @@ export default function HomeView({ userName }: { userName: string }) {
               className={'hidden lg:inline-flex ' + BTN}
               title="Scegli quali blocchi mostrare e in che ordine"
             >
-              ⚙ Personalizza
+              <GearIcon /> Personalizza
             </button>
             <button onClick={() => load()} className={BTN}>
-              ↻ Aggiorna
+              <RefreshIcon /> Aggiorna
             </button>
           </>
         }
@@ -195,7 +196,7 @@ export default function HomeView({ userName }: { userName: string }) {
                     className="px-2 text-slate-500 hover:text-brand-600 disabled:opacity-30"
                     aria-label="Sposta su"
                   >
-                    ↑
+                    <ArrowUpIcon />
                   </button>
                   <button
                     onClick={() => moveBlock(id, 1)}
@@ -203,7 +204,7 @@ export default function HomeView({ userName }: { userName: string }) {
                     className="px-2 text-slate-500 hover:text-brand-600 disabled:opacity-30"
                     aria-label="Sposta giù"
                   >
-                    ↓
+                    <ArrowDownIcon />
                   </button>
                 </li>
               )
@@ -237,7 +238,7 @@ export default function HomeView({ userName }: { userName: string }) {
               title={scope === 'mine' ? 'I miei task in scadenza' : scope === 'team' ? 'Task del team in scadenza' : 'Task di tutti in scadenza'}
               firstColLabel="Task"
               subColLabel="Cliente"
-              emptyText="Nessun task in scadenza. 🎉"
+              emptyText="Nessun task in scadenza."
               rows={data.upcomingTasks.map((t) => ({
                 id: t.id,
                 href: `/tasks/${t.id}`,
@@ -259,7 +260,7 @@ export default function HomeView({ userName }: { userName: string }) {
               title={scope === 'mine' ? 'I miei sub-task in scadenza' : scope === 'team' ? 'Sub-task del team in scadenza' : 'Sub-task di tutti in scadenza'}
               firstColLabel="Sub-task"
               subColLabel="Task"
-              emptyText="Nessun sub-task in scadenza. 🎉"
+              emptyText="Nessun sub-task in scadenza."
               rows={data.upcomingSubtasks.map((s) => ({
                 id: s.id,
                 href: `/subtasks/${s.id}`,

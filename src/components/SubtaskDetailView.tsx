@@ -12,10 +12,11 @@ import Breadcrumbs from './Breadcrumbs'
 import ActivityLogPanel from './ActivityLogPanel'
 import CommentsPanel from './CommentsPanel'
 import Combobox from './Combobox'
-import { EditIcon, DeleteIcon } from './icons'
+import { EditIcon, DeleteIcon, ArrowLeftIcon, ArrowRightIcon, RepeatIcon} from './icons'
 import ReadOnlyGuard from './ReadOnlyGuard'
 import RecurrenceFields from './RecurrenceFields'
 import StatusPath from './StatusPath'
+import { IconSelectWrap, UserIcon, CalendarIcon, RepeatIcon, PlayIcon, CheckIcon, SubArrowIcon, WarningIcon } from './icons'
 import { RECURRENCE_HELP, recurrenceLabel } from '@/lib/recurrenceShared'
 
 export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) {
@@ -221,17 +222,17 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
                   className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 font-medium cursor-help"
                   title={RECURRENCE_HELP}
                 >
-                  🔁 Ricorrente · {recurrenceLabel(subtask.recurrence)}
+                  <RepeatIcon className="w-3.5 h-3.5" /> Ricorrente · {recurrenceLabel(subtask.recurrence)}
                   {subtask.recurrenceEndDate ? ` fino al ${formatDate(subtask.recurrenceEndDate)}` : ''}
                 </span>
                 {subtask.recurrenceSourceId && (
                   <Link href={`/subtasks/${subtask.recurrenceSourceId}`} className="text-brand-600 hover:underline">
-                    ← Sub-task precedente
+                    <ArrowLeftIcon /> Sub-task precedente
                   </Link>
                 )}
                 {subtask.recurrenceNextId ? (
                   <Link href={`/subtasks/${subtask.recurrenceNextId}`} className="text-brand-600 hover:underline">
-                    Sub-task successivo →
+                    Sub-task successivo <ArrowRightIcon />
                   </Link>
                 ) : (
                   <span className="text-slate-400">
@@ -245,7 +246,7 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
             {!subtask.recurrence && subtask.recurrenceSourceId && (
               <p className="mt-2 text-xs">
                 <Link href={`/subtasks/${subtask.recurrenceSourceId}`} className="text-brand-600 hover:underline">
-                  ← Sub-task precedente
+                  <ArrowLeftIcon /> Sub-task precedente
                 </Link>
               </p>
             )}
@@ -256,7 +257,7 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
                 onClick={startNow}
                 className="px-3 py-1.5 rounded-lg bg-amber-500 text-white text-sm font-medium hover:bg-amber-600"
               >
-                ▶ Avvia
+                <PlayIcon /> Avvia
               </button>
             )}
             <button
@@ -295,10 +296,11 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
                 {subtask.owner.name || subtask.owner.email}
               </Link>
               <ReadOnlyGuard className="inline-flex">
-                <select
+<IconSelectWrap title="Cambia owner" icon={<UserIcon />}>
+<select
                   value={subtask.owner.id}
                   onChange={(e) => patchSubtask({ ownerId: e.target.value })}
-                  className="w-6 h-6 text-transparent bg-transparent border border-slate-200 rounded cursor-pointer"
+                  className=""
                   title="Cambia owner"
                   aria-label="Cambia owner"
                 >
@@ -308,7 +310,8 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
                     </option>
                   ))}
                 </select>
-              </ReadOnlyGuard>
+</IconSelectWrap>
+</ReadOnlyGuard>
             </div>
           </div>
           <div>
@@ -322,15 +325,18 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
               {subtask.endDate ? formatDate(subtask.endDate) : '—'}
             </p>
               <ReadOnlyGuard className="inline-flex">
-                <input
+<IconSelectWrap title="Cambia scadenza" icon={<CalendarIcon />}>
+<input
                   type="date"
+                  onClick={(e) => (e.currentTarget as HTMLInputElement).showPicker?.()}
                   value={subtask.endDate ? subtask.endDate.slice(0, 10) : ''}
                   onChange={(e) => e.target.value && patchSubtask({ endDate: e.target.value })}
-                  className="w-6 h-6 text-transparent bg-transparent border border-slate-200 rounded cursor-pointer"
+                  className=""
                   title="Cambia scadenza"
                   aria-label="Cambia scadenza"
                 />
-              </ReadOnlyGuard>
+</IconSelectWrap>
+</ReadOnlyGuard>
             </div>
           </div>
           <div>
@@ -342,7 +348,7 @@ export default function SubtaskDetailView({ subtaskId }: { subtaskId: string }) 
         {subtask.status !== 'completato' && subtask.status !== 'annullato' && (
           <ReadOnlyGuard className="mt-6 pt-4 border-t border-slate-100 block w-full">
             <button onClick={closeNow} className="text-sm text-emerald-700 font-medium hover:underline">
-              ✓ Chiudi oggi
+              <CheckIcon /> Chiudi oggi
             </button>
           </ReadOnlyGuard>
         )}

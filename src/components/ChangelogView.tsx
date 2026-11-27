@@ -1,5 +1,6 @@
 'use client'
 
+import { ArrowLeftIcon, ArrowRightIcon } from './icons'
 import Breadcrumbs from './Breadcrumbs'
 import { useEffect, useState } from 'react'
 import clsx from 'clsx'
@@ -67,14 +68,14 @@ export default function ChangelogView() {
               disabled={page === 1}
               className="px-3 h-9 rounded-lg border border-slate-300 disabled:opacity-40 hover:bg-slate-100"
             >
-              ← Più recenti
+              <ArrowLeftIcon /> Più recenti
             </button>
             <button
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
               className="px-3 h-9 rounded-lg border border-slate-300 disabled:opacity-40 hover:bg-slate-100"
             >
-              Meno recenti →
+              Meno recenti <ArrowRightIcon />
             </button>
           </div>
         </div>

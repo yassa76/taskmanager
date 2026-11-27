@@ -1,6 +1,6 @@
 'use client'
 
-import { CheckboxIcon } from './icons'
+import { CheckboxIcon, WarningIcon} from './icons'
 import { useRoles } from '@/lib/useRoles'
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
@@ -340,7 +340,7 @@ export default function OwnerDetailView({ ownerId }: { ownerId: string }) {
               overdueOnly ? 'bg-red-50 border-red-200 text-red-700' : 'border-slate-200 text-slate-500 hover:bg-slate-50'
             )}
           >
-            ⚠ In ritardo
+            <WarningIcon /> In ritardo
           </button>
           <button
             onClick={() => setIncludeClosed((v) => !v)}
@@ -406,7 +406,7 @@ export default function OwnerDetailView({ ownerId }: { ownerId: string }) {
                 : 'border-slate-200 text-slate-500 hover:bg-slate-50'
             )}
           >
-            ⚠ In ritardo
+            <WarningIcon /> In ritardo
           </button>
           <button
             onClick={() => setSubIncludeClosed((v) => !v)}

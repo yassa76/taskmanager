@@ -1,5 +1,6 @@
 'use client'
 
+import { CheckIcon } from './icons'
 import { useCallback, useEffect, useState } from 'react'
 import clsx from 'clsx'
 import {
@@ -364,7 +365,7 @@ export default function RolesSettings() {
                 {saving ? 'Salvataggio...' : 'Salva'}
               </button>
             )}
-            {saved && <span className="text-sm text-emerald-600">Salvato ✓</span>}
+            {saved && <span className="text-sm text-emerald-600">Salvato <CheckIcon /></span>}
             {!sel.isSystem && canDelete && (
               <button onClick={remove} className="ml-auto text-sm text-red-600 hover:underline">
                 Elimina profilo

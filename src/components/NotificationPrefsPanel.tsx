@@ -1,5 +1,6 @@
 'use client'
 
+import { CheckIcon } from './icons'
 import { useEffect, useState } from 'react'
 import { DEFAULT_PREFS, OTHER_NOTIFICATION_TYPES, type NotificationPrefs } from '@/lib/notifyShared'
 
@@ -58,7 +59,7 @@ export default function NotificationPrefsPanel() {
       </ul>
       <p className="text-xs text-slate-400 mt-3">
         Le notifiche già lette si cancellano dopo 30 giorni, quelle non lette dopo 90.
-        {saved && <span className="text-emerald-600 ml-2">✓ Salvato</span>}
+        {saved && <span className="text-emerald-600 ml-2"><CheckIcon /> Salvato</span>}
       </p>
     </div>
   )

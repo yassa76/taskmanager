@@ -11,7 +11,7 @@ export default async function ClientDetailPage({ params }: { params: { id: strin
   return (
     <div>
       <NavBar />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
+      <main className="w-full px-3 sm:px-4 py-4">
         <ClientDetailView clientId={params.id} />
       </main>
     </div>

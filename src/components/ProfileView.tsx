@@ -1,5 +1,6 @@
 'use client'
 
+import { CheckIcon } from './icons'
 import Breadcrumbs from './Breadcrumbs'
 import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
@@ -165,7 +166,7 @@ function PreferencesPanel() {
           >
             {saving ? 'Salvataggio...' : 'Salva modifiche'}
           </button>
-          {saved && <span className="text-sm text-emerald-600">✓ Salvato</span>}
+          {saved && <span className="text-sm text-emerald-600"><CheckIcon /> Salvato</span>}
         </div>
       </div>
 

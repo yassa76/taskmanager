@@ -8,7 +8,7 @@ export default function RecurrenceBadge({ recurrence }: { recurrence?: string | 
       className="inline-flex items-center gap-1 shrink-0 px-1.5 py-0.5 rounded-full bg-violet-100 text-violet-700 text-[11px] font-medium whitespace-nowrap"
       title={`Sub-task ricorrente: ${recurrenceLabel(recurrence).toLowerCase()}`}
     >
-      🔁 {recurrenceShort(recurrence)}
+      <RepeatIcon className="w-3.5 h-3.5" /> {recurrenceShort(recurrence)}
     </span>
   )
 }

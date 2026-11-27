@@ -57,7 +57,7 @@ export default function NavBar() {
   return (
     <>
     <header className="bg-white border-b border-slate-200 border-t-2 border-t-brand-600 sticky top-0 z-20 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-14 lg:h-16">
+      <div className="w-full px-3 sm:px-4 flex items-center justify-between h-14 lg:h-16">
         <div className="flex items-center gap-8">
           <Link href="/home" className="font-bold text-brand-600 text-lg hover:text-brand-700">
             Task Manager
@@ -123,7 +123,7 @@ export default function NavBar() {
 
       {sub && (
         <div className="bg-slate-50 border-t border-slate-200">
-          <nav className="max-w-7xl mx-auto px-4 sm:px-6 flex gap-1 overflow-x-auto" aria-label="Sottovoci">
+          <nav className="w-full px-3 sm:px-4 flex gap-1 overflow-x-auto" aria-label="Sottovoci">
             {sub.items.map((i) => (
               <Link
                 key={i.id}

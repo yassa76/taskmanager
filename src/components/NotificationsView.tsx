@@ -1,5 +1,6 @@
 'use client'
 
+import { ArrowLeftIcon, ArrowRightIcon } from './icons'
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
@@ -245,7 +246,7 @@ export default function NotificationsView() {
             disabled={page <= 1}
             className="px-3 py-1 rounded border border-slate-300 disabled:opacity-40"
           >
-            ←
+            <ArrowLeftIcon />
           </button>
           <span>
             Pagina {page} di {pages}
@@ -255,7 +256,7 @@ export default function NotificationsView() {
             disabled={page >= pages}
             className="px-3 py-1 rounded border border-slate-300 disabled:opacity-40"
           >
-            →
+            <ArrowRightIcon />
           </button>
         </div>
       </div>

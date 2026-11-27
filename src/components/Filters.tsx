@@ -1,6 +1,6 @@
 'use client'
 
-import { CheckboxIcon } from './icons'
+import { CheckboxIcon, WarningIcon} from './icons'
 import { filterSelectClass } from '@/lib/ui'
 import clsx from 'clsx'
 import type { ClientDTO } from '@/types'
@@ -69,7 +69,7 @@ export default function Filters({
             : 'border-slate-200 text-slate-500 hover:bg-slate-50'
         )}
       >
-        ⚠ In ritardo
+        <WarningIcon /> In ritardo
       </button>
 
       <button

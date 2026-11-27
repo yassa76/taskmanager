@@ -7,7 +7,7 @@ import { useSession } from 'next-auth/react'
 import clsx from 'clsx'
 import type { TeamMemberDTO } from '@/types'
 import DataTable, { type Column } from './DataTable'
-import { EditIcon, DeleteIcon } from './icons'
+import { EditIcon, DeleteIcon, ArrowLeftIcon, ArrowRightIcon, RefreshIcon} from './icons'
 import { useRoles } from '@/lib/useRoles'
 import { useOrgRoles } from '@/lib/useOrgRoles'
 import { scopeIn } from '@/lib/permissionsShared'
@@ -333,7 +333,7 @@ export default function TeamView() {
       <PageBar
         right={
           <button onClick={load} className={BTN}>
-            ↻ Aggiorna
+            <RefreshIcon /> Aggiorna
           </button>
         }
       />
@@ -443,14 +443,14 @@ export default function TeamView() {
               disabled={page === 1}
               className="px-3 h-9 rounded-lg border border-slate-300 disabled:opacity-40 hover:bg-slate-100"
             >
-              ← Precedente
+              <ArrowLeftIcon /> Precedente
             </button>
             <button
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
               className="px-3 h-9 rounded-lg border border-slate-300 disabled:opacity-40 hover:bg-slate-100"
             >
-              Successiva →
+              Successiva <ArrowRightIcon />
             </button>
           </div>
         </div>

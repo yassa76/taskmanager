@@ -1,6 +1,7 @@
 'use client'
 
 import clsx from 'clsx'
+import { CheckIcon } from './icons'
 
 const STEPS: { key: string; label: string }[] = [
   { key: 'da_avviare', label: 'Da avviare' },
@@ -28,27 +29,31 @@ export default function StatusPath({
   const cancelled = status === 'annullato'
   return (
     <div className="flex items-center gap-2 flex-wrap">
-      <ol className="flex flex-1 min-w-[260px] overflow-hidden rounded-lg border border-slate-200 bg-slate-50 text-xs font-medium">
+      <ol className="flex flex-1 min-w-[260px] text-xs font-medium" aria-label="Stato">
         {STEPS.map((s, i) => {
           const done = !cancelled && i < idx
           const current = !cancelled && i === idx
+          const first = i === 0
+          const last = i === STEPS.length - 1
+          const clip = `polygon(${first ? '0 0' : '14px 0'}, calc(100% - ${last ? '0px' : '14px'}) 0, ${last ? '100% 0, 100% 100%' : '100% 50%, calc(100% - 14px) 100%'}, ${first ? '0 100%' : '14px 100%, 0 50%'}${first ? '' : ''})`
           return (
-            <li key={s.key} className="flex-1">
+            <li key={s.key} className={clsx('flex-1', !first && '-ml-2.5')}>
               <button
                 type="button"
                 disabled={disabled || !onChange || s.key === status}
                 onClick={() => onChange?.(s.key)}
+                style={{ clipPath: clip }}
                 className={clsx(
-                  'w-full px-3 py-2 text-center transition-colors border-r border-slate-200 last:border-r-0',
+                  'w-full h-9 px-5 text-center transition-colors inline-flex items-center justify-center gap-1',
                   current && 'bg-brand-600 text-white',
-                  done && 'bg-brand-50 text-brand-700',
-                  !current && !done && 'text-slate-500',
-                  onChange && !disabled && !current && 'hover:bg-slate-100 cursor-pointer',
+                  done && 'bg-brand-100 text-brand-700',
+                  !current && !done && 'bg-slate-100 text-slate-500',
+                  onChange && !disabled && !current && 'hover:bg-brand-50 cursor-pointer',
                   (!onChange || disabled || current) && 'cursor-default'
                 )}
                 title={onChange && !current ? `Imposta "${s.label}"` : undefined}
               >
-                {done ? '✓ ' : ''}
+                {done && <CheckIcon className="w-3.5 h-3.5" />}
                 {s.label}
               </button>
             </li>

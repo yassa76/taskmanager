@@ -17,7 +17,7 @@ import SavedViews from './SavedViews'
 import { isViewScope, type ViewScope } from '@/lib/scopesShared'
 import { useScopes } from '@/lib/useScopes'
 import SubtaskCount from './SubtaskCount'
-import { EditIcon, DeleteIcon } from './icons'
+import { EditIcon, DeleteIcon, ArrowLeftIcon, ArrowRightIcon, RefreshIcon, KanbanIcon, ListIcon} from './icons'
 
 type SortKey = 'title' | 'clientName' | 'owner' | 'startDate' | 'endDate' | 'status'
 type SortDir = 'asc' | 'desc'
@@ -400,7 +400,7 @@ export default function TasksView() {
                   viewMode === v ? 'bg-white shadow text-brand-700' : 'text-slate-500'
                 )}
               >
-                {v === 'table' ? '☰ Tabella' : '▦ Kanban'}
+                {v === 'table' ? <><ListIcon /> Tabella</> : <><KanbanIcon /> Kanban</>}
               </button>
             ))}
           </div>
@@ -408,7 +408,7 @@ export default function TasksView() {
             onClick={loadAll}
             className="px-3 h-9 rounded-lg border border-slate-300 text-sm font-medium text-slate-700 hover:bg-slate-100"
           >
-            ↻ Aggiorna
+            <RefreshIcon /> Aggiorna
           </button>
           <button
             onClick={() => {
@@ -499,14 +499,14 @@ export default function TasksView() {
               disabled={page === 1}
               className="px-3 h-9 rounded-lg border border-slate-300 disabled:opacity-40 hover:bg-slate-100"
             >
-              ← Precedente
+              <ArrowLeftIcon /> Precedente
             </button>
             <button
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
               className="px-3 h-9 rounded-lg border border-slate-300 disabled:opacity-40 hover:bg-slate-100"
             >
-              Successiva →
+              Successiva <ArrowRightIcon />
             </button>
           </div>
         </div>
