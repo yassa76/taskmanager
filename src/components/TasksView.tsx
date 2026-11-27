@@ -13,6 +13,7 @@ import TaskFormModal from './TaskFormModal'
 import Filters, { FilterState } from './Filters'
 import Breadcrumbs from './Breadcrumbs'
 import TasksKanban from './TasksKanban'
+import SavedViews from './SavedViews'
 import SubtaskCount from './SubtaskCount'
 import { EditIcon, DeleteIcon } from './icons'
 
@@ -43,6 +44,8 @@ export default function TasksView() {
   const [page, setPage] = useState(1)
   const PAGE_SIZE = 20
   const [viewMode, setViewMode] = useState<'table' | 'kanban'>('table')
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [bulkBusy, setBulkBusy] = useState(false)
 
   // Ripristina la vista scelta in precedenza (Tabella/Kanban), cosi' resta
   // valida anche navigando su altre pagine e tornando qui.
@@ -156,6 +159,30 @@ export default function TasksView() {
 
   const totalPages = Math.max(1, Math.ceil(filteredTasks.length / PAGE_SIZE))
   const pagedTasks = filteredTasks.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+
+  // Azione multipla: applica lo stesso PATCH a tutti i task selezionati e riporta quanti sono falliti
+  // (ad esempio per mancanza di permessi sul task di un altro).
+  async function bulkUpdate(body: Record<string, unknown>) {
+    const ids = Array.from(selected)
+    if (ids.length === 0) return
+    setBulkBusy(true)
+    const results = await Promise.all(
+      ids.map((id) =>
+        fetch(`/api/tasks/${id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        })
+          .then((r) => r.ok)
+          .catch(() => false)
+      )
+    )
+    const failed = results.filter((ok) => !ok).length
+    setBulkBusy(false)
+    setSelected(new Set())
+    if (failed > 0) alert(`${failed} task su ${ids.length} non sono stati modificati (permessi insufficienti o errore).`)
+    loadAll()
+  }
 
   async function deleteTask(t: TaskDTO) {
     if (!confirm(`Eliminare il task "${t.title}"?`)) return
@@ -380,7 +407,54 @@ export default function TasksView() {
         </div>
       </div>
 
+      <SavedViews
+        page="tasks"
+        current={{ filters, sortKey, sortDir }}
+        onApply={(d) => {
+          if (d?.filters) setFilters(d.filters)
+          if (d?.sortKey) setSortKey(d.sortKey)
+          if (d?.sortDir) setSortDir(d.sortDir)
+          setPage(1)
+        }}
+      />
       <Filters filters={filters} onChange={setFilters} clients={clients} owners={owners} />
+
+      {selected.size > 0 && viewMode === 'table' && (
+        <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl border border-brand-200 bg-brand-50 px-3 py-2 text-sm">
+          <span className="font-medium text-brand-700">{selected.size} selezionati</span>
+          <select
+            disabled={bulkBusy}
+            value=""
+            onChange={(e) => e.target.value && bulkUpdate({ status: e.target.value })}
+            className="border border-slate-300 rounded-lg px-2 py-1.5 bg-white"
+            aria-label="Cambia stato"
+          >
+            <option value="">Cambia stato…</option>
+            <option value="da_avviare">Da avviare</option>
+            <option value="in_corso">In corso</option>
+            <option value="completato">Completato</option>
+            <option value="annullato">Annullato</option>
+            <option value="auto">Automatico (dai sotto-task)</option>
+          </select>
+          <select
+            disabled={bulkBusy}
+            value=""
+            onChange={(e) => e.target.value && bulkUpdate({ ownerId: e.target.value })}
+            className="border border-slate-300 rounded-lg px-2 py-1.5 bg-white"
+            aria-label="Cambia owner"
+          >
+            <option value="">Cambia owner…</option>
+            {owners.map((o) => (
+              <option key={o.id} value={o.id}>
+                {o.name}
+              </option>
+            ))}
+          </select>
+          <button onClick={() => setSelected(new Set())} className="ml-auto text-xs text-slate-500 hover:text-brand-600">
+            Deseleziona
+          </button>
+        </div>
+      )}
 
       {viewMode === 'kanban' ? (
         <div className="mt-4">
@@ -393,6 +467,8 @@ export default function TasksView() {
           tableId="tasks"
           exportRows={filteredTasks}
           exportName="task"
+          selected={selected}
+          onSelectedChange={setSelected}
           columns={columns}
           rows={pagedTasks}
           rowKey={(t) => t.id}

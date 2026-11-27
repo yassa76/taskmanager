@@ -12,6 +12,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-11-27-liste-azioni-viste',
+    date: '2026-11-27',
+    title: 'Task: azioni multiple e viste salvate',
+    description:
+      'Nella lista dei task puoi selezionare più righe e cambiare stato o owner in un colpo solo. Inoltre puoi salvare con un nome la combinazione di filtri e ordinamento che usi spesso e riapplicarla quando vuoi.',
+    tag: 'novità'
+  },
+  {
     id: '2026-11-27-dettaglio-task',
     date: '2026-11-27',
     title: 'Dettaglio task: stato a passaggi e modifica rapida',
