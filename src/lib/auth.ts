@@ -66,6 +66,14 @@ export const authOptions: NextAuthOptions = {
         await notifyAdminsAccessRequest(created.id, user.name || email)
         return '/login?error=pending_approval'
       }
+      // Account rimasto in archivio dopo la rimozione dal Team (aveva ancora dati collegati): non rientra da solo,
+      // torna come richiesta "In attesa" che un admin deve approvare. Un admin non viene mai bloccato.
+      if (dbUser && !member && dbUser.role !== 'admin') {
+        const created = await prisma.teamMember.create({ data: { email: email.toLowerCase(), status: 'pending' } })
+        await prisma.user.update({ where: { id: dbUser.id }, data: { teamMemberId: created.id } })
+        await notifyAdminsAccessRequest(created.id, user.name || email)
+        return '/login?error=pending_approval'
+      }
       return true
     },
     async session({ session, user }) {
