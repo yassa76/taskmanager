@@ -112,7 +112,8 @@ function OwnerTick(props: any) {
 export default function ReportsView() {
   const router = useRouter()
   const { data: session } = useSession()
-  const isAdmin = (session?.user as any)?.role === 'admin'
+  // l'interruttore "I miei / Tutto il team" compare a chi, per profilo e ruolo, vede anche i record di altri
+  const isAdmin = !!(session?.user as any)?.canSeeTeam
 
   const [data, setData] = useState<ReportData | null>(null)
   const [scope, setScope] = useState<'mine' | 'team'>('mine')

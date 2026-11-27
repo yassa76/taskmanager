@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { getVisibility, canSeeSubtaskById } from '@/lib/visibility'
 import { deriveTaskStatus } from '@/lib/taskStatus'
 import { scopeOf, getUserId } from '@/lib/permissions'
 import { logActivity } from '@/lib/activityLog'
@@ -64,7 +65,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
     where: { id: params.id },
     include: { owner: true, createdBy: true, recurrenceNext: { select: { id: true } }, task: { include: { client: true } } }
   })
-  if (!subtask) return NextResponse.json({ error: 'Sub-task non trovato' }, { status: 404 })
+  if (!subtask || !(await canSeeSubtaskById(await getVisibility(session), params.id))) return NextResponse.json({ error: 'Sub-task non trovato' }, { status: 404 })
 
   return NextResponse.json(toSubtaskDetailDTO(subtask))
 }
@@ -77,7 +78,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     where: { id: params.id },
     include: { owner: true, task: true }
   })
-  if (!existing) return NextResponse.json({ error: 'Sub-task non trovato' }, { status: 404 })
+  if (!existing || !(await canSeeSubtaskById(await getVisibility(session), params.id))) return NextResponse.json({ error: 'Sub-task non trovato' }, { status: 404 })
   if (!canManageSubtask(session, existing, existing.task.ownerId, 'update')) {
     return NextResponse.json({ error: 'Non hai i permessi per modificare questo sub-task' }, { status: 403 })
   }
@@ -206,7 +207,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
     where: { id: params.id },
     include: { task: true }
   })
-  if (!existing) return NextResponse.json({ error: 'Sub-task non trovato' }, { status: 404 })
+  if (!existing || !(await canSeeSubtaskById(await getVisibility(session), params.id))) return NextResponse.json({ error: 'Sub-task non trovato' }, { status: 404 })
   if (!canManageSubtask(session, existing, existing.task.ownerId, 'delete')) {
     return NextResponse.json({ error: 'Non hai i permessi per eliminare questo sub-task' }, { status: 403 })
   }

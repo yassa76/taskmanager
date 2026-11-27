@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { getVisibility, canSeeTask } from '@/lib/visibility'
 import { canCreate } from '@/lib/permissions'
 import { logActivity } from '@/lib/activityLog'
 import { syncTaskFromSubtask } from '@/lib/taskSync'
@@ -13,7 +14,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
 
   const task = await prisma.task.findUnique({ where: { id: params.id } })
-  if (!task) return NextResponse.json({ error: 'Task non trovato' }, { status: 404 })
+  if (!task || !(await canSeeTask(await getVisibility(session), params.id))) return NextResponse.json({ error: 'Task non trovato' }, { status: 404 })
   if (!canCreate(session, 'subtask')) {
     return NextResponse.json({ error: 'Utente in sola lettura: non puoi aggiungere sub-task' }, { status: 403 })
   }

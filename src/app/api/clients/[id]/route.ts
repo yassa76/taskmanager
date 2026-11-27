@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { getVisibility, canSeeClient, taskWhere as visTaskWhere } from '@/lib/visibility'
 import { canEditRecord, canDeleteRecord } from '@/lib/permissions'
 import { deriveTaskStatus } from '@/lib/taskStatus'
 import { logActivity } from '@/lib/activityLog'
@@ -40,22 +41,24 @@ function toClientDTO(client: any): ClientDTO {
   }
 }
 
-const clientInclude = {
-  projects: { select: { id: true, name: true } },
-  owner: true,
-  createdBy: true,
-  tasks: { select: { closedManually: true, statusOverride: true, subtasks: { select: { status: true } } } }
-} as const
+const clientInclude = (vis: Awaited<ReturnType<typeof getVisibility>>) =>
+  ({
+    projects: { select: { id: true, name: true } },
+    owner: true,
+    createdBy: true,
+    tasks: { where: visTaskWhere(vis), select: { closedManually: true, statusOverride: true, subtasks: { select: { status: true } } } }
+  }) as const
 
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
 
+  const vis = await getVisibility(session)
   const client = await prisma.client.findUnique({
     where: { id: params.id },
-    include: clientInclude
+    include: clientInclude(vis)
   })
-  if (!client) return NextResponse.json({ error: 'Cliente non trovato' }, { status: 404 })
+  if (!client || !(await canSeeClient(vis, params.id))) return NextResponse.json({ error: 'Cliente non trovato' }, { status: 404 })
 
   return NextResponse.json(toClientDTO(client))
 }
@@ -64,8 +67,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
 
+  const vis = await getVisibility(session)
   const existing = await prisma.client.findUnique({ where: { id: params.id }, include: { owner: true } })
-  if (!existing) return NextResponse.json({ error: 'Cliente non trovato' }, { status: 404 })
+  if (!existing || !(await canSeeClient(vis, params.id))) return NextResponse.json({ error: 'Cliente non trovato' }, { status: 404 })
   if (!canEditRecord(session, existing.ownerId, 'client')) {
     return NextResponse.json({ error: 'Non hai i permessi per modificare questo cliente' }, { status: 403 })
   }
@@ -87,7 +91,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       ...(location.city !== undefined ? { city: location.city } : {}),
       ...(ownerId !== undefined ? { ownerId: ownerId || null } : {})
     },
-    include: clientInclude
+    include: clientInclude(vis)
   })
 
   if (status !== undefined && status !== existing.status) {
@@ -123,7 +127,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
   if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
 
   const existing = await prisma.client.findUnique({ where: { id: params.id } })
-  if (!existing) return NextResponse.json({ error: 'Cliente non trovato' }, { status: 404 })
+  if (!existing || !(await canSeeClient(await getVisibility(session), params.id))) return NextResponse.json({ error: 'Cliente non trovato' }, { status: 404 })
   if (!canDeleteRecord(session, existing.ownerId, 'client')) {
     return NextResponse.json({ error: 'Non hai i permessi per eliminare questo cliente' }, { status: 403 })
   }

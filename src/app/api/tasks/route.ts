@@ -4,12 +4,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { getVisibility, taskWhere as visTaskWhere, canSeeSubtask, type Visibility } from '@/lib/visibility'
 import { deriveTaskStatus } from '@/lib/taskStatus'
 import { canCreate } from '@/lib/permissions'
 import { logActivity } from '@/lib/activityLog'
 import type { TaskDTO } from '@/types'
 
-function toTaskDTO(task: any): TaskDTO {
+function toTaskDTO(task: any, vis?: Visibility): TaskDTO {
   const derived = deriveTaskStatus(
     task.subtasks.map((s: any) => s.status),
     task.closedManually,
@@ -32,7 +33,8 @@ function toTaskDTO(task: any): TaskDTO {
     status: derived.status,
     pendingClosure: derived.pendingClosure,
     progress: derived.progress,
-    subtasks: task.subtasks.map((s: any) => ({
+    // lo stato si calcola su tutti i sub-task; l'elenco mostra solo quelli che la persona puo' vedere
+    subtasks: task.subtasks.filter((s: any) => !vis || canSeeSubtask(vis, s, task.ownerId)).map((s: any) => ({
       id: s.id,
       title: s.title,
       description: s.description,
@@ -66,8 +68,10 @@ export async function GET(req: NextRequest) {
   const status = searchParams.get('status') // filtro applicato dopo il calcolo (derivato)
   const search = searchParams.get('search')
 
+  const vis = await getVisibility(session)
   const tasks = await prisma.task.findMany({
     where: {
+      AND: [visTaskWhere(vis)],
       ...(mine ? { ownerId: (session.user as any).id } : {}),
       ...(ownerId ? { ownerId } : {}),
       ...(projectId ? { projectId } : {}),
@@ -91,7 +95,7 @@ export async function GET(req: NextRequest) {
     orderBy: { updatedAt: 'desc' }
   })
 
-  let dtos = tasks.map(toTaskDTO)
+  let dtos = tasks.map((t) => toTaskDTO(t, vis))
 
   if (status) {
     dtos = dtos.filter((t) => t.status === status)

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { getVisibility, canSeeTask, canSeeSubtaskById } from '@/lib/visibility'
 import { getUserId, canCreate } from '@/lib/permissions'
 import { extractMentionIds } from '@/lib/commentText'
 import { MAX_COMMENT_LENGTH, createNotifications, getEntityInfo, isEntityType, toCommentDTO } from '@/lib/comments'
@@ -17,6 +18,10 @@ export async function GET(req: NextRequest) {
   if (!isEntityType(entityType) || !entityId) {
     return NextResponse.json({ error: 'entityType e entityId sono obbligatori' }, { status: 400 })
   }
+
+  const vis = await getVisibility(session)
+  const visible = entityType === 'task' ? await canSeeTask(vis, entityId) : await canSeeSubtaskById(vis, entityId)
+  if (!visible) return NextResponse.json({ error: 'Non trovato' }, { status: 404 })
 
   const comments = await prisma.comment.findMany({
     where: { entityType, entityId },
@@ -46,6 +51,11 @@ export async function POST(req: NextRequest) {
 
   const info = await getEntityInfo(entityType, entityId)
   if (!info) return NextResponse.json({ error: 'Record non trovato' }, { status: 404 })
+  {
+    const vis = await getVisibility(session)
+    const visible = entityType === 'task' ? await canSeeTask(vis, entityId) : await canSeeSubtaskById(vis, entityId)
+    if (!visible) return NextResponse.json({ error: 'Record non trovato' }, { status: 404 })
+  }
 
   const authorId = getUserId(session)
   const created = await prisma.comment.create({

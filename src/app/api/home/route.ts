@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { deriveTaskStatus } from '@/lib/taskStatus'
-import { isAdmin } from '@/lib/permissions'
+import { getVisibility, canSeeTeam, teamOwnerWhere } from '@/lib/visibility'
 
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions)
@@ -11,13 +11,14 @@ export async function GET(req: NextRequest) {
 
   const userId = (session.user as any).id
   const { searchParams } = new URL(req.url)
-  // Solo un admin puo' chiedere la vista "tutto il team": verificato lato server,
-  // non ci si fida del solo parametro in arrivo dal client.
-  const teamScope = searchParams.get('scope') === 'team' && isAdmin(session)
+  // La vista "tutto il team" e' per chi, per ruolo, vede anche record di altri: verificato lato server;
+  // mostra solo i record delle persone visibili (tutti per admin e per chi vede tutto).
+  const vis = await getVisibility(session)
+  const teamScope = searchParams.get('scope') === 'team' && canSeeTeam(vis)
 
   const [tasks, subtasks] = await Promise.all([
     prisma.task.findMany({
-      where: teamScope ? {} : { ownerId: userId },
+      where: teamScope ? teamOwnerWhere(vis) : { ownerId: userId },
       include: {
         owner: true,
         client: true,
@@ -25,7 +26,7 @@ export async function GET(req: NextRequest) {
       }
     }),
     prisma.subtask.findMany({
-      where: teamScope ? {} : { ownerId: userId },
+      where: teamScope ? teamOwnerWhere(vis) : { ownerId: userId },
       include: {
         owner: true,
         task: { include: { client: true } }
