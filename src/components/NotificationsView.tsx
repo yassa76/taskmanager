@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import clsx from 'clsx'
+import NotificationPrefsPanel from './NotificationPrefsPanel'
 import NotificationRow, { notificationHref, type NotificationItem } from './NotificationRow'
 
 export default function NotificationsView() {
@@ -20,6 +21,7 @@ export default function NotificationsView() {
   // modalita' selezione: i check compaiono solo dopo aver scelto "Seleziona notifiche" dal menu
   const [menuOpen, setMenuOpen] = useState(false)
   const [selecting, setSelecting] = useState(false)
+  const [prefsOpen, setPrefsOpen] = useState(false)
   const [selected, setSelected] = useState<Set<string>>(new Set())
 
   const load = useCallback(async () => {
@@ -144,6 +146,15 @@ export default function NotificationsView() {
                   Seleziona notifiche…
                 </button>
                 <button
+                  onClick={() => {
+                    setPrefsOpen(true)
+                    setMenuOpen(false)
+                  }}
+                  className="w-full text-left px-3 py-2 hover:bg-slate-50"
+                >
+                  Quali notifiche ricevere…
+                </button>
+                <button
                   disabled={unread[kind] === 0}
                   onClick={() => {
                     setMenuOpen(false)
@@ -247,6 +258,25 @@ export default function NotificationsView() {
           </button>
         </div>
       </div>
+
+      {prefsOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50 sm:p-4"
+          onClick={() => setPrefsOpen(false)}
+        >
+          <div
+            className="bg-white rounded-t-2xl sm:rounded-2xl w-full max-w-lg max-h-[92vh] overflow-y-auto p-3 sm:p-4 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <NotificationPrefsPanel />
+            <div className="flex justify-end mt-3">
+              <button onClick={() => setPrefsOpen(false)} className="px-4 py-2 rounded-lg text-sm text-slate-600 hover:bg-slate-100">
+                Chiudi
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
