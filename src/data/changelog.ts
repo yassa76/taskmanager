@@ -12,6 +12,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-11-27-predefiniti-nuovi-utenti',
+    date: '2026-11-27',
+    title: 'Profilo e ruolo predefiniti per i nuovi utenti',
+    description:
+      'In Admin puoi segnare un profilo e un ruolo come predefiniti: ogni nuovo utente, invitato o registrato da solo, parte con quelli. Il profilo Admin non può essere predefinito; il primo utente della piattaforma resta sempre admin.',
+    tag: 'novità'
+  },
+  {
     id: '2026-11-27-visibilita-per-ruolo',
     date: '2026-11-27',
     title: 'Visibilità dei record in base al ruolo',

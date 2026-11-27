@@ -10,6 +10,7 @@ export interface OrgRoleOption {
   taskVisibility: string
   clientVisibility: string
   users: number
+  isDefault?: boolean
   depth: number
 }
 
