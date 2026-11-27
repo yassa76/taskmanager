@@ -301,6 +301,8 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
         ]}
       />
 
+      <div className="xl:grid xl:grid-cols-[minmax(0,1fr)_360px] xl:gap-6 xl:items-start">
+        <div className="min-w-0">
       <div className="bg-white border border-slate-200 rounded-xl p-5 mb-6">
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div>
@@ -586,6 +588,13 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
         </ReadOnlyGuard>
       </div>
 
+        </div>
+        <aside className="min-w-0 [&>*:first-child]:mt-0">
+          <CommentsPanel entityType="task" entityId={task.id} />
+          <ActivityLogPanel entityType="task" entityId={task.id} />
+        </aside>
+      </div>
+
       {showEditForm && (
         <TaskFormModal
           owners={owners}
@@ -711,8 +720,6 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
         />
       )}
 
-      <CommentsPanel entityType="task" entityId={task.id} />
-      <ActivityLogPanel entityType="task" entityId={task.id} />
     </div>
   )
 }

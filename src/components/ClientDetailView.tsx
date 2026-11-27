@@ -250,6 +250,8 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
         ]}
       />
 
+      <div className="xl:grid xl:grid-cols-[minmax(0,1fr)_360px] xl:gap-6 xl:items-start">
+        <div className="min-w-0">
       <div className="bg-white border border-slate-200 rounded-xl p-5 mb-6">
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div>
@@ -432,6 +434,12 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
         )}
       </div>
 
+        </div>
+        <aside className="min-w-0 [&>*:first-child]:mt-0">
+          <ActivityLogPanel entityType="client" entityId={client.id} />
+        </aside>
+      </div>
+
       {showEditForm && (
         <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50 sm:p-4">
           <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full max-w-lg max-h-[92vh] overflow-y-auto p-4 sm:p-6 shadow-2xl">
@@ -536,7 +544,6 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
         />
       )}
 
-      <ActivityLogPanel entityType="client" entityId={client.id} />
     </div>
   )
 }
