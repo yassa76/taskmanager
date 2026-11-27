@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { isAdmin } from '@/lib/permissions'
+import { canManage } from '@/lib/permissions'
 import { getCountriesWithUsage, getCountryCodes, saveCountryCodes } from '@/lib/countries'
 import { isValidCountryCode } from '@/lib/geoShared'
 
@@ -16,7 +16,7 @@ export async function GET() {
 export async function PUT(req: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
-  if (!isAdmin(session)) return NextResponse.json({ error: 'Solo gli admin possono modificare i paesi' }, { status: 403 })
+  if (!canManage(session, 'settings')) return NextResponse.json({ error: 'Solo gli admin possono modificare i paesi' }, { status: 403 })
 
   const body = await req.json().catch(() => ({}))
   const codes = await getCountryCodes()

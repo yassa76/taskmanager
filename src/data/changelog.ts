@@ -12,6 +12,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-11-27-profili-e-account',
+    date: '2026-11-27',
+    title: 'Profili modificabili, permessi anche per Team e Admin',
+    description:
+      'I permessi si assegnano con i Profili: nome e descrizione sono modificabili, e ora si decide anche chi può gestire il Team, le impostazioni Admin e i profili stessi. Deve sempre restare almeno un amministratore attivo. La tua pagina personale si chiama ora Il mio account.',
+    tag: 'novità'
+  },
+  {
     id: '2026-11-27-profili-permessi',
     date: '2026-11-27',
     title: 'Profili personalizzati e permessi',

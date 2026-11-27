@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { isAdmin } from '@/lib/permissions'
+import { canManage } from '@/lib/permissions'
 import { prisma } from '@/lib/prisma'
 import type { Prisma } from '@prisma/client'
 
@@ -18,7 +18,7 @@ const PAGE_SIZE = 25
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
-  if (!isAdmin(session)) return NextResponse.json({ error: 'Solo admin' }, { status: 403 })
+  if (!canManage(session, 'settings')) return NextResponse.json({ error: 'Solo admin' }, { status: 403 })
 
   const { searchParams } = new URL(req.url)
   const q = (searchParams.get('q') || '').trim()

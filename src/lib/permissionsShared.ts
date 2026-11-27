@@ -1,14 +1,15 @@
 // Permessi dei ruoli: condivisi tra server e browser (nessun import del database qui).
 
 export type Scope = 'none' | 'own' | 'all'
-export type ActionKey = 'create' | 'update' | 'delete'
-export type ObjectKey = 'task' | 'subtask' | 'client' | 'comment' | 'notification'
+export type ActionKey = 'create' | 'update' | 'delete' | 'manage'
+export type ObjectKey = 'task' | 'subtask' | 'client' | 'comment' | 'notification' | 'team' | 'settings' | 'profiles'
 export type PermissionMap = Record<ObjectKey, Partial<Record<ActionKey, Scope>>>
 
 export const ACTION_LABELS: Record<ActionKey, string> = {
   create: 'Creare',
   update: 'Modificare',
-  delete: 'Eliminare'
+  delete: 'Eliminare',
+  manage: 'Gestire'
 }
 
 // Oggetti del sistema e azioni che per ciascuno hanno senso, con i valori ammessi.
@@ -46,6 +47,24 @@ export const OBJECT_DEFS: {
     label: 'Notifiche',
     hint: 'Eliminare le proprie notifiche',
     actions: { delete: ['none', 'all'] }
+  },
+  {
+    key: 'team',
+    label: 'Team',
+    hint: 'Invitare persone, approvare accessi, cambiare profilo e stato',
+    actions: { manage: ['none', 'all'] }
+  },
+  {
+    key: 'settings',
+    label: 'Impostazioni Admin',
+    hint: 'Paesi, verifica indirizzi, registro modifiche e accessi',
+    actions: { manage: ['none', 'all'] }
+  },
+  {
+    key: 'profiles',
+    label: 'Profili e ruoli',
+    hint: 'Creare e modificare profili e permessi',
+    actions: { manage: ['none', 'all'] }
   }
 ]
 
@@ -62,21 +81,30 @@ export const SYSTEM_ROLE_DEFAULTS: Record<string, PermissionMap> = {
     subtask: { ...full },
     client: { ...full },
     comment: { create: 'all', update: 'own', delete: 'all' },
-    notification: { delete: 'all' }
+    notification: { delete: 'all' },
+    team: { manage: 'all' },
+    settings: { manage: 'all' },
+    profiles: { manage: 'all' }
   },
   normal: {
     task: { ...mine },
     subtask: { ...mine },
     client: { ...mine },
     comment: { ...mine },
-    notification: { delete: 'none' }
+    notification: { delete: 'none' },
+    team: { manage: 'none' },
+    settings: { manage: 'none' },
+    profiles: { manage: 'none' }
   },
   read_only: {
     task: { ...nothing },
     subtask: { ...nothing },
     client: { ...nothing },
     comment: { ...mine },
-    notification: { delete: 'none' }
+    notification: { delete: 'none' },
+    team: { manage: 'none' },
+    settings: { manage: 'none' },
+    profiles: { manage: 'none' }
   }
 }
 
