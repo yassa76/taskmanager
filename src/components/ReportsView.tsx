@@ -1,5 +1,6 @@
 'use client'
 
+import { filterSelectClass } from '@/lib/ui'
 import PageBar, { BTN } from './PageBar'
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
@@ -199,7 +200,7 @@ export default function ReportsView() {
         <select
           value={period}
           onChange={(e) => changePeriod(e.target.value)}
-          className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm"
+          className={filterSelectClass(period === 'all' ? '' : period)}
         >
           {PERIOD_OPTIONS.map((p) => (
             <option key={p.value} value={p.value}>

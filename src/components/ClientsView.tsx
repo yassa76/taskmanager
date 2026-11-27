@@ -1,5 +1,6 @@
 'use client'
 
+import { filterSelectClass } from '@/lib/ui'
 import PageBar from './PageBar'
 import SavedViews from './SavedViews'
 import { isViewScope, type ViewScope } from '@/lib/scopesShared'
@@ -72,7 +73,7 @@ export default function ClientsView() {
   const [statusFilter, setStatusFilter] = useState('')
   // vista standard (miei / del mio team / tutti): se non e' disponibile si usa la piu' ampia
   const scopes = useScopes()
-  const [scopeSel, setScopeSel] = useState<ViewScope>('all')
+  const [scopeSel, setScopeSel] = useState<ViewScope>('mine')
   const scope: ViewScope = scopes.includes(scopeSel) ? scopeSel : scopes[scopes.length - 1]
 
   // Vista e filtri restano memorizzati navigando su altre pagine e tornando qui
@@ -471,7 +472,7 @@ export default function ClientsView() {
         <select
           value={industryFilter}
           onChange={(e) => setIndustryFilter(e.target.value)}
-          className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm"
+          className={filterSelectClass(industryFilter)}
         >
           <option value="">Tutte le industry</option>
           {INDUSTRIES.map((i) => (
@@ -483,7 +484,7 @@ export default function ClientsView() {
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm"
+          className={filterSelectClass(statusFilter)}
         >
           <option value="">Tutti gli stati</option>
           <option value="attivo">Attivo</option>
@@ -496,7 +497,7 @@ export default function ClientsView() {
             setRegionFilter('')
             setCityFilter('')
           }}
-          className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm"
+          className={filterSelectClass(countryFilter)}
         >
           <option value="">Tutti i paesi</option>
           {countryOptions.map((o) => (
@@ -513,7 +514,7 @@ export default function ClientsView() {
             if (e.target.value) setCountryFilter('IT')
             setCityFilter('')
           }}
-          className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm"
+          className={filterSelectClass(regionFilter)}
         >
           <option value="">Tutte le regioni</option>
           {regionOptions.map((r) => (
@@ -525,7 +526,7 @@ export default function ClientsView() {
         <select
           value={cityFilter}
           onChange={(e) => setCityFilter(e.target.value)}
-          className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm"
+          className={filterSelectClass(cityFilter)}
         >
           <option value="">Tutte le città</option>
           {cityOptions.map((c) => (

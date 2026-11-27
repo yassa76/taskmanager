@@ -12,6 +12,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-11-27-dettagli-menu',
+    date: '2026-11-27',
+    title: 'Ritocchi: ricerca, avvisi, uscita, filtri',
+    description:
+      'La ricerca dice solo "Cerca". Nel menu degli avvisi i tab mostrano il totale tra parentesi e le nuove, come nel tuo account. "Esci" diventa un\'icona e chiede conferma. Task, Sub-task e Clienti si aprono di default sui tuoi record. I menu dei filtri sono grigi finché non ne scegli uno.',
+    tag: 'miglioramento'
+  },
+  {
     id: '2026-11-27-layout-uniforme',
     date: '2026-11-27',
     title: 'Pagine con la stessa impostazione',

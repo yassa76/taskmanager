@@ -1,5 +1,6 @@
 'use client'
 
+import { filterSelectClass } from '@/lib/ui'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import clsx from 'clsx'
@@ -43,7 +44,7 @@ export default function SubtasksView() {
   const [rows, setRows] = useState<Row[]>([])
   const [loading, setLoading] = useState(true)
   const [filters, setFilters] = useState<Filters>({
-    view: 'all',
+    view: 'mine',
     ownerId: '',
     status: '',
     search: '',
@@ -254,7 +255,7 @@ export default function SubtasksView() {
         <select
           value={filters.status}
           onChange={(e) => set({ status: e.target.value })}
-          className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm"
+          className={filterSelectClass(filters.status)}
         >
           <option value="">Tutti gli stati</option>
           <option value="da_avviare">Da avviare</option>
