@@ -12,6 +12,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-11-27-viste-uniformi',
+    date: '2026-11-27',
+    title: 'Tendina delle viste uguale ovunque',
+    description:
+      'Il menu delle viste (i miei record, del team, tutti, le tue viste) ha la stessa larghezza in Home, Task, Clienti e Report. Nel profilo i pulsanti Estesa e Compatta hanno la stessa dimensione.',
+    tag: 'miglioramento'
+  },
+  {
     id: '2026-11-27-icone-tema-margini',
     date: '2026-11-27',
     title: 'Icone nel colore del tema, margini ridotti, stati a frecce',
