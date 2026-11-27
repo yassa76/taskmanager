@@ -126,6 +126,7 @@ export default function ClientsMap({ regionCounts, abroad, noLocation, onSelectR
           </div>
         </div>
       </div>
+      <p className="text-[11px] text-slate-400 mt-3">Confini regionali © Openpolis, CC BY 4.0 (dati ISTAT).</p>
     </div>
   )
 }

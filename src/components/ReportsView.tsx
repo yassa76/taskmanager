@@ -1,5 +1,6 @@
 'use client'
 
+import PageBar, { BTN } from './PageBar'
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -185,20 +186,16 @@ export default function ReportsView() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-3 flex-wrap gap-3">
-        <h1 className="text-lg font-semibold text-slate-800">Report & KPI</h1>
-        <div className="flex items-center gap-2">
-          <ScopeSelect value={scope} onChange={changeScope} />
-          <button
-            onClick={load}
-            className="px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-medium text-slate-700 hover:bg-slate-100"
-          >
+      <PageBar
+        left={<ScopeSelect value={scope} onChange={changeScope} />}
+        right={
+          <button onClick={load} className={BTN}>
             ↻ Aggiorna
           </button>
-        </div>
-      </div>
+        }
+      />
 
-      <div className="bg-white border border-slate-200 rounded-xl p-3 flex flex-wrap items-center gap-2 mb-6">
+      <div className="bg-white border border-slate-200 rounded-xl p-3 flex flex-wrap items-center gap-2 mb-3">
         <select
           value={period}
           onChange={(e) => changePeriod(e.target.value)}

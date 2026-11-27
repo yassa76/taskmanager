@@ -136,11 +136,6 @@ export default function OrgRolesSettings() {
 
   return (
     <div>
-      <p className="text-sm text-slate-500 mb-3 max-w-3xl">
-        I ruoli formano la gerarchia dell&apos;azienda e decidono <strong>chi vede cosa</strong>: per ogni ruolo scegli quali task e
-        quali clienti sono visibili. Chi può fare cosa si decide invece con i Profili. Una persona senza ruolo vede tutto, come
-        prima; il profilo Admin vede sempre tutto. Il ruolo segnato come predefinito viene assegnato ai nuovi utenti.
-      </p>
       <div className="grid lg:grid-cols-[280px_1fr] gap-4 items-start">
         <div className="bg-white border border-slate-200 rounded-xl p-3">
           {roles.length === 0 && <p className="text-sm text-slate-400 px-2 py-2">Nessun ruolo: creane uno.</p>}
@@ -334,6 +329,11 @@ export default function OrgRolesSettings() {
           </fieldset>
         )}
       </div>
+      <p className="text-xs text-slate-400 mt-4 max-w-3xl">
+        I ruoli formano la gerarchia dell&apos;azienda e decidono <strong>chi vede cosa</strong>: per ogni ruolo scegli quali task e
+        quali clienti sono visibili. Chi può fare cosa si decide invece con i Profili. Una persona senza ruolo vede tutto, come
+        prima; il profilo Admin vede sempre tutto. Il ruolo segnato come predefinito viene assegnato ai nuovi utenti.
+      </p>
     </div>
   )
 }

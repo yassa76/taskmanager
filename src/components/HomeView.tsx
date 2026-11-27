@@ -1,5 +1,6 @@
 'use client'
 
+import PageBar, { BTN } from './PageBar'
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import ScopeSelect from './ScopeSelect'
@@ -142,27 +143,28 @@ export default function HomeView({ userName }: { userName: string }) {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-3 flex-wrap gap-3">
-        <h1 className="text-lg font-semibold text-slate-800">Ciao, {userName.split(' ')[0] || userName} 👋</h1>
-        <div className="flex items-center gap-2">
-          <ScopeSelect value={scope} onChange={changeScope} />
-          <button
-            onClick={() => setCustomizing((v) => !v)}
-            className="hidden lg:inline-flex px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-medium text-slate-700 hover:bg-slate-100"
-            title="Scegli quali blocchi mostrare e in che ordine"
-          >
-            ⚙ Personalizza
-          </button>
-          <button
-            onClick={() => {
-              load()
-            }}
-            className="px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-medium text-slate-700 hover:bg-slate-100"
-          >
-            ↻ Aggiorna
-          </button>
-        </div>
-      </div>
+      <PageBar
+        left={
+          <>
+            <span className="text-base font-medium text-slate-800 mr-1">Ciao, {userName.split(' ')[0] || userName} 👋</span>
+            <ScopeSelect value={scope} onChange={changeScope} />
+          </>
+        }
+        right={
+          <>
+            <button
+              onClick={() => setCustomizing((v) => !v)}
+              className={'hidden lg:inline-flex ' + BTN}
+              title="Scegli quali blocchi mostrare e in che ordine"
+            >
+              ⚙ Personalizza
+            </button>
+            <button onClick={() => load()} className={BTN}>
+              ↻ Aggiorna
+            </button>
+          </>
+        }
+      />
 
       {customizing && (
         <div className="hidden lg:block mb-4 bg-white border border-slate-200 rounded-xl p-4 shadow-sm">

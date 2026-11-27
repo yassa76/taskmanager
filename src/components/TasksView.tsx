@@ -1,5 +1,6 @@
 'use client'
 
+import PageBar from './PageBar'
 import DataTable, { type Column } from './DataTable'
 import { formatDate } from '@/lib/formatDate'
 import { useEffect, useMemo, useState, useCallback } from 'react'
@@ -368,9 +369,27 @@ export default function TasksView() {
 
   return (
     <div>
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-        <h1 className="text-lg font-semibold text-slate-800">Task</h1>
-        <div className="flex gap-2 items-center">
+      <PageBar
+        left={
+          <SavedViews
+          page="tasks"
+          current={{ filters: { ...filters, view: scope }, sortKey, sortDir }}
+          scopes={scopes}
+          scope={scope}
+          onScope={(v) => {
+            setFilters((f) => ({ ...f, view: v }))
+            setPage(1)
+          }}
+          onApply={(d) => {
+            if (d?.filters) setFilters(d.filters)
+            if (d?.sortKey) setSortKey(d.sortKey)
+            if (d?.sortDir) setSortDir(d.sortDir)
+            setPage(1)
+          }}
+        />
+        }
+        right={
+          <>
           <div className="flex bg-slate-100 rounded-lg p-1">
             {(['table', 'kanban'] as const).map((v) => (
               <button
@@ -387,7 +406,7 @@ export default function TasksView() {
           </div>
           <button
             onClick={loadAll}
-            className="px-4 py-2 rounded-lg border border-slate-300 text-sm font-medium text-slate-700 hover:bg-slate-100"
+            className="px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-medium text-slate-700 hover:bg-slate-100"
           >
             ↻ Aggiorna
           </button>
@@ -396,28 +415,12 @@ export default function TasksView() {
               setEditingTask(null)
               setShowForm(true)
             }}
-            className="px-4 py-2 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700"
+            className="px-3 py-1.5 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700"
           >
             + Nuovo Task
           </button>
-        </div>
-      </div>
-
-      <SavedViews
-        page="tasks"
-        current={{ filters: { ...filters, view: scope }, sortKey, sortDir }}
-        scopes={scopes}
-        scope={scope}
-        onScope={(v) => {
-          setFilters((f) => ({ ...f, view: v }))
-          setPage(1)
-        }}
-        onApply={(d) => {
-          if (d?.filters) setFilters(d.filters)
-          if (d?.sortKey) setSortKey(d.sortKey)
-          if (d?.sortDir) setSortDir(d.sortDir)
-          setPage(1)
-        }}
+          </>
+        }
       />
       <Filters filters={filters} onChange={setFilters} clients={clients} owners={owners} />
 

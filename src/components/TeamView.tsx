@@ -1,5 +1,6 @@
 'use client'
 
+import PageBar, { BTN } from './PageBar'
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
@@ -329,18 +330,14 @@ export default function TeamView() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-1">
-        <h1 className="text-lg font-semibold text-slate-800">Team</h1>
-        <button
-          onClick={load}
-          className="px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-medium text-slate-700 hover:bg-slate-100"
-        >
-          ↻ Aggiorna
-        </button>
-      </div>
-      <p className="text-slate-500 text-sm mb-6">
-        Le persone del team (quelle inattive non sono selezionabili per i task).
-      </p>
+      <PageBar
+        left={<p className="text-sm text-slate-500">Le persone del team (quelle inattive non sono selezionabili per i task).</p>}
+        right={
+          <button onClick={load} className={BTN}>
+            ↻ Aggiorna
+          </button>
+        }
+      />
 
       {canUpdateTeam && members.some((m) => m.status === 'pending') && (
         <div className="bg-violet-50 border border-violet-200 rounded-xl p-4 mb-6">

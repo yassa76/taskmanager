@@ -69,7 +69,7 @@ export default function SavedViews<T>({
   const active = views.find((v) => v.id === activeId)
 
   return (
-    <div className="flex flex-wrap items-center gap-2 mb-2 text-sm">
+    <div className="flex flex-wrap items-center gap-2 text-sm">
       <select
         value={activeId || (scope ? `std:${scope}` : '')}
         onChange={(e) => {

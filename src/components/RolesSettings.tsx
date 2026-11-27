@@ -263,11 +263,6 @@ export default function RolesSettings() {
             </label>
           </div>
 
-          <h3 className="text-sm font-semibold text-slate-700 mb-1">Permessi</h3>
-          <p className="text-xs text-slate-500 mb-3">
-            Spunta cosa può fare questo profilo. Nelle sezioni di amministrazione, senza "Visualizzare" la sezione non compare
-            nemmeno nel menu. Cosa vede sui dati (task, clienti) lo decide invece il ruolo.
-          </p>
           <div className="space-y-4">
             {(Object.keys(GROUP_LABELS) as GroupKey[]).map((g) => (
               <div key={g} className="border border-slate-200 rounded-lg overflow-hidden">
@@ -377,7 +372,8 @@ export default function RolesSettings() {
             )}
           </div>
           <p className="text-xs text-slate-400 mt-3">
-            {sel.users} {sel.users === 1 ? 'persona ha' : 'persone hanno'} questo profilo. Il profilo di una persona si cambia da Team.
+            Spunta cosa può fare questo profilo. Nelle sezioni di amministrazione, senza &quot;Visualizzare&quot; la sezione non compare nemmeno nel menu.
+            Cosa vede sui dati (task, clienti) lo decide invece il ruolo. {sel.users} {sel.users === 1 ? 'persona ha' : 'persone hanno'} questo profilo; il profilo di una persona si cambia da Team.
           </p>
         </div>
       )}
