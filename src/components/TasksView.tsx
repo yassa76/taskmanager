@@ -389,13 +389,6 @@ export default function TasksView() {
             ↻ Aggiorna
           </button>
           <button
-            onClick={exportXls}
-            disabled={exporting}
-            className="px-4 py-2 rounded-lg border border-slate-300 text-sm font-medium text-slate-700 hover:bg-slate-100 disabled:opacity-50"
-          >
-            {exporting ? 'Esportazione...' : 'Esporta XLS'}
-          </button>
-          <button
             onClick={() => {
               setEditingTask(null)
               setShowForm(true)
@@ -469,6 +462,13 @@ export default function TasksView() {
           exportName="task"
           selected={selected}
           onSelectedChange={setSelected}
+          extraItems={[
+            {
+              label: exporting ? 'Esportazione in corso…' : 'Esporta tutto: task e sub-task (Excel, 2 fogli)',
+              disabled: exporting,
+              onClick: exportXls
+            }
+          ]}
           columns={columns}
           rows={pagedTasks}
           rowKey={(t) => t.id}
