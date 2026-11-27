@@ -12,5 +12,5 @@ export default function PageBar({ left, right }: { left?: ReactNode; right?: Rea
 }
 
 // Pulsanti standard delle pagine: stessa misura ovunque.
-export const BTN = 'inline-flex items-center gap-1.5 [&>svg]:text-brand-600 px-3 h-9 rounded-lg border border-slate-300 text-sm font-medium text-slate-700 hover:bg-slate-100'
-export const BTN_PRIMARY = 'px-3 h-9 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700'
+export const BTN = 'inline-flex items-center justify-center gap-1.5 w-32 [&>svg]:text-brand-600 px-3 h-9 rounded-lg border border-slate-300 text-sm font-medium text-slate-700 hover:bg-slate-100'
+export const BTN_PRIMARY = 'inline-flex items-center justify-center gap-1.5 w-32 px-3 h-9 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700'

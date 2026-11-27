@@ -1,7 +1,7 @@
 'use client'
 
 import { filterSelectClass } from '@/lib/ui'
-import PageBar from './PageBar'
+import PageBar, { BTN, BTN_PRIMARY } from './PageBar'
 import SavedViews from './SavedViews'
 import { isViewScope, type ViewScope } from '@/lib/scopesShared'
 import { useScopes } from '@/lib/useScopes'
@@ -454,14 +454,14 @@ export default function ClientsView() {
           </div>
           <button
             onClick={load}
-            className="px-3 h-9 rounded-lg border border-slate-300 text-sm font-medium text-slate-700 hover:bg-slate-100"
+            className={BTN}
           >
             <RefreshIcon /> Aggiorna
           </button>
           <button
             onClick={openNewForm}
             title="Nuovo cliente" aria-label="Nuovo cliente"
-            className="px-3 h-9 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700"
+            className={BTN_PRIMARY}
           >
             + Nuovo
           </button>
