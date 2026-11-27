@@ -331,7 +331,6 @@ export default function TeamView() {
   return (
     <div>
       <PageBar
-        left={<p className="text-sm text-slate-500">Le persone del team (quelle inattive non sono selezionabili per i task).</p>}
         right={
           <button onClick={load} className={BTN}>
             ↻ Aggiorna
@@ -456,6 +455,10 @@ export default function TeamView() {
           </div>
         </div>
       )}
+
+      <p className="text-xs text-slate-400 mt-4 max-w-3xl">
+        Le persone del team: quelle inattive non sono selezionabili per i task. Il profilo decide cosa può fare ciascuno, il ruolo cosa vede.
+      </p>
 
       {editingMember && (
         <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50 sm:p-4">

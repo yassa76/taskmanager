@@ -111,7 +111,6 @@ function GeocodeSettingsPanel() {
     <div>
       <fieldset disabled={!canEdit} className="bg-white border border-slate-200 rounded-xl p-5 max-w-2xl m-0 min-w-0 disabled:opacity-90">
         <div className="flex items-center gap-2 mb-1 flex-wrap">
-          <h2 className="font-semibold text-slate-800">Verifica indirizzi (Google Maps)</h2>
           <span className="relative group">
             <button
               type="button"
@@ -133,11 +132,6 @@ function GeocodeSettingsPanel() {
             {data.keyConfigured ? 'Chiave configurata' : 'Chiave mancante'}
           </span>
         </div>
-        <p className="text-sm text-slate-500 mb-4">
-          Quante volte al giorno e al mese gli utenti possono usare il pulsante &quot;Verifica indirizzo&quot; nelle schede
-          dei clienti.
-          {!data.keyConfigured && ' La chiave si imposta su Vercel con la variabile GOOGLE_MAPS_API_KEY.'}
-        </p>
 
         <div className="space-y-3 mb-5">
           <UsageBar label="Oggi" used={data.usedToday} limit={data.dailyLimit} />
@@ -190,6 +184,11 @@ function GeocodeSettingsPanel() {
             {saving ? 'Salvataggio...' : 'Salva'}
           </button>
         </div>
+        <p className="text-xs text-slate-400 mt-4">
+          Quante volte al giorno e al mese gli utenti possono usare il pulsante &quot;Verifica indirizzo&quot; nelle schede
+          dei clienti.
+          {!data.keyConfigured && ' La chiave si imposta su Vercel con la variabile GOOGLE_MAPS_API_KEY.'}
+        </p>
       </fieldset>
     </div>
   )

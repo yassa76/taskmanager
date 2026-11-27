@@ -1,10 +1,10 @@
 'use client'
 
 import Breadcrumbs from './Breadcrumbs'
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import clsx from 'clsx'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import NotificationsView from './NotificationsView'
 
 const THEMES: { key: string; label: string; swatch: string }[] = [
@@ -136,71 +136,20 @@ function PreferencesPanel() {
   )
 }
 
-const TABS = [
-  { id: 'preferenze', label: 'Preferenze personali' },
-  { id: 'notifiche', label: 'Notifiche' }
-]
+const TABS = ['preferenze', 'notifiche']
 
 export default function ProfileView() {
-  const router = useRouter()
   const params = useSearchParams()
-  const current = TABS.find((t) => t.id === params?.get('tab'))?.id ?? 'preferenze'
-
-  // Somma di tutte le notifiche (menzioni + altro) e quante sono da leggere, sempre visibili nel tab
-  const [notif, setNotif] = useState({ total: 0, unread: 0 })
-  const loadCounts = useCallback(() => {
-    fetch('/api/notifications?kind=menzioni&page=1&pageSize=1')
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => {
-        if (d) setNotif({ total: d.totalMentions + d.totalOther, unread: d.unreadMentions + d.unreadOther })
-      })
-      .catch(() => {})
-  }, [])
-  useEffect(() => {
-    loadCounts()
-    window.addEventListener('notifications-changed', loadCounts)
-    return () => window.removeEventListener('notifications-changed', loadCounts)
-  }, [loadCounts])
+  const current = TABS.find((t) => t === params?.get('tab')) ?? 'preferenze'
 
   return (
     <div>
       <Breadcrumbs items={[{ label: 'Il mio account' }]} />
 
-      <div className="flex gap-1 border-b border-slate-200 mb-5">
-        {TABS.map((t) => (
-          <button
-            key={t.id}
-            onClick={() => router.replace(`/profile?tab=${t.id}`)}
-            className={clsx(
-              'px-4 py-2 text-sm font-medium -mb-px border-b-2 whitespace-nowrap',
-              t.id === current ? 'border-brand-600 text-brand-700' : 'border-transparent text-slate-500 hover:text-slate-700'
-            )}
-          >
-            <span className={t.id === 'notifiche' && notif.unread > 0 ? 'font-bold' : undefined}>
-              {t.label}
-              {t.id === 'notifiche' ? ` (${notif.total})` : ''}
-            </span>
-            {t.id === 'notifiche' && notif.unread > 0 && (
-              <span
-                className="ml-1.5 px-1.5 py-0.5 rounded-full bg-red-500 text-white text-[10px] font-semibold align-middle"
-                title={`${notif.unread} non lette`}
-              >
-                {notif.unread} {notif.unread === 1 ? 'nuova' : 'nuove'}
-              </span>
-            )}
-          </button>
-        ))}
-      </div>
-
       {current === 'preferenze' ? (
         <PreferencesPanel />
       ) : (
-        <div className="space-y-8">
-          <section>
-            <h2 className="font-semibold text-slate-800 mb-2">Le tue notifiche</h2>
-            <NotificationsView />
-          </section>
-        </div>
+        <NotificationsView />
       )}
     </div>
   )

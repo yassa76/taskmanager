@@ -12,6 +12,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-11-27-account-sottoviste',
+    date: '2026-11-27',
+    title: 'Stessa struttura in tutta l\'app',
+    description:
+      'Anche Il mio account ha le sue sottoviste sotto il menu (Preferenze personali, Notifiche con il totale e le nuove). Nel Team, in Admin e nell\'account le spiegazioni sono ora in fondo, in piccolo, e le sezioni partono subito dal contenuto.',
+    tag: 'miglioramento'
+  },
+  {
     id: '2026-11-27-dettagli-menu',
     date: '2026-11-27',
     title: 'Ritocchi: ricerca, avvisi, uscita, filtri',

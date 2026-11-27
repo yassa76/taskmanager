@@ -2,6 +2,7 @@
 
 import { scopeIn } from '@/lib/permissionsShared'
 import { subnavFor } from '@/lib/subnav'
+import { useNotificationCounts } from '@/lib/useNotificationCounts'
 import ChangelogLink from './ChangelogLink'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
@@ -44,6 +45,7 @@ export default function NavBar() {
   }, [])
 
   const sub = subnavFor(pathname, perms, searchParams?.get('tab') ?? null)
+  const notif = useNotificationCounts(!!sub?.items.some((i) => i.badge === 'notifications'))
   function logout() {
     if (confirm('Sei sicuro di voler uscire?')) signOut({ callbackUrl: '/login' })
   }
@@ -133,7 +135,18 @@ export default function NavBar() {
                     : 'border-transparent text-slate-500 hover:text-slate-700'
                 )}
               >
-                {i.label}
+                <span className={i.badge === 'notifications' && notif.unread > 0 ? 'font-bold text-slate-900' : undefined}>
+                  {i.label}
+                  {i.badge === 'notifications' ? ` (${notif.total})` : ''}
+                </span>
+                {i.badge === 'notifications' && notif.unread > 0 && (
+                  <span
+                    className="ml-1.5 px-1.5 py-0.5 rounded-full bg-red-500 text-white text-[10px] font-semibold align-middle"
+                    title={`${notif.unread} non lette`}
+                  >
+                    {notif.unread} {notif.unread === 1 ? 'nuova' : 'nuove'}
+                  </span>
+                )}
               </Link>
             ))}
           </nav>

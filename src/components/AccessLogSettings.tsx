@@ -72,15 +72,10 @@ export default function AccessLogSettings() {
   return (
     <div className="space-y-6">
       <div className="bg-white border border-slate-200 rounded-xl p-5">
-        <h2 className="font-semibold text-slate-800">Utenti</h2>
-        <p className="text-sm text-slate-500 mt-1">
-          &quot;Ultimo accesso&quot; è l&apos;ultimo login. &quot;Ultima attività&quot; è l&apos;ultima volta che la persona ha usato
-          davvero l&apos;app: una finestra rimasta aperta e ferma non la aggiorna. Il pallino verde indica attività negli ultimi
-          15 minuti.
-        </p>
+        <h2 className="font-semibold text-slate-800 mb-3">Utenti</h2>
         {error && <p className="text-sm text-red-600 mt-4">{error}</p>}
         {users && (
-          <div className="mt-4 border border-slate-200 rounded-lg overflow-x-auto">
+          <div className="border border-slate-200 rounded-lg overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-slate-50 text-xs text-slate-500 uppercase">
                 <tr>
@@ -112,11 +107,15 @@ export default function AccessLogSettings() {
             </table>
           </div>
         )}
+        <p className="text-xs text-slate-400 mt-3">
+          &quot;Ultimo accesso&quot; è l&apos;ultimo login. &quot;Ultima attività&quot; è l&apos;ultima volta che la persona ha usato
+          davvero l&apos;app: una finestra rimasta aperta e ferma non la aggiorna. Il pallino verde indica attività negli ultimi
+          15 minuti.
+        </p>
       </div>
 
       <div className="bg-white border border-slate-200 rounded-xl p-5">
-        <h2 className="font-semibold text-slate-800">Registro accessi</h2>
-        <p className="text-sm text-slate-500 mt-1">Un riga per ogni login. Non si registrano indirizzi IP né dati del browser.</p>
+        <h2 className="font-semibold text-slate-800 mb-1">Registro accessi</h2>
         <RetentionSelect kind="access" />
 
         <input
@@ -177,6 +176,7 @@ export default function AccessLogSettings() {
             </div>
           </>
         )}
+        <p className="text-xs text-slate-400 mt-3">Una riga per ogni login. Non si registrano indirizzi IP né dati del browser.</p>
       </div>
     </div>
   )
