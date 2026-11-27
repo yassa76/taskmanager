@@ -78,11 +78,11 @@ export async function GET(req: NextRequest) {
   })
 }
 
-// Elimina avvisi propri: { ids: string[] }. Serve il permesso "Notifiche: eliminare" del ruolo.
+// Elimina avvisi propri: { ids: string[] }. Serve il permesso "Notifiche: eliminare" del profilo.
 export async function DELETE(req: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
-  if (scopeOf(session, 'notification', 'delete') === 'none') return NextResponse.json({ error: 'Il tuo ruolo non può eliminare le notifiche' }, { status: 403 })
+  if (scopeOf(session, 'notification', 'delete') === 'none') return NextResponse.json({ error: 'Il tuo profilo non può eliminare le notifiche' }, { status: 403 })
   const userId = getUserId(session)
   const body = await req.json().catch(() => ({}))
   const ids = Array.isArray(body.ids) ? body.ids.filter((x: unknown): x is string => typeof x === 'string').slice(0, 200) : []

@@ -14,7 +14,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
   if (role !== undefined) {
     const exists = ['admin', 'normal', 'read_only'].includes(role) || !!(await prisma.role.findUnique({ where: { key: String(role) } }))
-    if (!exists) return NextResponse.json({ error: 'Ruolo non valido' }, { status: 400 })
+    if (!exists) return NextResponse.json({ error: 'Profilo non valido' }, { status: 400 })
   }
 
   const member = await prisma.teamMember.update({

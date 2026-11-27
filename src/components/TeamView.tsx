@@ -248,7 +248,7 @@ export default function TeamView() {
     {
       id: 'role',
       exportValue: (r) => labelOf(r.matchedUser?.role || 'normal'),
-      label: 'Ruolo',
+      label: 'Profilo',
       sortKey: 'role',
       render: (m) => (
         <span className={clsx('px-2 py-1 rounded-full text-xs font-medium', (ROLE_COLORS[m.matchedUser?.role || 'normal'] ?? CUSTOM_ROLE_COLOR))}>
@@ -446,7 +446,7 @@ export default function TeamView() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-medium text-slate-500">Ruolo</label>
+                  <label className="text-xs font-medium text-slate-500">Profilo</label>
                   <select
                     value={editRole}
                     onChange={(e) => setEditRole(e.target.value)}
