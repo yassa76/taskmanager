@@ -12,6 +12,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-11-27-notifiche-preferenze-menu',
+    date: '2026-11-27',
+    title: 'Notifiche più pulite e icona Novità',
+    description:
+      'La scelta di quali notifiche ricevere ora si apre dal menu con i tre puntini delle notifiche, senza occupare spazio nella pagina. In alto la voce Novità è diventata un\'icona con il pallino rosso quando c\'è qualcosa da leggere.',
+    tag: 'miglioramento'
+  },
+  {
     id: '2026-11-27-notifiche-seleziona',
     date: '2026-11-27',
     title: 'Notifiche: menu opzioni e selezione',

@@ -5,7 +5,6 @@ import { useSession } from 'next-auth/react'
 import clsx from 'clsx'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Breadcrumbs from './Breadcrumbs'
-import NotificationPrefsPanel from './NotificationPrefsPanel'
 import NotificationsView from './NotificationsView'
 
 const THEMES: { key: string; label: string; swatch: string }[] = [
@@ -202,7 +201,6 @@ export default function ProfileView() {
             <h2 className="font-semibold text-slate-800 mb-2">Le tue notifiche</h2>
             <NotificationsView />
           </section>
-          <NotificationPrefsPanel />
         </div>
       )}
     </div>
