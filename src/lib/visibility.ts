@@ -38,7 +38,8 @@ export async function getVisibility(session: any): Promise<Visibility> {
     const user = await prisma.user.findUnique({ where: { id: userId }, select: { orgRoleId: true } })
     let teamIds: string[] = [userId]
     let mine: { id: string; taskVisibility: string; clientVisibility: string } | undefined
-    if (user?.orgRoleId) {
+    // l'admin vede tutto: per lui "il team" e' "tutti", quindi non serve calcolare la gerarchia
+    if (user?.orgRoleId && !isAdminUser) {
       const roles = await prisma.orgRole.findMany()
       mine = roles.find((r) => r.id === user.orgRoleId)
       if (mine) {
@@ -50,7 +51,7 @@ export async function getVisibility(session: any): Promise<Visibility> {
       }
     }
     if (isAdminUser) {
-      v = { ...everything, teamIds }
+      v = everything
     } else if (mine) {
       const taskMode = mine.taskVisibility as TaskVisibility
       const clientMode = mine.clientVisibility as ClientVisibility
