@@ -1,5 +1,8 @@
 'use client'
 
+import SavedViews from './SavedViews'
+import { isViewScope, type ViewScope } from '@/lib/scopesShared'
+import { useScopes } from '@/lib/useScopes'
 import { useEffect, useMemo, useState } from 'react'
 import clsx from 'clsx'
 import Link from 'next/link'
@@ -67,6 +70,10 @@ export default function ClientsView() {
   const [cityFilter, setCityFilter] = useState('')
   const [view, setView] = useState<'table' | 'map'>('table')
   const [statusFilter, setStatusFilter] = useState('')
+  // vista standard (miei / del mio team / tutti): se non e' disponibile si usa la piu' ampia
+  const scopes = useScopes()
+  const [scopeSel, setScopeSel] = useState<ViewScope>('all')
+  const scope: ViewScope = scopes.includes(scopeSel) ? scopeSel : scopes[scopes.length - 1]
 
   // Vista e filtri restano memorizzati navigando su altre pagine e tornando qui
   // (sessione del browser). "Azzera filtri" li riporta a zero.
@@ -84,6 +91,7 @@ export default function ClientsView() {
         setCountryFilter(f.country || '')
         setRegionFilter(f.region || '')
         setCityFilter(f.city || '')
+        if (isViewScope(f.scope)) setScopeSel(f.scope)
       }
     } catch {}
     setRestored(true)
@@ -100,15 +108,16 @@ export default function ClientsView() {
           status: statusFilter,
           country: countryFilter,
           region: regionFilter,
-          city: cityFilter
+          city: cityFilter,
+          scope: scopeSel
         })
       )
     } catch {}
-  }, [restored, view, search, industryFilter, statusFilter, countryFilter, regionFilter, cityFilter])
+  }, [restored, view, search, industryFilter, statusFilter, countryFilter, regionFilter, cityFilter, scopeSel])
 
   async function load() {
     setLoading(true)
-    const [clientsRes, teamRes] = await Promise.all([fetch('/api/clients'), fetch('/api/team')])
+    const [clientsRes, teamRes] = await Promise.all([fetch(`/api/clients?scope=${scope}`), fetch('/api/team')])
     setClients(await clientsRes.json())
     const team: TeamMemberDTO[] = await teamRes.json()
     setOwners(
@@ -122,7 +131,8 @@ export default function ClientsView() {
 
   useEffect(() => {
     load()
-  }, [])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scope])
 
   // filtri "generici": la mappa conta i clienti su questi, senza filtri geografici
   const baseClients = useMemo(() => {
@@ -434,6 +444,27 @@ export default function ClientsView() {
           </button>
         </div>
       </div>
+
+      <SavedViews
+        page="clients"
+        current={{ scope, search, industry: industryFilter, status: statusFilter, country: countryFilter, region: regionFilter, city: cityFilter }}
+        scopes={scopes}
+        scope={scope}
+        onScope={(v) => {
+          setScopeSel(v)
+          setPage(1)
+        }}
+        onApply={(d: any) => {
+          if (isViewScope(d?.scope)) setScopeSel(d.scope)
+          setSearch(d?.search || '')
+          setIndustryFilter(d?.industry || '')
+          setStatusFilter(d?.status || '')
+          setCountryFilter(d?.country || '')
+          setRegionFilter(d?.region || '')
+          setCityFilter(d?.city || '')
+          setPage(1)
+        }}
+      />
 
       {view === 'table' && (
       <div className="bg-white border border-slate-200 rounded-xl p-3 flex flex-wrap items-center gap-2 mb-4">

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { getVisibility, clientWhere as visClientWhere, taskWhere as visTaskWhere } from '@/lib/visibility'
+import { getVisibility, clientWhere as visClientWhere, taskWhere as visTaskWhere, resolveScope, scopeOwnerWhere } from '@/lib/visibility'
 import { canCreate } from '@/lib/permissions'
 import { deriveTaskStatus } from '@/lib/taskStatus'
 import { logActivity } from '@/lib/activityLog'
@@ -41,13 +41,16 @@ function toClientDTO(client: any): ClientDTO {
   }
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
 
   const vis = await getVisibility(session)
+  // vista standard: "miei" e "del mio team" restringono ai clienti di quelle persone; senza vista o "tutti" valgono tutti i visibili
+  const scopeParam = new URL(req.url).searchParams.get('scope')
+  const scopeWhere = !scopeParam || scopeParam === 'all' ? {} : scopeOwnerWhere(vis, resolveScope(vis, scopeParam))
   const clients = await prisma.client.findMany({
-    where: visClientWhere(vis),
+    where: { AND: [visClientWhere(vis), scopeWhere] },
     include: {
       projects: { select: { id: true, name: true } },
       owner: true,

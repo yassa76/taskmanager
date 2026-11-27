@@ -19,6 +19,20 @@ const ROLE_COLORS: Record<string, string> = {
   read_only: 'bg-slate-200 text-slate-600'
 }
 
+// Colori dei ruoli aziendali: diversi da quelli dei profili e distinti tra loro (si assegnano in ordine di creazione).
+const ORG_ROLE_COLORS = [
+  'bg-indigo-100 text-indigo-800',
+  'bg-amber-100 text-amber-800',
+  'bg-rose-100 text-rose-800',
+  'bg-emerald-100 text-emerald-800',
+  'bg-cyan-100 text-cyan-800',
+  'bg-orange-100 text-orange-800',
+  'bg-fuchsia-100 text-fuchsia-800',
+  'bg-lime-100 text-lime-800',
+  'bg-sky-100 text-sky-800',
+  'bg-pink-100 text-pink-800'
+]
+
 const STATUS_LABELS: Record<string, string> = {
   new: 'Nuovo',
   invited: 'Invitato',
@@ -282,7 +296,7 @@ export default function TeamView() {
         m.matchedUser?.orgRoleName ? (
           <span
             title={orgRoles.find((o) => o.id === m.matchedUser?.orgRoleId)?.description || undefined}
-            className="px-2 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 cursor-help"
+            className={clsx('px-2 py-1 rounded-full text-xs font-medium cursor-help', ORG_ROLE_COLORS[Math.max(0, orgRoles.findIndex((o) => o.id === m.matchedUser?.orgRoleId)) % ORG_ROLE_COLORS.length])}
           >
             {m.matchedUser.orgRoleName}
           </span>

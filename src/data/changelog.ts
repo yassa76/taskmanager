@@ -12,6 +12,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-11-27-viste-clienti',
+    date: '2026-11-27',
+    title: 'Viste anche nei Clienti, ruoli colorati nel Team',
+    description:
+      'Anche nei Clienti c\'è il menu delle viste: miei clienti, del mio team, tutti, più le tue viste salvate con filtri e ricerca. Nel Team ogni ruolo ha ora un colore diverso, così si distinguono a colpo d\'occhio.',
+    tag: 'miglioramento'
+  },
+  {
     id: '2026-11-27-viste-standard',
     date: '2026-11-27',
     title: 'Viste standard: miei, del mio team, tutti',
