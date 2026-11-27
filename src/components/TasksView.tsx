@@ -1,5 +1,6 @@
 'use client'
 
+import DataTable, { type Column } from './DataTable'
 import { formatDate } from '@/lib/formatDate'
 import { useEffect, useMemo, useState, useCallback } from 'react'
 import Link from 'next/link'
@@ -232,14 +233,100 @@ export default function TasksView() {
     }
   }
 
-  const SortHeader = ({ label, k }: { label: string; k: SortKey }) => (
-    <th
-      onClick={() => toggleSort(k)}
-      className="cursor-pointer px-3 py-2 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide hover:text-brand-600"
-    >
-      {label} {sortKey === k ? (sortDir === 'asc' ? '▲' : '▼') : ''}
-    </th>
-  )
+  const columns: Column<TaskDTO>[] = [
+    {
+      id: 'title',
+      label: 'Task',
+      sortKey: 'title',
+      primary: true,
+      tdClassName: 'max-w-xs',
+      render: (t) => (
+        <Link href={`/tasks/${t.id}`} className="block truncate text-brand-600 font-semibold hover:underline" title={t.title}>
+          {t.title}
+        </Link>
+      )
+    },
+    {
+      id: 'client',
+      label: 'Cliente',
+      sortKey: 'clientName',
+      tdClassName: 'max-w-[160px]',
+      render: (t) =>
+        t.clientId ? (
+          <Link href={`/clients/${t.clientId}`} className="block truncate text-brand-600 font-medium hover:underline" title={t.clientName || ''}>
+            {t.clientName}
+          </Link>
+        ) : (
+          <span className="text-slate-400">—</span>
+        )
+    },
+    {
+      id: 'owner',
+      label: 'Owner',
+      sortKey: 'owner',
+      render: (t) => (
+        <Link href={`/owners/${t.owner.id}`} className="text-brand-600 hover:underline">
+          {t.owner.name || t.owner.email}
+        </Link>
+      )
+    },
+    { id: 'startDate', label: 'Data avvio', sortKey: 'startDate', render: (t) => formatDate(t.startDate) },
+    {
+      id: 'endDate',
+      label: 'Scadenza',
+      sortKey: 'endDate',
+      render: (t) => (
+        <span
+          className={clsx(
+            t.endDate && new Date(t.endDate) < new Date() && t.status !== 'completato' && t.status !== 'annullato'
+              ? 'text-red-600 font-semibold'
+              : ''
+          )}
+        >
+          {formatDate(t.endDate)}
+        </span>
+      )
+    },
+    {
+      id: 'status',
+      label: 'Stato',
+      sortKey: 'status',
+      render: (t) => (
+        <span className={clsx('px-2 py-1 rounded-full text-xs font-medium', STATUS_COLORS[t.status])}>{STATUS_LABELS[t.status]}</span>
+      )
+    },
+    {
+      id: 'subtasks',
+      label: 'Sub-task attivi',
+      title: 'Sub-task ancora da fare (da avviare o in corso)',
+      align: 'center',
+      render: (t) => <SubtaskCount active={countActiveSubtasks(t.subtasks.map((s) => s.status))} total={t.subtasks.length} />
+    },
+    {
+      id: 'actions',
+      label: 'Azioni',
+      fixed: true,
+      align: 'right',
+      tdClassName: 'whitespace-nowrap',
+      render: (t) => (
+        <>
+          <button
+            onClick={() => {
+              setEditingTask(t)
+              setShowForm(true)
+            }}
+            className="inline-flex text-slate-400 hover:text-brand-600 mr-3 align-middle"
+            title="Modifica"
+          >
+            <EditIcon />
+          </button>
+          <button onClick={() => deleteTask(t)} className="inline-flex text-slate-400 hover:text-red-600 align-middle" title="Elimina">
+            <DeleteIcon />
+          </button>
+        </>
+      )
+    }
+  ]
 
   return (
     <div>
@@ -294,108 +381,20 @@ export default function TasksView() {
         </div>
       ) : (
         <>
-      <div className="mt-4 bg-white rounded-xl border border-slate-200 overflow-x-auto shadow-sm">
-        <table className="w-full text-sm">
-          <thead className="bg-slate-50 border-b border-slate-200">
-            <tr>
-              <SortHeader label="Task" k="title" />
-              <SortHeader label="Cliente" k="clientName" />
-              <SortHeader label="Owner" k="owner" />
-              <SortHeader label="Data avvio" k="startDate" />
-              <SortHeader label="Scadenza" k="endDate" />
-              <SortHeader label="Stato" k="status" />
-              <th className="px-3 py-2 text-left text-xs font-semibold text-slate-500 uppercase" title="Sub-task ancora da fare (da avviare o in corso)">Sub-task attivi</th>
-              <th className="px-3 py-2 text-right text-xs font-semibold text-slate-500 uppercase">Azioni</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading && (
-              <tr>
-                <td colSpan={8} className="text-center py-8 text-slate-400">
-                  Caricamento...
-                </td>
-              </tr>
-            )}
-            {!loading && filteredTasks.length === 0 && (
-              <tr>
-                <td colSpan={8} className="text-center py-8 text-slate-400">
-                  Nessun task trovato. (I completati/annullati sono nascosti per default: usa
-                  &quot;Mostra completati/annullati&quot; o il filtro Stato per vederli.)
-                </td>
-              </tr>
-            )}
-            {pagedTasks.map((t) => (
-              <tr key={t.id} className="border-b border-slate-100 hover:bg-slate-50">
-                <td className="px-3 py-2 max-w-xs">
-                  <Link
-                    href={`/tasks/${t.id}`}
-                    className="block truncate text-brand-600 font-semibold hover:underline"
-                    title={t.title}
-                  >
-                    {t.title}
-                  </Link>
-                </td>
-                <td className="px-3 py-2 max-w-[160px]">
-                  {t.clientId ? (
-                    <Link
-                      href={`/clients/${t.clientId}`}
-                      className="block truncate text-brand-600 font-medium hover:underline"
-                      title={t.clientName || ''}
-                    >
-                      {t.clientName}
-                    </Link>
-                  ) : (
-                    <span className="text-slate-400">—</span>
-                  )}
-                </td>
-                <td className="px-3 py-2">
-                  <Link href={`/owners/${t.owner.id}`} className="text-brand-600 hover:underline">
-                    {t.owner.name || t.owner.email}
-                  </Link>
-                </td>
-                <td className="px-3 py-2">{formatDate(t.startDate)}</td>
-                <td className="px-3 py-2">
-                  <span
-                    className={clsx(
-                      t.endDate && new Date(t.endDate) < new Date() && t.status !== 'completato' && t.status !== 'annullato'
-                        ? 'text-red-600 font-semibold'
-                        : ''
-                    )}
-                  >
-                  {formatDate(t.endDate)}
-                  </span>
-                </td>
-                <td className="px-3 py-2">
-                  <span className={clsx('px-2 py-1 rounded-full text-xs font-medium', STATUS_COLORS[t.status])}>
-                    {STATUS_LABELS[t.status]}
-                  </span>
-                </td>
-                <td className="px-3 py-2 text-center">
-                  <SubtaskCount active={countActiveSubtasks(t.subtasks.map((s) => s.status))} total={t.subtasks.length} />
-                </td>
-                <td className="px-3 py-2 text-right whitespace-nowrap">
-                  <button
-                    onClick={() => {
-                      setEditingTask(t)
-                      setShowForm(true)
-                    }}
-                    className="inline-flex text-slate-400 hover:text-brand-600 mr-3 align-middle"
-                    title="Modifica"
-                  >
-                    <EditIcon />
-                  </button>
-                  <button
-                    onClick={() => deleteTask(t)}
-                    className="inline-flex text-slate-400 hover:text-red-600 align-middle"
-                    title="Elimina"
-                  >
-                    <DeleteIcon />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="mt-4">
+        <DataTable
+          tableId="tasks"
+          columns={columns}
+          rows={pagedTasks}
+          rowKey={(t) => t.id}
+          sortKey={sortKey}
+          sortDir={sortDir}
+          onSort={(k) => toggleSort(k as SortKey)}
+          loading={loading}
+          emptyText={
+            <>Nessun task trovato. (I completati/annullati sono nascosti per default: usa &quot;Mostra completati/annullati&quot; o il filtro Stato per vederli.)</>
+          }
+        />
       </div>
 
       {filteredTasks.length > 0 && (

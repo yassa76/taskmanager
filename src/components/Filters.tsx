@@ -27,7 +27,7 @@ export default function Filters({
 }) {
   return (
     <div className="bg-white border border-slate-200 rounded-xl p-3 flex flex-wrap items-center gap-2">
-      <div className="flex bg-slate-100 rounded-lg p-1">
+      <div className="flex bg-slate-100 rounded-lg p-1 w-full sm:w-auto">
         {(['all', 'mine'] as const).map((v) => (
           <button
             key={v}
@@ -48,7 +48,7 @@ export default function Filters({
         options={clients.map((c) => ({ id: c.id, label: c.name }))}
         emptyLabel="Tutti i clienti"
         placeholder="Cerca cliente..."
-        className="w-48"
+        className="w-full sm:w-48"
       />
 
       <Combobox
@@ -57,7 +57,7 @@ export default function Filters({
         options={owners.map((o) => ({ id: o.id, label: o.name }))}
         emptyLabel="Tutti gli owner"
         placeholder="Cerca owner..."
-        className="w-48"
+        className="w-full sm:w-48"
       />
 
       <select

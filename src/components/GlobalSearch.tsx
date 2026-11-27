@@ -97,7 +97,7 @@ export default function GlobalSearch() {
         className="w-full border border-slate-200 rounded-lg px-3 py-1.5 text-sm bg-white"
       />
       {open && (
-        <div className="absolute z-40 mt-1 w-80 right-0 bg-white border border-slate-200 rounded-lg shadow-lg max-h-96 overflow-y-auto">
+        <div className="absolute z-40 mt-1 w-full lg:w-80 right-0 bg-white border border-slate-200 rounded-lg shadow-lg max-h-96 overflow-y-auto">
           {loading && <p className="px-3 py-2 text-sm text-slate-400">Ricerca...</p>}
           {!loading && !hasResults && <p className="px-3 py-2 text-sm text-slate-400">Nessun risultato.</p>}
           {!loading &&

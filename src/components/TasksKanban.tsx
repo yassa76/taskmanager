@@ -36,7 +36,7 @@ export default function TasksKanban({
   }
 
   return (
-    <div className="flex gap-4 overflow-x-auto pb-2">
+    <div className="flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory sm:snap-none">
       {columns.map((col) => {
         const colTasks = tasks.filter((t) => t.status === col.status)
         return (
@@ -49,7 +49,7 @@ export default function TasksKanban({
             onDragLeave={() => setDragOverCol((c) => (c === col.status ? null : c))}
             onDrop={(e) => handleDrop(e, col.status)}
             className={clsx(
-              'flex-1 min-w-[240px] bg-slate-50 border border-slate-200 border-t-4 rounded-xl p-3',
+              'flex-1 min-w-[85vw] sm:min-w-[240px] snap-start bg-slate-50 border border-slate-200 border-t-4 rounded-xl p-3',
               col.accent,
               dragOverCol === col.status && 'ring-2 ring-brand-400 bg-brand-50/40'
             )}
@@ -87,6 +87,19 @@ export default function TasksKanban({
                         {t.clientName}
                       </p>
                     )}
+                    {/* su touch il trascinamento non funziona: stato cambiabile da qui */}
+                    <select
+                      value={t.status}
+                      onChange={(e) => onStatusChange(t.id, e.target.value as ColumnStatus)}
+                      className="lg:hidden mt-2 w-full border border-slate-200 rounded-lg px-2 py-1 text-xs bg-white"
+                      aria-label="Cambia stato"
+                    >
+                      {columns.map((c) => (
+                        <option key={c.status} value={c.status}>
+                          {c.label}
+                        </option>
+                      ))}
+                    </select>
                     <div className="flex items-center justify-between mt-2">
                       <span
                         className={clsx('text-xs', overdue ? 'text-red-600 font-semibold' : 'text-slate-400')}

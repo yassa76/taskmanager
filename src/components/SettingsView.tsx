@@ -139,7 +139,7 @@ function GeocodeSettingsPanel() {
           <UsageBar label="Questo mese" used={data.usedMonth} limit={data.monthlyLimit} />
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="text-xs font-medium text-slate-500">Limite giornaliero</label>
             <input

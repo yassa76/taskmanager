@@ -171,7 +171,7 @@ export default function TaskFormModal({
               rows={3}
             />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="text-xs font-medium text-slate-500">Data avvio *</label>
               <input
