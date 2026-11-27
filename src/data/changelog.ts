@@ -16,7 +16,7 @@ export const CHANGELOG: ChangelogEntry[] = [
     date: '2026-11-27',
     title: 'Icone nel colore del tema, margini ridotti, stati a frecce',
     description:
-      'Al posto dei quadratini bianchi ci sono vere icone (owner, scadenza, notifiche, pulsanti) nel colore del tema scelto nel profilo. Lo spazio ai lati delle pagine è ridotto: i contenuti usano tutta la larghezza, come in Salesforce. Il percorso degli stati ora è a frecce contigue.',
+      'Al posto dei quadratini bianchi ci sono vere icone (owner, scadenza, notifiche, pulsanti) nel colore del tema scelto nel profilo. Lo spazio ai lati delle pagine è ridotto: i contenuti usano tutta la larghezza, come in Salesforce. Il percorso degli stati ora è a frecce contigue. I pulsanti di creazione si chiamano tutti "+ Nuovo" (il tooltip dice cosa creano).',
     tag: 'miglioramento'
   },
   {

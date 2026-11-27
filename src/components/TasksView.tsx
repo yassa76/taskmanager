@@ -415,9 +415,10 @@ export default function TasksView() {
               setEditingTask(null)
               setShowForm(true)
             }}
+            title="Nuovo task" aria-label="Nuovo task"
             className="px-3 h-9 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700"
           >
-            + Nuovo Task
+            + Nuovo
           </button>
           </>
         }

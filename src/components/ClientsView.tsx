@@ -460,9 +460,10 @@ export default function ClientsView() {
           </button>
           <button
             onClick={openNewForm}
+            title="Nuovo cliente" aria-label="Nuovo cliente"
             className="px-3 h-9 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700"
           >
-            + Nuovo cliente
+            + Nuovo
           </button>
           </>
         }

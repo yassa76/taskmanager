@@ -350,9 +350,10 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
                   setEditingTask(null)
                   setShowTaskForm(true)
                 }}
-                className="px-3 py-1.5 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700"
+                title="Nuovo task" aria-label="Nuovo task"
+            className="px-3 py-1.5 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700"
               >
-                + Nuovo Task
+                + Nuovo
               </button>
             </ReadOnlyGuard>
           )}
