@@ -1,6 +1,7 @@
 'use client'
 
 import { SCOPE_LABELS, type ViewScope } from '@/lib/scopesShared'
+import { VIEW_SELECT } from '@/lib/ui'
 import { useScopes } from '@/lib/useScopes'
 
 // Menu delle viste standard (miei / del mio team / tutti) per le pagine senza viste personalizzate (Home, Report).
@@ -14,7 +15,7 @@ export default function ScopeSelect({ value, onChange }: { value: ViewScope; onC
       value={current}
       onChange={(e) => onChange(e.target.value as ViewScope)}
       aria-label="Vista"
-      className="border border-slate-300 rounded-lg px-2 h-9 bg-white text-sm text-slate-700"
+      className={VIEW_SELECT}
     >
       {scopes.map((s) => (
         <option key={s} value={s}>

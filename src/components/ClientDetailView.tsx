@@ -1,5 +1,6 @@
 'use client'
 
+import { BTN_PRIMARY } from './PageBar'
 import { CheckboxIcon, ArrowLeftIcon, ArrowRightIcon, RefreshIcon, WarningIcon, PinIcon, EditIcon, DeleteIcon } from './icons'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
@@ -351,7 +352,7 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
                   setShowTaskForm(true)
                 }}
                 title="Nuovo task" aria-label="Nuovo task"
-            className="px-3 py-1.5 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700"
+            className={BTN_PRIMARY}
               >
                 + Nuovo
               </button>

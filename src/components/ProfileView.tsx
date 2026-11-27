@@ -147,8 +147,8 @@ function PreferencesPanel() {
                 key={o.k}
                 onClick={() => changeDensity(o.k)}
                 className={clsx(
-                  'text-left px-3 py-2 rounded-lg border-2 transition max-w-xs',
-                  density === o.k ? 'border-slate-700' : 'border-slate-200 hover:border-slate-300'
+                  'text-left px-3 py-2 rounded-lg border-2 transition w-full sm:w-72 min-h-[4rem]',
+                  density === o.k ? 'border-brand-600 bg-brand-50' : 'border-slate-200 hover:border-slate-300'
                 )}
               >
                 <span className="block text-sm font-medium text-slate-800">{o.label}</span>

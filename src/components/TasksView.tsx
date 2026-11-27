@@ -1,6 +1,6 @@
 'use client'
 
-import PageBar from './PageBar'
+import PageBar, { BTN, BTN_PRIMARY } from './PageBar'
 import DataTable, { type Column } from './DataTable'
 import { formatDate } from '@/lib/formatDate'
 import { useEffect, useMemo, useState, useCallback } from 'react'
@@ -406,7 +406,7 @@ export default function TasksView() {
           </div>
           <button
             onClick={loadAll}
-            className="px-3 h-9 rounded-lg border border-slate-300 text-sm font-medium text-slate-700 hover:bg-slate-100"
+            className={BTN}
           >
             <RefreshIcon /> Aggiorna
           </button>
@@ -416,7 +416,7 @@ export default function TasksView() {
               setShowForm(true)
             }}
             title="Nuovo task" aria-label="Nuovo task"
-            className="px-3 h-9 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700"
+            className={BTN_PRIMARY}
           >
             + Nuovo
           </button>

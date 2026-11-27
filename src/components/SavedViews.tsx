@@ -1,5 +1,6 @@
 'use client'
 
+import { VIEW_SELECT } from '@/lib/ui'
 import { useEffect, useState } from 'react'
 import { SCOPE_LABELS, type ViewScope } from '@/lib/scopesShared'
 
@@ -83,7 +84,7 @@ export default function SavedViews<T>({
           const v = views.find((x) => x.id === val)
           if (v) onApply(v.data)
         }}
-        className="border border-slate-300 rounded-lg px-2 h-9 bg-white text-slate-700"
+        className={VIEW_SELECT}
         aria-label="Viste"
       >
         {scopes && scopes.length > 0 && (
