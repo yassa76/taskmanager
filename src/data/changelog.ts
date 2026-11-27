@@ -24,7 +24,7 @@ export const CHANGELOG: ChangelogEntry[] = [
     date: '2026-11-27',
     title: 'Visualizzazione larga o stretta',
     description:
-      'In Il mio account > Preferenze personali puoi scegliere la visualizzazione: Larga (quella di sempre) oppure Stretta, con righe più compatte e tutta la larghezza dello schermo. Vale da computer; sul telefono resta com\'è. Le Novità ora sono divise in pagine.',
+      'In Il mio account > Preferenze personali puoi scegliere la visualizzazione: Estesa (quella di sempre) oppure Compatta, con righe e riquadri più stretti (Home inclusa). Vale da computer; sul telefono resta com\'è. Le Novità ora sono divise in pagine.',
     tag: 'novità'
   },
   {

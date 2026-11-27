@@ -139,8 +139,8 @@ function PreferencesPanel() {
           <div className="flex flex-wrap gap-3">
             {(
               [
-                { k: 'wide', label: 'Larga', hint: 'Più aria tra le righe, come ora' },
-                { k: 'narrow', label: 'Stretta', hint: 'Righe più compatte e tutta la larghezza dello schermo' }
+                { k: 'wide', label: 'Estesa', hint: 'Più aria tra le righe e tra i riquadri' },
+                { k: 'narrow', label: 'Compatta', hint: 'Righe, riquadri e spazi ridotti: più contenuto a schermo' }
               ] as const
             ).map((o) => (
               <button
