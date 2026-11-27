@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import clsx from 'clsx'
+import PageBar, { BTN } from './PageBar'
 import DataTable, { type Column } from './DataTable'
 import Combobox from './Combobox'
 import SavedViews from './SavedViews'
@@ -208,17 +209,9 @@ export default function SubtasksView() {
 
   return (
     <div>
-      <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
-        <h1 className="text-lg font-semibold text-slate-800">Sub-task</h1>
-        <button
-          onClick={load}
-          className="px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-medium text-slate-700 hover:bg-slate-100"
-        >
-          ↻ Aggiorna
-        </button>
-      </div>
-
-      <SavedViews
+      <PageBar
+        left={
+        <SavedViews
         page="subtasks"
         current={{ filters: { ...filters, view: scope }, sortKey, sortDir }}
         scopes={scopes}
@@ -240,6 +233,13 @@ export default function SubtasksView() {
           if (d?.sortDir) setSortDir(d.sortDir)
           setPage(1)
         }}
+      />
+        }
+        right={
+          <button onClick={load} className={BTN}>
+            ↻ Aggiorna
+          </button>
+        }
       />
 
       <div className="bg-white border border-slate-200 rounded-xl p-3 flex flex-wrap items-center gap-2 mb-3">

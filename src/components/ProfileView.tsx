@@ -1,5 +1,6 @@
 'use client'
 
+import Breadcrumbs from './Breadcrumbs'
 import { useCallback, useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import clsx from 'clsx'
@@ -163,7 +164,7 @@ export default function ProfileView() {
 
   return (
     <div>
-      <h1 className="text-lg font-semibold text-slate-800 mb-3">Il mio account</h1>
+      <Breadcrumbs items={[{ label: 'Il mio account' }]} />
 
       <div className="flex gap-1 border-b border-slate-200 mb-5">
         {TABS.map((t) => (

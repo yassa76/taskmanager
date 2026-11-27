@@ -1,5 +1,6 @@
 'use client'
 
+import PageBar from './PageBar'
 import SavedViews from './SavedViews'
 import { isViewScope, type ViewScope } from '@/lib/scopesShared'
 import { useScopes } from '@/lib/useScopes'
@@ -411,9 +412,31 @@ export default function ClientsView() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-3">
-        <h1 className="text-lg font-semibold text-slate-800">Clienti</h1>
-        <div className="flex gap-2 items-center">
+      <PageBar
+        left={
+          <SavedViews
+          page="clients"
+          current={{ scope, search, industry: industryFilter, status: statusFilter, country: countryFilter, region: regionFilter, city: cityFilter }}
+          scopes={scopes}
+          scope={scope}
+          onScope={(v) => {
+            setScopeSel(v)
+            setPage(1)
+          }}
+          onApply={(d: any) => {
+            if (isViewScope(d?.scope)) setScopeSel(d.scope)
+            setSearch(d?.search || '')
+            setIndustryFilter(d?.industry || '')
+            setStatusFilter(d?.status || '')
+            setCountryFilter(d?.country || '')
+            setRegionFilter(d?.region || '')
+            setCityFilter(d?.city || '')
+            setPage(1)
+          }}
+        />
+        }
+        right={
+          <>
           <div className="flex bg-slate-100 rounded-lg p-1">
             {(['table', 'map'] as const).map((v) => (
               <button
@@ -430,40 +453,19 @@ export default function ClientsView() {
           </div>
           <button
             onClick={load}
-            className="px-4 py-2 rounded-lg border border-slate-300 text-sm font-medium text-slate-700 hover:bg-slate-100"
+            className="px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-medium text-slate-700 hover:bg-slate-100"
           >
             ↻ Aggiorna
           </button>
           <button
             onClick={openNewForm}
-            className="px-4 py-2 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700"
+            className="px-3 py-1.5 rounded-lg bg-brand-600 text-white text-sm font-medium hover:bg-brand-700"
           >
             + Nuovo cliente
           </button>
-        </div>
-      </div>
-
-      <SavedViews
-        page="clients"
-        current={{ scope, search, industry: industryFilter, status: statusFilter, country: countryFilter, region: regionFilter, city: cityFilter }}
-        scopes={scopes}
-        scope={scope}
-        onScope={(v) => {
-          setScopeSel(v)
-          setPage(1)
-        }}
-        onApply={(d: any) => {
-          if (isViewScope(d?.scope)) setScopeSel(d.scope)
-          setSearch(d?.search || '')
-          setIndustryFilter(d?.industry || '')
-          setStatusFilter(d?.status || '')
-          setCountryFilter(d?.country || '')
-          setRegionFilter(d?.region || '')
-          setCityFilter(d?.city || '')
-          setPage(1)
-        }}
+          </>
+        }
       />
-
       {view === 'table' && (
       <div className="bg-white border border-slate-200 rounded-xl p-3 flex flex-wrap items-center gap-2 mb-4">
         <select

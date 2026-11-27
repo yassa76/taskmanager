@@ -9,7 +9,7 @@ interface BreadcrumbItem {
 
 export default function Breadcrumbs({ items }: { items: BreadcrumbItem[] }) {
   return (
-    <nav className="flex items-center flex-wrap gap-1 text-sm text-slate-500 mb-4">
+    <nav className="flex items-center flex-wrap gap-1 text-sm text-slate-500 mb-3">
       {items.map((item, i) => (
         <span key={i} className="flex items-center gap-1">
           {i > 0 && <span className="text-slate-300">/</span>}

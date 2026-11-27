@@ -12,6 +12,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-11-27-layout-uniforme',
+    date: '2026-11-27',
+    title: 'Pagine con la stessa impostazione',
+    description:
+      'Tolti i titoli giganti: la pagina si riconosce dal menu e dalla sottovista. In tutte le pagine c\'è la stessa riga in alto, con la vista a sinistra e i pulsanti a destra, e le stesse spaziature. Le briciole restano dove si naviga in profondità, anche nel tuo account e nelle Novità. In Admin le spiegazioni sono in fondo e il credito della mappa è passato sotto la mappa.',
+    tag: 'miglioramento'
+  },
+  {
     id: '2026-11-27-sottoviste',
     date: '2026-11-27',
     title: 'Sottoviste sotto il menu e più spazio',

@@ -1,5 +1,6 @@
 'use client'
 
+import Breadcrumbs from './Breadcrumbs'
 import { useEffect, useState } from 'react'
 import clsx from 'clsx'
 import { CHANGELOG, formatChangelogDate, unreadChangelogCount } from '@/data/changelog'
@@ -27,7 +28,7 @@ export default function ChangelogView() {
 
   return (
     <div>
-      <h1 className="text-lg font-semibold text-slate-800 mb-1">Novità</h1>
+      <Breadcrumbs items={[{ label: 'Novità' }]} />
       <p className="text-sm text-slate-500 mb-5">Cosa è cambiato nella piattaforma e quando.</p>
 
       <div className="space-y-3">

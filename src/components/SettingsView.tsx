@@ -218,10 +218,6 @@ export default function SettingsView() {
   return (
     <div>
       {current.render()}
-
-      <p className="text-[11px] text-slate-400 mt-8">
-        Crediti: confini regionali della mappa clienti © Openpolis, CC BY 4.0 (dati ISTAT).
-      </p>
     </div>
   )
 }
