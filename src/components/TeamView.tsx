@@ -14,7 +14,7 @@ import { scopeIn } from '@/lib/permissionsShared'
 
 const CUSTOM_ROLE_COLOR = 'bg-teal-100 text-teal-800'
 const ROLE_COLORS: Record<string, string> = {
-  admin: 'bg-purple-100 text-purple-800',
+  admin: 'bg-purple-600 text-white',
   normal: 'bg-blue-100 text-blue-800',
   read_only: 'bg-slate-200 text-slate-600'
 }
