@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { getVisibility, taskWhere as visTaskWhere, subtaskWhere as visSubtaskWhere, clientWhere as visClientWhere, type Visibility } from '@/lib/visibility'
 
 interface SearchResultItem {
   id: string
@@ -13,7 +14,7 @@ interface SearchableEntity {
   type: string
   label: string
   href: (id: string) => string
-  search: (q: string) => Promise<SearchResultItem[]>
+  search: (q: string, vis: Visibility) => Promise<SearchResultItem[]>
 }
 
 // Registro delle entità cercabili: per aggiungerne una nuova in futuro basta
@@ -24,9 +25,9 @@ const ENTITIES: SearchableEntity[] = [
     type: 'task',
     label: 'Task',
     href: (id) => `/tasks/${id}`,
-    search: async (q) => {
+    search: async (q, vis) => {
       const rows = await prisma.task.findMany({
-        where: { title: { contains: q, mode: 'insensitive' } },
+        where: { title: { contains: q, mode: 'insensitive' }, AND: [visTaskWhere(vis)] },
         select: { id: true, title: true, client: { select: { name: true } } },
         take: 6
       })
@@ -37,9 +38,9 @@ const ENTITIES: SearchableEntity[] = [
     type: 'subtask',
     label: 'Sub-task',
     href: (id) => `/subtasks/${id}`,
-    search: async (q) => {
+    search: async (q, vis) => {
       const rows = await prisma.subtask.findMany({
-        where: { title: { contains: q, mode: 'insensitive' } },
+        where: { title: { contains: q, mode: 'insensitive' }, AND: [visSubtaskWhere(vis)] },
         select: { id: true, title: true, task: { select: { title: true } } },
         take: 6
       })
@@ -50,9 +51,9 @@ const ENTITIES: SearchableEntity[] = [
     type: 'client',
     label: 'Clienti',
     href: (id) => `/clients/${id}`,
-    search: async (q) => {
+    search: async (q, vis) => {
       const rows = await prisma.client.findMany({
-        where: { name: { contains: q, mode: 'insensitive' } },
+        where: { name: { contains: q, mode: 'insensitive' }, AND: [visClientWhere(vis)] },
         select: { id: true, name: true, industry: true },
         take: 6
       })
@@ -82,11 +83,12 @@ export async function GET(req: NextRequest) {
   const q = (searchParams.get('q') || '').trim()
   if (q.length < 3) return NextResponse.json({ groups: [] })
 
+  const vis = await getVisibility(session)
   const groups = await Promise.all(
     ENTITIES.map(async (entity) => ({
       type: entity.type,
       label: entity.label,
-      items: (await entity.search(q)).map((item) => ({ ...item, href: entity.href(item.id) }))
+      items: (await entity.search(q, vis)).map((item) => ({ ...item, href: entity.href(item.id) }))
     }))
   )
 

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { getVisibility, canSeeTask } from '@/lib/visibility'
 import { logActivity } from '@/lib/activityLog'
 
 // Chiamato quando l'utente conferma "Sì, chiudi anche il task padre"
@@ -17,7 +18,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     where: { id: params.id },
     include: { subtasks: true }
   })
-  if (!task) return NextResponse.json({ error: 'Task non trovato' }, { status: 404 })
+  if (!task || !(await canSeeTask(await getVisibility(session), params.id))) return NextResponse.json({ error: 'Task non trovato' }, { status: 404 })
 
   const allCompleted = task.subtasks.length > 0 && task.subtasks.every((s) => s.status === 'completato')
   if (!allCompleted) {

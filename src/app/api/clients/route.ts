@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { getVisibility, clientWhere as visClientWhere, taskWhere as visTaskWhere } from '@/lib/visibility'
 import { canCreate } from '@/lib/permissions'
 import { deriveTaskStatus } from '@/lib/taskStatus'
 import { logActivity } from '@/lib/activityLog'
@@ -44,12 +45,15 @@ export async function GET() {
   const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
 
+  const vis = await getVisibility(session)
   const clients = await prisma.client.findMany({
+    where: visClientWhere(vis),
     include: {
       projects: { select: { id: true, name: true } },
       owner: true,
       createdBy: true,
-      tasks: { select: { closedManually: true, statusOverride: true, subtasks: { select: { status: true } } } }
+      // i totali contano solo i task che la persona puo' vedere
+      tasks: { where: visTaskWhere(vis), select: { closedManually: true, statusOverride: true, subtasks: { select: { status: true } } } }
     },
     orderBy: { name: 'asc' }
   })

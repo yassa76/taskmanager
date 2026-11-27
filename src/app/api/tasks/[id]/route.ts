@@ -2,13 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { getVisibility, canSeeTask, type Visibility, canSeeSubtask } from '@/lib/visibility'
 import { deriveTaskStatus } from '@/lib/taskStatus'
 import { canEditRecord, canDeleteRecord } from '@/lib/permissions'
 import { logActivity } from '@/lib/activityLog'
 import { notifyUser, actorName, assignedMessage, deadlineChangedMessage } from '@/lib/notify'
 import type { TaskDTO } from '@/types'
 
-function toTaskDTO(task: any): TaskDTO {
+function toTaskDTO(task: any, vis?: Visibility): TaskDTO {
   const derived = deriveTaskStatus(
     task.subtasks.map((s: any) => s.status),
     task.closedManually,
@@ -31,7 +32,7 @@ function toTaskDTO(task: any): TaskDTO {
     status: derived.status,
     pendingClosure: derived.pendingClosure,
     progress: derived.progress,
-    subtasks: task.subtasks.map((s: any) => ({
+    subtasks: task.subtasks.filter((s: any) => !vis || canSeeSubtask(vis, s, task.ownerId)).map((s: any) => ({
       id: s.id,
       title: s.title,
       description: s.description,
@@ -57,6 +58,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
 
+  const vis = await getVisibility(session)
   const task = await prisma.task.findUnique({
     where: { id: params.id },
     include: {
@@ -67,9 +69,9 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
       subtasks: { include: { owner: true, createdBy: true }, orderBy: { createdAt: 'asc' } }
     }
   })
-  if (!task) return NextResponse.json({ error: 'Task non trovato' }, { status: 404 })
+  if (!task || !(await canSeeTask(vis, params.id))) return NextResponse.json({ error: 'Task non trovato' }, { status: 404 })
 
-  return NextResponse.json(toTaskDTO(task))
+  return NextResponse.json(toTaskDTO(task, vis))
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
@@ -77,7 +79,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
 
   const existing = await prisma.task.findUnique({ where: { id: params.id }, include: { owner: true } })
-  if (!existing) return NextResponse.json({ error: 'Task non trovato' }, { status: 404 })
+  if (!existing || !(await canSeeTask(await getVisibility(session), params.id))) return NextResponse.json({ error: 'Task non trovato' }, { status: 404 })
   if (!canEditRecord(session, existing.ownerId)) {
     return NextResponse.json({ error: 'Non hai i permessi per modificare questo task' }, { status: 403 })
   }
@@ -169,7 +171,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
   if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
 
   const existing = await prisma.task.findUnique({ where: { id: params.id }, include: { _count: { select: { subtasks: true } } } })
-  if (!existing) return NextResponse.json({ error: 'Task non trovato' }, { status: 404 })
+  if (!existing || !(await canSeeTask(await getVisibility(session), params.id))) return NextResponse.json({ error: 'Task non trovato' }, { status: 404 })
   if (!canDeleteRecord(session, existing.ownerId)) {
     return NextResponse.json({ error: 'Non hai i permessi per eliminare questo task' }, { status: 403 })
   }

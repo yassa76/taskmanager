@@ -5,6 +5,7 @@ import { prisma } from './prisma'
 import { runCleanupIfDue } from './retention'
 import { getRolePermissions } from './rolePermissions'
 import { ensureAdminExists } from './admins'
+import { getVisibility, canSeeTeam } from './visibility'
 import { notifyAdminsAccessRequest } from './notify'
 
 // La ricerca "utente esistente per email" della libreria di autenticazione è
@@ -72,6 +73,8 @@ export const authOptions: NextAuthOptions = {
         const roleKey = (user as any).role ?? 'normal'
         ;(session.user as any).role = roleKey
         ;(session.user as any).permissions = await getRolePermissions(roleKey)
+        // se la persona vede anche record di altri: serve per mostrare l'interruttore "I miei / Tutto il team"
+        ;(session.user as any).canSeeTeam = canSeeTeam(await getVisibility({ user: { id: user.id, role: roleKey } }))
         ;(session.user as any).themeColor = (user as any).themeColor ?? 'blue'
         ;(session.user as any).firstName = (user as any).firstName ?? null
         ;(session.user as any).lastName = (user as any).lastName ?? null

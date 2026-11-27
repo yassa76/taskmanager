@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { deriveTaskStatus } from '@/lib/taskStatus'
-import { isAdmin } from '@/lib/permissions'
+import { getVisibility, canSeeTeam, teamOwnerWhere } from '@/lib/visibility'
 
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions)
@@ -13,7 +13,8 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   // "Tutto il team" e' selezionabile solo dagli admin: verificato lato server,
   // un utente normale vede sempre e solo i propri dati anche se forzasse il parametro.
-  const teamScope = searchParams.get('scope') === 'team' && isAdmin(session)
+  const vis = await getVisibility(session)
+  const teamScope = searchParams.get('scope') === 'team' && canSeeTeam(vis)
 
   // Filtro temporale: se presente, considera solo i record creati da quella data in poi.
   const sinceParam = searchParams.get('since')
@@ -23,11 +24,11 @@ export async function GET(req: NextRequest) {
   const includeClosed = searchParams.get('includeClosed') === 'true'
 
   const taskWhere = {
-    ...(teamScope ? {} : { ownerId: userId }),
+    ...(teamScope ? teamOwnerWhere(vis) : { ownerId: userId }),
     ...(since ? { createdAt: { gte: since } } : {})
   }
   const subtaskWhere = {
-    ...(teamScope ? {} : { ownerId: userId }),
+    ...(teamScope ? teamOwnerWhere(vis) : { ownerId: userId }),
     ...(since ? { createdAt: { gte: since } } : {})
   }
 

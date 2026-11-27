@@ -83,7 +83,8 @@ function KpiCard({
 
 export default function HomeView({ userName }: { userName: string }) {
   const { data: session } = useSession()
-  const isAdmin = (session?.user as any)?.role === 'admin'
+  // l'interruttore "I miei / Tutto il team" compare a chi, per profilo e ruolo, vede anche i record di altri
+  const isAdmin = !!(session?.user as any)?.canSeeTeam
 
   const [data, setData] = useState<HomeData | null>(null)
   const [loading, setLoading] = useState(true)

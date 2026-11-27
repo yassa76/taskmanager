@@ -12,6 +12,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-11-27-visibilita-per-ruolo',
+    date: '2026-11-27',
+    title: 'Visibilità dei record in base al ruolo',
+    description:
+      'Ora il ruolo di ogni persona decide cosa vede: solo i propri task, i propri e quelli dei ruoli sottostanti, oppure tutti; e i clienti tutti o solo quelli collegati. Vale per liste, dettagli, Home, Report, ricerca, commenti e attività. Chi non ha un ruolo e il profilo Admin vedono tutto, come prima.',
+    tag: 'novità'
+  },
+  {
     id: '2026-11-27-ruoli-gerarchia',
     date: '2026-11-27',
     title: 'Ruoli ad albero per la visibilità',

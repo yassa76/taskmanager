@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { getVisibility, taskWhere as visTaskWhere, subtaskWhere as visSubtaskWhere } from '@/lib/visibility'
 import { countActiveSubtasks, deriveTaskStatus } from '@/lib/taskStatus'
 
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
@@ -11,14 +12,15 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   const owner = await prisma.user.findUnique({ where: { id: params.id } })
   if (!owner) return NextResponse.json({ error: 'Persona non trovata' }, { status: 404 })
 
+  const vis = await getVisibility(session)
   const [tasks, subtasks] = await Promise.all([
     prisma.task.findMany({
-      where: { ownerId: params.id },
+      where: { ownerId: params.id, AND: [visTaskWhere(vis)] },
       include: { client: true, subtasks: true },
       orderBy: { updatedAt: 'desc' }
     }),
     prisma.subtask.findMany({
-      where: { ownerId: params.id },
+      where: { ownerId: params.id, AND: [visSubtaskWhere(vis)] },
       include: { task: { include: { client: true } } },
       orderBy: { updatedAt: 'desc' }
     })

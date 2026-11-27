@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { getVisibility, canSeeTask, canSeeSubtaskById, canSeeClient } from '@/lib/visibility'
 
 const ACTION_LABELS: Record<string, string> = {
   creato: 'Creato',
@@ -19,6 +20,19 @@ export async function GET(req: NextRequest) {
   const entityId = searchParams.get('entityId')
   if (!entityType || !entityId) {
     return NextResponse.json({ error: 'entityType e entityId sono obbligatori' }, { status: 400 })
+  }
+
+  {
+    const vis = await getVisibility(session)
+    const visible =
+      entityType === 'task'
+        ? await canSeeTask(vis, entityId)
+        : entityType === 'subtask'
+          ? await canSeeSubtaskById(vis, entityId)
+          : entityType === 'client'
+            ? await canSeeClient(vis, entityId)
+            : true
+    if (!visible) return NextResponse.json({ error: 'Non trovato' }, { status: 404 })
   }
 
   const logs = await prisma.activityLog.findMany({
