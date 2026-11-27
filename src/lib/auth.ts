@@ -5,6 +5,7 @@ import { prisma } from './prisma'
 import { runCleanupIfDue } from './retention'
 import { getRolePermissions } from './rolePermissions'
 import { ensureAdminExists } from './admins'
+import { newUserDefaults } from './defaults'
 import { getVisibility, canSeeTeam } from './visibility'
 import { notifyAdminsAccessRequest } from './notify'
 
@@ -126,6 +127,10 @@ export const authOptions: NextAuthOptions = {
       const userCount = await prisma.user.count()
       if (userCount === 1) {
         await prisma.user.update({ where: { id: user.id }, data: { role: 'admin' } })
+      } else {
+        // gli altri partono con il profilo e il ruolo predefiniti scelti in Admin
+        const d = await newUserDefaults()
+        await prisma.user.update({ where: { id: user.id }, data: { role: d.role, orgRoleId: d.orgRoleId } })
       }
     },
 

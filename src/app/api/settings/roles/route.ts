@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { can } from '@/lib/permissions'
 import { clearRoleCache } from '@/lib/rolePermissions'
+import { getDefaultProfileKey, setDefaultProfileKey } from '@/lib/defaults'
 import {
   permissionsFor,
   sanitizePermissions,
@@ -29,6 +30,7 @@ export async function GET(req: NextRequest) {
     ...rows.filter((r) => !systemKeys.includes(r.key))
   ] as any[]
 
+  const defaultKey = await getDefaultProfileKey()
   const counts = full ? await prisma.user.groupBy({ by: ['role'], _count: { _all: true } }) : []
   const countOf = (key: string) => counts.find((c) => c.role === key)?._count._all ?? 0
 
@@ -39,6 +41,7 @@ export async function GET(req: NextRequest) {
         key: r.key as string,
         name: (r.name as string) || SYSTEM_ROLE_NAMES[r.key] || r.key,
         isSystem,
+        isDefault: r.key === defaultKey,
         description: (r.description as string | null | undefined) ?? SYSTEM_ROLE_DESCRIPTIONS[r.key] ?? null
       }
       if (!full) return base
@@ -117,6 +120,14 @@ export async function PATCH(req: NextRequest) {
   }
   if (!row) return NextResponse.json({ error: 'Profilo non trovato' }, { status: 404 })
 
+  if (typeof body.isDefault === 'boolean') {
+    if (body.isDefault && key === 'admin') {
+      return NextResponse.json({ error: 'Il profilo Admin non può essere quello predefinito per i nuovi utenti' }, { status: 400 })
+    }
+    if (body.isDefault) await setDefaultProfileKey(key)
+    else if ((await getDefaultProfileKey()) === key) await setDefaultProfileKey(null)
+  }
+
   const data: Record<string, unknown> = {}
   if (typeof body.name === 'string') {
     const name = body.name.trim().slice(0, 40)
@@ -142,6 +153,9 @@ export async function DELETE(req: NextRequest) {
   const row = await prisma.role.findUnique({ where: { key: String(body.key || '') } })
   if (!row) return NextResponse.json({ error: 'Profilo non trovato' }, { status: 404 })
   if (row.isSystem) return NextResponse.json({ error: 'I profili di sistema non si eliminano' }, { status: 400 })
+  if ((await getDefaultProfileKey()) === row.key) {
+    return NextResponse.json({ error: 'È il profilo predefinito dei nuovi utenti: sceglierne un altro prima di eliminarlo' }, { status: 409 })
+  }
   const users = await prisma.user.count({ where: { role: row.key } })
   if (users > 0) {
     return NextResponse.json(

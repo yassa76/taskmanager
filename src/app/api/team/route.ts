@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import type { TeamMemberDTO } from '@/types'
 import { can } from '@/lib/permissions'
+import { newUserDefaults } from '@/lib/defaults'
 
 export async function GET() {
   const session = await getServerSession(authOptions)
@@ -61,6 +62,7 @@ export async function POST(req: NextRequest) {
 
   const fullName = [firstName, lastName].filter(Boolean).join(' ')
 
+  const defaults = await newUserDefaults()
   const placeholderUser = await prisma.user.upsert({
     where: { email },
     update: { firstName, lastName: lastName || null, name: fullName, teamMemberId: member.id },
@@ -69,7 +71,8 @@ export async function POST(req: NextRequest) {
       firstName,
       lastName: lastName || null,
       name: fullName,
-      role: 'normal',
+      role: defaults.role,
+      orgRoleId: defaults.orgRoleId,
       teamMemberId: member.id
     }
   })

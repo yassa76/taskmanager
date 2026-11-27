@@ -22,6 +22,7 @@ interface RoleFull {
   name: string
   description: string | null
   isSystem: boolean
+  isDefault: boolean
   permissions: PermissionMap
   users: number
 }
@@ -177,6 +178,7 @@ export default function RolesSettings() {
                 <span className="truncate">
                   {r.name}
                   {r.isSystem && <span className="ml-1.5 text-[10px] uppercase text-slate-400">di sistema</span>}
+                  {r.isDefault && <span className="ml-1.5 text-[10px] uppercase text-brand-600">predefinito</span>}
                 </span>
                 <span className="text-xs text-slate-400 shrink-0">{r.users}</span>
               </button>
@@ -333,6 +335,18 @@ export default function RolesSettings() {
             ))}
           </div>
 
+          <label className="flex items-center gap-2 text-sm text-slate-700 mt-4" title={locked ? 'Il profilo Admin non può essere predefinito' : undefined}>
+            <input
+              type="checkbox"
+              className="h-4 w-4 accent-brand-600"
+              checked={sel.isDefault}
+              disabled={locked}
+              onChange={async (e) => {
+                if (await call('PATCH', { key: sel.key, isDefault: e.target.checked })) await load()
+              }}
+            />
+            Predefinito per i nuovi utenti
+          </label>
           {locked && <p className="text-xs text-slate-500 mt-3">Il profilo Admin ha sempre tutti i permessi: puoi cambiarne solo il nome e la descrizione.</p>}
           {error && <p className="text-sm text-red-600 mt-3">{error}</p>}
 
