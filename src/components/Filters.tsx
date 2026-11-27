@@ -1,5 +1,6 @@
 'use client'
 
+import { CheckboxIcon } from './icons'
 import { filterSelectClass } from '@/lib/ui'
 import clsx from 'clsx'
 import type { ClientDTO } from '@/types'
@@ -81,7 +82,7 @@ export default function Filters({
             : 'border-slate-200 text-slate-500 hover:bg-slate-50'
         )}
       >
-        {filters.includeClosed ? '☑' : '☐'} Mostra completati/annullati
+        <CheckboxIcon checked={filters.includeClosed} /> Mostra completati/annullati
       </button>
 
       <input

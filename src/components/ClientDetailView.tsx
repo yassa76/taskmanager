@@ -1,5 +1,6 @@
 'use client'
 
+import { CheckboxIcon } from './icons'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import clsx from 'clsx'
@@ -388,7 +389,7 @@ export default function ClientDetailView({ clientId }: { clientId: string }) {
                 : 'border-slate-200 text-slate-500 hover:bg-slate-50'
             )}
           >
-            {includeClosed ? '☑' : '☐'} Mostra completati/annullati
+            <CheckboxIcon checked={includeClosed} /> Mostra completati/annullati
           </button>
           <input
             value={search}

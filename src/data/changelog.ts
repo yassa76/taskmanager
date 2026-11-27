@@ -12,6 +12,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-11-27-frecce-icone',
+    date: '2026-11-27',
+    title: 'Frecce e caselle sempre visibili',
+    description:
+      'Nei menu a tendina con ricerca (owner, cliente...) la freccia non compare più come un quadratino bianco su alcuni dispositivi. Stesso fix per le frecce di ordinamento delle tabelle e per le caselle "Mostra completati/annullati".',
+    tag: 'correzione'
+  },
+  {
     id: '2026-11-27-account-sottoviste',
     date: '2026-11-27',
     title: 'Stessa struttura in tutta l\'app',

@@ -1,5 +1,6 @@
 'use client'
 
+import { CheckboxIcon } from './icons'
 import { filterSelectClass } from '@/lib/ui'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
@@ -280,7 +281,7 @@ export default function SubtasksView() {
             filters.includeClosed ? 'bg-slate-100 border-slate-300 text-slate-700' : 'border-slate-200 text-slate-500 hover:bg-slate-50'
           )}
         >
-          {filters.includeClosed ? '☑' : '☐'} Mostra completati/annullati
+          <CheckboxIcon checked={filters.includeClosed} /> Mostra completati/annullati
         </button>
         <input
           value={filters.search}

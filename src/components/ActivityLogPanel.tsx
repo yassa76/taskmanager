@@ -47,7 +47,7 @@ export default function ActivityLogPanel({
         <h2 className="font-semibold text-slate-800">
           Cronologia modifiche {logs && logs.length > 0 && <span className="text-slate-400 font-normal">({logs.length})</span>}
         </h2>
-        <span className="text-slate-400 text-xs">{open ? '▲ Nascondi' : '▼ Mostra'}</span>
+        <span className="text-slate-400 text-xs">{open ? 'Nascondi' : 'Mostra'}</span>
       </button>
 
       {open && (

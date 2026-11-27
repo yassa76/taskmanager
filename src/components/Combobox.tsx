@@ -1,5 +1,6 @@
 'use client'
 
+import { ChevronDownIcon } from './icons'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import clsx from 'clsx'
 
@@ -95,7 +96,7 @@ export default function Combobox({
         <span className={clsx('truncate', !selected && 'text-slate-500')}>
           {selected ? selected.label : emptyLabel || 'Seleziona...'}
         </span>
-        <span className="text-slate-400 shrink-0 text-xs">▾</span>
+        <ChevronDownIcon className="w-3.5 h-3.5 text-slate-400 shrink-0" />
       </button>
       {open && (
         <div className="absolute z-30 mt-1 w-full min-w-[200px] bg-white border border-slate-200 rounded-lg shadow-lg overflow-hidden">

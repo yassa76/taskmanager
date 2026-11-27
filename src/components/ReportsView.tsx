@@ -1,5 +1,6 @@
 'use client'
 
+import { CheckboxIcon } from './icons'
 import { filterSelectClass } from '@/lib/ui'
 import PageBar, { BTN } from './PageBar'
 import { useEffect, useState, useCallback } from 'react'
@@ -218,7 +219,7 @@ export default function ReportsView() {
               : 'border-slate-200 text-slate-500 hover:bg-slate-50'
           )}
         >
-          {includeClosed ? '☑' : '☐'} Mostra completati/annullati nei grafici
+          <CheckboxIcon checked={includeClosed} /> Mostra completati/annullati nei grafici
         </button>
       </div>
 

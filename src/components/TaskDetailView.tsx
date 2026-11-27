@@ -1,5 +1,6 @@
 'use client'
 
+import { CheckboxIcon } from './icons'
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -497,7 +498,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
                 : 'border-slate-200 text-slate-500 hover:bg-slate-50'
             )}
           >
-            {subIncludeClosed ? '☑' : '☐'} Mostra completati/annullati
+            <CheckboxIcon checked={subIncludeClosed} /> Mostra completati/annullati
           </button>
           <input
             value={subSearch}
