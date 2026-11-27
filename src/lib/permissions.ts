@@ -46,7 +46,12 @@ export function canDeleteRecord(session: any, ownerId: string | null | undefined
   return allowedOn(scopeOf(session, obj, 'delete'), !!ownerId && ownerId === getUserId(session))
 }
 
-// True se l'utente puo' gestire la sezione Team e l'Admin (invitare, ruoli, impostazioni): solo il ruolo admin
+// True se l'utente puo' gestire una parte amministrativa (team, impostazioni Admin, profili) secondo il suo profilo
+export function canManage(session: any, obj: 'team' | 'settings' | 'profiles'): boolean {
+  return scopeOf(session, obj, 'manage') !== 'none'
+}
+
+// True solo per il profilo Admin di sistema (usato dove serve una visione completa del team, in attesa della visibilita' per ruolo)
 export function isAdmin(session: any): boolean {
   return getRole(session) === 'admin'
 }

@@ -23,7 +23,7 @@ interface RoleFull {
   users: number
 }
 
-const ACTIONS: ActionKey[] = ['create', 'update', 'delete']
+const ACTIONS: ActionKey[] = ['create', 'update', 'delete', 'manage']
 
 export default function RolesSettings() {
   const [roles, setRoles] = useState<RoleFull[]>([])
@@ -44,7 +44,7 @@ export default function RolesSettings() {
     const r = await fetch('/api/settings/roles?full=1')
     const d = await r.json().catch(() => ({}))
     if (!r.ok) {
-      setError(d.error || 'Errore nel caricare i ruoli')
+      setError(d.error || 'Errore nel caricare i profili')
       setLoading(false)
       return
     }
@@ -58,7 +58,7 @@ export default function RolesSettings() {
 
   const sel = roles.find((r) => r.key === selKey) ?? roles[0]
 
-  // quando cambia il ruolo scelto (o si ricarica) si riparte dai suoi dati
+  // quando cambia il profilo scelto (o si ricarica) si riparte dai suoi dati
   useEffect(() => {
     if (!sel) return
     setName(sel.name)
@@ -95,7 +95,7 @@ export default function RolesSettings() {
     setSaving(true)
     const ok = await call('PATCH', {
       key: sel.key,
-      ...(sel.isSystem ? {} : { name }),
+      name,
       description,
       permissions: perms
     })
@@ -124,7 +124,7 @@ export default function RolesSettings() {
 
   async function remove() {
     if (!sel || sel.isSystem) return
-    if (!confirm(`Eliminare il ruolo "${sel.name}"?`)) return
+    if (!confirm(`Eliminare il profilo "${sel.name}"?`)) return
     if (await call('DELETE', { key: sel.key })) {
       setSelKey('normal')
       await load()
@@ -162,7 +162,7 @@ export default function RolesSettings() {
               autoFocus
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
-              placeholder="Nome del ruolo"
+              placeholder="Nome del profilo"
               maxLength={40}
               className="w-full border border-slate-300 rounded-lg px-2 py-1.5"
             />
@@ -191,7 +191,7 @@ export default function RolesSettings() {
           </div>
         ) : (
           <button onClick={() => setCreating(true)} className="mt-3 text-sm text-brand-600 hover:underline px-3">
-            + Nuovo ruolo
+            + Nuovo profilo
           </button>
         )}
       </div>
@@ -203,34 +203,31 @@ export default function RolesSettings() {
               Nome
               <input
                 value={name}
-                disabled={sel.isSystem}
                 onChange={(e) => {
                   setName(e.target.value)
                   setDirty(true)
                 }}
                 maxLength={40}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1 text-sm text-slate-800 disabled:bg-slate-50 disabled:text-slate-400"
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1 text-sm text-slate-800"
               />
             </label>
             <label className="text-xs font-medium text-slate-500">
               Descrizione
               <input
                 value={description}
-                disabled={locked}
                 onChange={(e) => {
                   setDescription(e.target.value)
                   setDirty(true)
                 }}
                 maxLength={200}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1 text-sm text-slate-800 disabled:bg-slate-50 disabled:text-slate-400"
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 mt-1 text-sm text-slate-800"
               />
             </label>
           </div>
 
           <h3 className="text-sm font-semibold text-slate-700 mb-1">Cosa può fare sugli oggetti</h3>
           <p className="text-xs text-slate-500 mb-3">
-            La lettura è per ora aperta a tutti: chi può vedere cosa si deciderà con la visibilità. L&apos;accesso a Team e Admin
-            resta riservato al ruolo Admin.
+            "Gestire" riguarda le parti amministrative: Team, impostazioni Admin, profili. La lettura è per ora aperta a tutti: chi vede cosa si deciderà con i ruoli.
           </p>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -280,11 +277,11 @@ export default function RolesSettings() {
             </table>
           </div>
 
-          {locked && <p className="text-xs text-slate-500 mt-3">Il ruolo Admin ha sempre tutti i permessi e non si modifica.</p>}
+          {locked && <p className="text-xs text-slate-500 mt-3">Il profilo Admin ha sempre tutti i permessi: puoi cambiarne solo il nome e la descrizione.</p>}
           {error && <p className="text-sm text-red-600 mt-3">{error}</p>}
 
           <div className="flex items-center gap-3 mt-4">
-            {!locked && (
+            {(
               <button
                 onClick={save}
                 disabled={!dirty || saving}
@@ -296,12 +293,12 @@ export default function RolesSettings() {
             {saved && <span className="text-sm text-emerald-600">Salvato ✓</span>}
             {!sel.isSystem && (
               <button onClick={remove} className="ml-auto text-sm text-red-600 hover:underline">
-                Elimina ruolo
+                Elimina profilo
               </button>
             )}
           </div>
           <p className="text-xs text-slate-400 mt-3">
-            {sel.users} {sel.users === 1 ? 'persona ha' : 'persone hanno'} questo ruolo. Il ruolo di una persona si cambia da Team.
+            {sel.users} {sel.users === 1 ? 'persona ha' : 'persone hanno'} questo profilo. Il profilo di una persona si cambia da Team.
           </p>
         </div>
       )}

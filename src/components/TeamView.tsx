@@ -9,6 +9,7 @@ import Breadcrumbs from './Breadcrumbs'
 import DataTable, { type Column } from './DataTable'
 import { EditIcon, DeleteIcon } from './icons'
 import { useRoles } from '@/lib/useRoles'
+import { scopeIn } from '@/lib/permissionsShared'
 
 const CUSTOM_ROLE_COLOR = 'bg-teal-100 text-teal-800'
 const ROLE_COLORS: Record<string, string> = {
@@ -37,7 +38,7 @@ const STATUS_COLORS: Record<string, string> = {
 
 export default function TeamView() {
   const { data: session } = useSession()
-  const isAdmin = (session?.user as any)?.role === 'admin'
+  const isAdmin = scopeIn((session?.user as any)?.permissions, 'team', 'manage') !== 'none'
 
   const [members, setMembers] = useState<TeamMemberDTO[]>([])
   const [firstName, setFirstName] = useState('')
@@ -224,12 +225,12 @@ export default function TeamView() {
           <Link
             href={`/owners/${m.matchedUser.id}`}
             className="px-2 py-1 rounded-full text-xs font-medium bg-brand-50 text-brand-700 hover:bg-brand-100 transition"
-            title="Campo condiviso con il profilo personale dell'utente — clicca per vedere i suoi task"
+            title="Campo condiviso con l'account personale dell'utente — clicca per vedere i suoi task"
           >
             {m.matchedUser.name || '—'}
           </Link>
         ) : (
-          <span className="px-2 py-1 rounded-full text-xs font-medium bg-brand-50 text-brand-700" title="Campo condiviso con il profilo personale dell'utente">
+          <span className="px-2 py-1 rounded-full text-xs font-medium bg-brand-50 text-brand-700" title="Campo condiviso con l'account personale dell'utente">
             —
           </span>
         )
@@ -248,7 +249,7 @@ export default function TeamView() {
     {
       id: 'role',
       exportValue: (r) => labelOf(r.matchedUser?.role || 'normal'),
-      label: 'Ruolo',
+      label: 'Profilo',
       sortKey: 'role',
       render: (m) => (
         <span className={clsx('px-2 py-1 rounded-full text-xs font-medium', (ROLE_COLORS[m.matchedUser?.role || 'normal'] ?? CUSTOM_ROLE_COLOR))}>
@@ -415,7 +416,7 @@ export default function TeamView() {
           <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full max-w-md max-h-[92vh] overflow-y-auto p-4 sm:p-6 shadow-2xl">
             <h2 className="text-lg font-bold text-slate-800 mb-1">Modifica membro del team</h2>
             <p className="text-xs text-slate-400 mb-4">
-              Nome e cognome sono gli stessi campi visibili nel profilo personale dell&apos;utente.
+              Nome e cognome sono gli stessi campi visibili nell&apos;account personale dell&apos;utente.
             </p>
             <div className="space-y-3">
               <div className="bg-brand-50 border border-brand-100 rounded-lg p-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -446,7 +447,7 @@ export default function TeamView() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-medium text-slate-500">Ruolo</label>
+                  <label className="text-xs font-medium text-slate-500">Profilo</label>
                   <select
                     value={editRole}
                     onChange={(e) => setEditRole(e.target.value)}

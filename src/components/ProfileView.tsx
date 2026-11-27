@@ -164,8 +164,8 @@ export default function ProfileView() {
 
   return (
     <div>
-      <Breadcrumbs items={[{ label: 'Profilo' }]} />
-      <h1 className="text-xl font-bold text-slate-800 mb-4">Il tuo profilo</h1>
+      <Breadcrumbs items={[{ label: 'Il mio account' }]} />
+      <h1 className="text-xl font-bold text-slate-800 mb-4">Il mio account</h1>
 
       <div className="flex gap-1 border-b border-slate-200 mb-5">
         {TABS.map((t) => (

@@ -1,5 +1,6 @@
 'use client'
 
+import { scopeIn } from '@/lib/permissionsShared'
 import ChangelogLink from './ChangelogLink'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
@@ -22,7 +23,9 @@ export default function NavBar() {
   const pathname = usePathname()
   const { data: session } = useSession()
   const [menuOpen, setMenuOpen] = useState(false)
-  const isAdmin = (session?.user as any)?.role === 'admin'
+  const perms = (session?.user as any)?.permissions
+  // la voce Admin compare a chi puo' gestire le impostazioni o i profili
+  const isAdmin = scopeIn(perms, 'settings', 'manage') !== 'none' || scopeIn(perms, 'profiles', 'manage') !== 'none'
   const visibleLinks = isAdmin ? [...links, { href: '/settings', label: 'Admin' }] : links
 
   // il menu si chiude quando si cambia pagina

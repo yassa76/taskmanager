@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: 'Non autenticato' }, { status: 401 })
 
-  if (!canCreate(session, 'comment')) return NextResponse.json({ error: 'Il tuo ruolo non può commentare' }, { status: 403 })
+  if (!canCreate(session, 'comment')) return NextResponse.json({ error: 'Il tuo profilo non può commentare' }, { status: 403 })
 
   const body = await req.json().catch(() => ({}))
   const { entityType, entityId } = body

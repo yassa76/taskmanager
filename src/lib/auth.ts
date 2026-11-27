@@ -4,6 +4,7 @@ import GoogleProvider from 'next-auth/providers/google'
 import { prisma } from './prisma'
 import { runCleanupIfDue } from './retention'
 import { getRolePermissions } from './rolePermissions'
+import { ensureAdminExists } from './admins'
 import { notifyAdminsAccessRequest } from './notify'
 
 // La ricerca "utente esistente per email" della libreria di autenticazione è
@@ -43,6 +44,7 @@ export const authOptions: NextAuthOptions = {
     //   ("In attesa") e gli admin vengono avvisati. Solo il primissimo utente entra subito (diventa admin).
     // - "In attesa" / "Rifiutato": bloccato finche' un admin non cambia lo stato.
     async signIn({ user }) {
+      await ensureAdminExists().catch(() => {})
       if (!user.email) return true
       const email = user.email
       const dbUser = await prisma.user.findFirst({

@@ -12,11 +12,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
-    id: '2026-11-27-ruoli-permessi',
+    id: '2026-11-27-profili-e-account',
     date: '2026-11-27',
-    title: 'Ruoli personalizzati e permessi',
+    title: 'Profili modificabili, permessi anche per Team e Admin',
     description:
-      'Nell\'area Admin c\'è il nuovo tab Ruoli e permessi: puoi creare ruoli e scegliere, per task, sub-task, clienti, commenti e notifiche, chi può creare, modificare ed eliminare (nessuno, solo i propri o tutti). Il ruolo si assegna da Team.',
+      'I permessi si assegnano con i Profili: nome e descrizione sono modificabili, e ora si decide anche chi può gestire il Team, le impostazioni Admin e i profili stessi. Deve sempre restare almeno un amministratore attivo. La tua pagina personale si chiama ora Il mio account.',
+    tag: 'novità'
+  },
+  {
+    id: '2026-11-27-profili-permessi',
+    date: '2026-11-27',
+    title: 'Profili personalizzati e permessi',
+    description:
+      'Nell\'area Admin c\'è il nuovo tab Profili e permessi: puoi creare profili e scegliere, per task, sub-task, clienti, commenti e notifiche, chi può creare, modificare ed eliminare (nessuno, solo i propri o tutti). Il profilo si assegna da Team.',
     tag: 'novità'
   },
   {
