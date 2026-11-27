@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import clsx from 'clsx'
 import { useRouter, useSearchParams } from 'next/navigation'
-import Breadcrumbs from './Breadcrumbs'
 import NotificationsView from './NotificationsView'
 
 const THEMES: { key: string; label: string; swatch: string }[] = [
@@ -164,8 +163,7 @@ export default function ProfileView() {
 
   return (
     <div>
-      <Breadcrumbs items={[{ label: 'Il mio account' }]} />
-      <h1 className="text-xl font-bold text-slate-800 mb-4">Il mio account</h1>
+      <h1 className="text-lg font-semibold text-slate-800 mb-3">Il mio account</h1>
 
       <div className="flex gap-1 border-b border-slate-200 mb-5">
         {TABS.map((t) => (

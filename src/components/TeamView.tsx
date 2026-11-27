@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import clsx from 'clsx'
 import type { TeamMemberDTO } from '@/types'
-import Breadcrumbs from './Breadcrumbs'
 import DataTable, { type Column } from './DataTable'
 import { EditIcon, DeleteIcon } from './icons'
 import { useRoles } from '@/lib/useRoles'
@@ -330,9 +329,8 @@ export default function TeamView() {
 
   return (
     <div>
-      <Breadcrumbs items={[{ label: 'Team' }]} />
       <div className="flex items-center justify-between mb-1">
-        <h1 className="text-xl font-bold text-slate-800">Team</h1>
+        <h1 className="text-lg font-semibold text-slate-800">Team</h1>
         <button
           onClick={load}
           className="px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-medium text-slate-700 hover:bg-slate-100"

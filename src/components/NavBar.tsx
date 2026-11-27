@@ -1,10 +1,11 @@
 'use client'
 
 import { scopeIn } from '@/lib/permissionsShared'
+import { subnavFor } from '@/lib/subnav'
 import ChangelogLink from './ChangelogLink'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { usePathname } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 import { signOut, useSession } from 'next-auth/react'
 import clsx from 'clsx'
 import GlobalSearch from './GlobalSearch'
@@ -21,6 +22,7 @@ const links = [
 
 export default function NavBar() {
   const pathname = usePathname()
+  const searchParams = useSearchParams()
   const { data: session } = useSession()
   const [menuOpen, setMenuOpen] = useState(false)
   const perms = (session?.user as any)?.permissions
@@ -41,6 +43,7 @@ export default function NavBar() {
     return () => window.removeEventListener('open-nav-menu', open)
   }, [])
 
+  const sub = subnavFor(pathname, perms, searchParams?.get('tab') ?? null)
   const firstName = (session?.user as any)?.firstName
   const lastName = (session?.user as any)?.lastName
   const fullName = [firstName, lastName].filter(Boolean).join(' ') || session?.user?.name || session?.user?.email
@@ -106,6 +109,27 @@ export default function NavBar() {
           </button>
         </div>
       </div>
+
+      {sub && (
+        <div className="bg-slate-50 border-t border-slate-200">
+          <nav className="max-w-7xl mx-auto px-4 sm:px-6 flex gap-1 overflow-x-auto" aria-label="Sottovoci">
+            {sub.items.map((i) => (
+              <Link
+                key={i.id}
+                href={i.href}
+                className={clsx(
+                  'px-3 py-2 text-sm whitespace-nowrap border-b-2 -mb-px',
+                  i.id === sub.activeId
+                    ? 'border-brand-600 text-brand-700 font-medium'
+                    : 'border-transparent text-slate-500 hover:text-slate-700'
+                )}
+              >
+                {i.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
+      )}
 
       {menuOpen && (
         <div className="lg:hidden border-t border-slate-200 bg-white px-4 pb-4 pt-3 max-h-[calc(100vh-3.5rem)] overflow-y-auto">

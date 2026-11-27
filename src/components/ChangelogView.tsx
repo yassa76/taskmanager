@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import clsx from 'clsx'
-import Breadcrumbs from './Breadcrumbs'
 import { CHANGELOG, formatChangelogDate, unreadChangelogCount } from '@/data/changelog'
 
 const TAG_COLORS: Record<string, string> = {
@@ -28,8 +27,7 @@ export default function ChangelogView() {
 
   return (
     <div>
-      <Breadcrumbs items={[{ label: 'Novità' }]} />
-      <h1 className="text-xl font-bold text-slate-800 mb-1">Novità</h1>
+      <h1 className="text-lg font-semibold text-slate-800 mb-1">Novità</h1>
       <p className="text-sm text-slate-500 mb-5">Cosa è cambiato nella piattaforma e quando.</p>
 
       <div className="space-y-3">

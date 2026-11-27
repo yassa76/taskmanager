@@ -7,7 +7,6 @@ import { useEffect, useMemo, useState } from 'react'
 import clsx from 'clsx'
 import Link from 'next/link'
 import type { ClientDTO, TeamMemberDTO } from '@/types'
-import Breadcrumbs from './Breadcrumbs'
 import DataTable, { type Column } from './DataTable'
 import { EditIcon, DeleteIcon } from './icons'
 import Combobox from './Combobox'
@@ -412,9 +411,8 @@ export default function ClientsView() {
 
   return (
     <div>
-      <Breadcrumbs items={[{ label: 'Clienti' }]} />
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-bold text-slate-800">Clienti</h1>
+      <div className="flex items-center justify-between mb-3">
+        <h1 className="text-lg font-semibold text-slate-800">Clienti</h1>
         <div className="flex gap-2 items-center">
           <div className="flex bg-slate-100 rounded-lg p-1">
             {(['table', 'map'] as const).map((v) => (

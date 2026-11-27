@@ -13,7 +13,7 @@ export default async function TeamPage() {
   return (
     <div>
       <NavBar />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
         <TeamView />
       </main>
     </div>

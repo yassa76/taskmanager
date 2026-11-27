@@ -11,7 +11,6 @@ import { STATUS_COLORS, STATUS_LABELS, countActiveSubtasks } from '@/lib/taskSta
 import type { TaskDTO, TeamMemberDTO, ClientDTO } from '@/types'
 import TaskFormModal from './TaskFormModal'
 import Filters, { FilterState } from './Filters'
-import Breadcrumbs from './Breadcrumbs'
 import TasksKanban from './TasksKanban'
 import SavedViews from './SavedViews'
 import { isViewScope, type ViewScope } from '@/lib/scopesShared'
@@ -369,9 +368,8 @@ export default function TasksView() {
 
   return (
     <div>
-      <Breadcrumbs items={[{ label: 'Task' }]} />
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-        <h1 className="text-xl font-bold text-slate-800">Task</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+        <h1 className="text-lg font-semibold text-slate-800">Task</h1>
         <div className="flex gap-2 items-center">
           <div className="flex bg-slate-100 rounded-lg p-1">
             {(['table', 'kanban'] as const).map((v) => (
