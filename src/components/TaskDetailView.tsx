@@ -215,6 +215,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
   const subColumns: Column<(typeof task.subtasks)[number]>[] = [
     {
       id: 'title',
+      exportValue: (r) => r.title,
       label: 'Nome',
       primary: true,
       tdClassName: 'max-w-xs',
@@ -229,6 +230,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
     },
     {
       id: 'owner',
+      exportValue: (r) => r.owner.name || r.owner.email,
       label: 'Owner',
       render: (s) => (
         <Link href={`/owners/${s.owner.id}`} className="text-brand-600 hover:underline">
@@ -236,9 +238,11 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
         </Link>
       )
     },
-    { id: 'startDate', label: 'Data inizio', render: (s) => (s.startDate ? formatDate(s.startDate) : '—') },
+    { id: 'startDate',
+      exportValue: (r) => r.startDate ? formatDate(r.startDate) : '', label: 'Data inizio', render: (s) => (s.startDate ? formatDate(s.startDate) : '—') },
     {
       id: 'endDate',
+      exportValue: (r) => r.endDate ? formatDate(r.endDate) : '',
       label: 'Data scadenza',
       render: (s) => {
         const overdue = s.endDate && new Date(s.endDate) < new Date() && s.status !== 'completato' && s.status !== 'annullato'
@@ -247,6 +251,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
     },
     {
       id: 'status',
+      exportValue: (r) => STATUS_LABELS[r.status],
       label: 'Stato',
       render: (s) => (
         <span className={clsx('px-2 py-1 rounded-full text-xs font-medium', STATUS_COLORS[s.status])}>{STATUS_LABELS[s.status]}</span>
@@ -455,6 +460,8 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
         <DataTable
           bare
           tableId="task-subtasks"
+          exportRows={visibleSubtasks}
+          exportName="subtask"
           columns={subColumns}
           rows={pagedSubtasks}
           rowKey={(s) => s.id}

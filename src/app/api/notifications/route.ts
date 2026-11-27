@@ -21,9 +21,11 @@ export async function GET(req: NextRequest) {
   const other = { reason: { not: 'menzione' } }
   const where = { userId, ...(kind === 'menzioni' ? mention : other) }
 
-  const [unreadMentions, unreadOther, total, items] = await Promise.all([
+  const [unreadMentions, unreadOther, totalMentions, totalOther, total, items] = await Promise.all([
     prisma.notification.count({ where: { userId, readAt: null, ...mention } }),
     prisma.notification.count({ where: { userId, readAt: null, ...other } }),
+    prisma.notification.count({ where: { userId, ...mention } }),
+    prisma.notification.count({ where: { userId, ...other } }),
     prisma.notification.count({ where }),
     prisma.notification.findMany({
       where,
@@ -50,6 +52,8 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({
     unreadMentions,
     unreadOther,
+    totalMentions,
+    totalOther,
     total,
     page,
     pageSize,

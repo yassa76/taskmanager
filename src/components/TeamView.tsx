@@ -218,6 +218,7 @@ export default function TeamView() {
   const columns: Column<TeamMemberDTO>[] = [
     {
       id: 'name',
+      exportValue: (r) => r.matchedUser?.name || '',
       label: 'Nome e cognome',
       sortKey: 'name',
       primary: true,
@@ -236,9 +237,11 @@ export default function TeamView() {
           </span>
         )
     },
-    { id: 'email', label: 'Email', sortKey: 'email', render: (m) => <span className="break-all">{m.email}</span> },
+    { id: 'email',
+      exportValue: (r) => r.email, label: 'Email', sortKey: 'email', render: (m) => <span className="break-all">{m.email}</span> },
     {
       id: 'status',
+      exportValue: (r) => STATUS_LABELS[r.status],
       label: 'Stato',
       sortKey: 'status',
       render: (m) => (
@@ -247,6 +250,7 @@ export default function TeamView() {
     },
     {
       id: 'role',
+      exportValue: (r) => ROLE_LABELS[r.matchedUser?.role || 'normal'],
       label: 'Ruolo',
       sortKey: 'role',
       render: (m) => (
@@ -372,6 +376,8 @@ export default function TeamView() {
 
       <DataTable
         tableId="team"
+        exportRows={sortedMembers}
+        exportName="team"
         columns={columns}
         rows={pagedMembers}
         rowKey={(m) => m.id}

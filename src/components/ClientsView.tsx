@@ -325,6 +325,7 @@ export default function ClientsView() {
   const columns: Column<ClientDTO>[] = [
     {
       id: 'name',
+      exportValue: (r) => r.name,
       label: 'Nome',
       sortKey: 'name',
       primary: true,
@@ -336,6 +337,7 @@ export default function ClientsView() {
     },
     {
       id: 'industry',
+      exportValue: (r) => r.industry || '',
       label: 'Industry',
       sortKey: 'industry',
       render: (c) =>
@@ -347,6 +349,7 @@ export default function ClientsView() {
     },
     {
       id: 'status',
+      exportValue: (r) => r.status === 'inattivo' ? 'Inattivo' : 'Attivo',
       label: 'Stato',
       render: (c) => (
         <span
@@ -362,14 +365,18 @@ export default function ClientsView() {
     },
     {
       id: 'country',
+      exportValue: (r) => r.country ? countryLabel(r.country) : '',
       label: 'Country',
       sortKey: 'country',
       render: (c) => (c.country ? countryLabel(c.country) : <span className="text-slate-300">—</span>)
     },
-    { id: 'region', label: 'Regione', sortKey: 'region', render: (c) => clientRegion(c) || <span className="text-slate-300">—</span> },
-    { id: 'city', label: 'Città', render: (c) => c.city || <span className="text-slate-300">—</span> },
+    { id: 'region',
+      exportValue: (r) => clientRegion(r) || '', label: 'Regione', sortKey: 'region', render: (c) => clientRegion(c) || <span className="text-slate-300">—</span> },
+    { id: 'city',
+      exportValue: (r) => r.city || '', label: 'Città', render: (c) => c.city || <span className="text-slate-300">—</span> },
     {
       id: 'activeTasks',
+      exportValue: (r) => r.activeTasksCount,
       label: 'Task attivi',
       render: (c) => <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">{c.activeTasksCount}</span>
     },
@@ -524,6 +531,8 @@ export default function ClientsView() {
       <>
       <DataTable
         tableId="clients"
+        exportRows={sortedClients}
+        exportName="clienti"
         columns={columns}
         rows={pagedClients}
         rowKey={(c) => c.id}
